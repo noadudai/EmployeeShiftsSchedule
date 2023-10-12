@@ -1,9 +1,5 @@
 from enum import Enum
 from typing import List
-
-from Models.Day_model import DayModel
-
-
 #  Priority levels
 class PriorityEnum(Enum):
     HIGHEST = 5
@@ -15,17 +11,17 @@ class PriorityEnum(Enum):
 
 class EmployeeModel:
 
-    def __init__(self, name: str, priority: PriorityEnum, is_new: bool, preferences: List[DayModel]):
+    def __init__(self, name: str, priority, is_new: bool, preferences):
         self.name = name
         self.priority = priority
         self.is_new = is_new
         self.preferences = preferences
 
-    def update_priority(self, new_priority: PriorityEnum):
+    def update_priority(self, new_priority):
         self.priority = new_priority
 
     def update_status(self, status: bool):
         self.is_new = status
 
-    def update_preferences(self, new_preferences: List[DayModel]):
+    def update_preferences(self, new_preferences):
         self.preferences = new_preferences

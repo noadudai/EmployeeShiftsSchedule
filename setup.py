@@ -8,6 +8,7 @@ setup(name='employee shift schedule',
       url='https://github.com/noadudai/EmployeeShiftsSchedule',
       install_requires=[
             'ortools==9.7.2996',
+            'pandas==2.0.3'
       ],
       packages=["employee_shift_schedule"]
       )

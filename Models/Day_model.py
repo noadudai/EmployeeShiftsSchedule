@@ -1,7 +1,4 @@
 from enum import Enum
-from typing import List
-
-from Models.Shifts_model import ShiftsModel
 
 
 class DaysEnum(Enum):
@@ -16,6 +13,6 @@ class DaysEnum(Enum):
 
 class DayModel:
 
-    def __init__(self, day_of_the_week: DaysEnum, shifts: List[ShiftsModel]):
+    def __init__(self, day_of_the_week, shifts):
         self.today_is = day_of_the_week
         self.shifts = shifts

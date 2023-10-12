@@ -5,7 +5,7 @@ from Models.Day_model import DayModel, DaysEnum
 
 def test():
     shift = ShiftsModel("morning")
-    employee = EmployeeModel("noa", PriorityEnum.HIGHEST, False)
+    employee = EmployeeModel("noa", PriorityEnum.HIGHEST, False, [])
 
     assert (shift.employee == None)
 
