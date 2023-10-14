@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from typing import List
 
-from Models.Day_related.Day_model import Day
-from Models.Employee_related.Employee_priority_enum import EmployeePriorityEnum
-from Models.Employee_related.Employee_status_enum import EmployeeStatusEnum
+from models.days.day import Day
+from .employee_priority_enum import EmployeePriorityEnum
+from .employee_status_enum import EmployeeStatusEnum
 
 
 @dataclass

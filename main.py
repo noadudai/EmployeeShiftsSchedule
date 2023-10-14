@@ -1,11 +1,12 @@
-from Models.Employee_model import EmployeeModel, PriorityEnum
-from Models.Shifts_model import ShiftsModel
-from Models.Day_model import DayModel, DaysEnum
+from models.employees.employee import Employee, EmployeePriorityEnum
+from models.employees.employee_status_enum import EmployeeStatusEnum
+from models.shifts.shift import Shift
+from models.days.day import Day, DaysEnum
 
 
 def test():
-    shift = ShiftsModel("morning")
-    employee = EmployeeModel("noa", PriorityEnum.HIGHEST, False, [])
+    shift = Shift("morning")
+    employee = Employee("noa", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, [])
 
     assert (shift.employee == None)
 
@@ -13,7 +14,7 @@ def test():
 
     assert (shift.employee.name == "noa")
 
-    day = DayModel(DaysEnum.SUNDAY, [shift])
+    day = Day(DaysEnum.SUNDAY, [shift])
 
     assert (day.shifts[0].type == "morning")
 
