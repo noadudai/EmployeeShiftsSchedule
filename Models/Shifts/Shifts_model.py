@@ -1,4 +1,4 @@
-class ShiftsModel:
+class Shifts:
 
     def __init__(self, shift_type: str):
         self.type = shift_type
