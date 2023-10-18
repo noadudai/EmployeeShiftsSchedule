@@ -10,6 +10,6 @@ class Shift:
         self.start_date_and_time_of_shift = start_date_and_time_of_shift
         self.end_date_and_time_of_shift = end_date_and_time_of_shift
 
-    # Setting the employee that will work this shift
+    # Setting the employee that will work this shift after the schedule has been created
     def set_employee(self, employee):
         self.employee = employee
