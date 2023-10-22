@@ -4,6 +4,7 @@ from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import CpModel
 
 from .employees.employee import Employee
+from .employees.employee_status_enum import EmployeeStatusEnum
 from .shifts.shift import Shift
 from .shifts.shifts_enum import ShiftTypesEnum
 
@@ -71,14 +72,14 @@ class Constraints:
 
             for employee in self.employees:
                 for shift in self.shifts:
-                    if str(shift.start_date_and_time_of_shift.date()) == day and shift.type == first_shift and employee.is_new.value:
+                    if str(shift.start_date_and_time_of_shift.date()) == day and shift.type == first_shift and employee.status == EmployeeStatusEnum.new_employee:
                         new_employees_on_first_shift.append(self.all_possible_shift_employee_combinations[
                                 (employee.id,
                                  str(shift.start_date_and_time_of_shift.date()),
                                  str(shift.end_date_and_time_of_shift.date()),
                                  shift.type.value)])
 
-                    if str(shift.start_date_and_time_of_shift.date()) == day and shift.type == second_shift and employee.is_new.value:
+                    if str(shift.start_date_and_time_of_shift.date()) == day and shift.type == second_shift and employee.status == EmployeeStatusEnum.new_employee:
                         new_employees_on_second_shift.append(self.all_possible_shift_employee_combinations[
                                 (employee.id,
                                  str(shift.start_date_and_time_of_shift.date()),
