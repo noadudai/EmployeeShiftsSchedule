@@ -104,7 +104,23 @@ class Constraints:
 
     # A constraint that ensures that each employee does not work more than 6 days in a week
     def add_no_more_that_6_working_days_a_week_constraint(self):
-        pass
+        # The max working days for an employee in a week is 6 by law.
+        max_working_days_in_a_week = 6
+
+        # Count the shifts an employee is assigned to.
+        total_shifts_worked = {}
+
+        for employee in self.employees:
+            total_shifts_worked[employee.id] = sum(self.all_possible_shift_employee_combinations[(
+                employee.id,
+                str(shift.start_date_and_time_of_shift.date()),
+                str(shift.end_date_and_time_of_shift.date()),
+                shift.type.value)
+            ] for shift in self.shifts)
+
+        # ensure that the total shifts worked by each employee is not more than 6.
+        for employee in self.employees:
+            self.cp_model.Add(total_shifts_worked[employee.id] <= max_working_days_in_a_week)
 
     # A constraint that ensures that only an employee who asked for a day-off in advance will get that day off.
     # And if not, the solver will assign an employee based on needs.
