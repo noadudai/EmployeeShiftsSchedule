@@ -152,6 +152,7 @@ class Constraints:
                         (self.shifts[shift].start_date_and_time_of_shift.date() - self.shifts[shift].end_date_and_time_of_shift.date()) >= timedelta(hours=24))
 
     def objective_function(self):
+        # maximize on priority and preferences of the employees
         solver = cp_model.CpSolver()
         status = solver.Solve(self.cp_model)
         print(status)
