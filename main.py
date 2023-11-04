@@ -3,6 +3,7 @@ from datetime import datetime
 from ortools.sat.python import cp_model
 
 from constraints_file import *
+from models.days_enum import DaysEnum
 from models.employees.employee import Employee, EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
 from models.shifts.shift import Shift
@@ -15,7 +16,7 @@ def generate_sun_to_sat_shifts(sun: int, sat: int, month: int, year: int, shifts
 
     for day in range(sun, sat + 1):
         # if the day is fri or sat
-        if 3 < datetime(year, month, day).weekday() < 6:
+        if DaysEnum.THU.value < datetime(year, month, day).weekday() < DaysEnum.SAT.value:
             shifts.append(Shift(ShiftTypesEnum.WEEKEND_MORNING, datetime(year, month, day, 9, 15), datetime(year, month, day, 18)))
             shifts.append(Shift(ShiftTypesEnum.WEEKEND_MORNING_BACKUP, datetime(year, month, day, 12),
                                 datetime(year, month, day, 18)))
@@ -28,7 +29,7 @@ def generate_sun_to_sat_shifts(sun: int, sat: int, month: int, year: int, shifts
             shifts.append(Shift(ShiftTypesEnum.EVENING, datetime(year, month, day, 16), datetime(year, month, day, 22)))
 
             # if the day is thu
-            if datetime(year, month, day).weekday() == 3:
+            if datetime(year, month, day).weekday() == DaysEnum.THU.value:
                 shifts.append(Shift(ShiftTypesEnum.THURSDAY_BACKUP, datetime(year, month, day, 19, 30),
                                     datetime(year, month, day + 1, 0, 0, 0)))
                 shifts.append(Shift(ShiftTypesEnum.CLOSING, datetime(year, month, day, 21, 30),
@@ -53,14 +54,17 @@ if __name__ == "__main__":
 
     employees = [employee1, employee2, employee3, employee4, employee5]
 
+    max_working_days_in_a_week = 6
+
+
     cp_model = cp_model.CpModel()
     all_shifts = generate_shift_employee_combinations(employees, shift_this_week, cp_model)
     add_one_employee_per_shift_constraint(shift_this_week, employees, cp_model, all_shifts)
     add_at_most_one_shift_in_the_same_day_constraint(shift_this_week, employees, cp_model, all_shifts)
     add_prevent_new_employees_working_together_constraint(ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING, shift_this_week, employees, cp_model, all_shifts)
     add_no_morning_shift_after_closing_shift_constraint(shift_this_week, employees, cp_model, all_shifts)
-    add_max_6_working_days_a_week_constraint(shift_this_week, employees, cp_model, all_shifts)
-    objective_function(shift_this_week, employees, cp_model, all_shifts)
+    add_max_working_days_a_week_constraint(shift_this_week, employees, cp_model, all_shifts, max_working_days_in_a_week)
+    schedule = create_optimal_schedule(shift_this_week, employees, cp_model, all_shifts)
 
-
-    print("Hello World!")
+    for shift in schedule.week_schedule:
+        print(f"{shift.type.value} in date {shift.get_str_start_date_from_shift()}, is worked by {shift.employee.name}")

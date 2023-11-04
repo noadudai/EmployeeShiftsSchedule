@@ -7,37 +7,18 @@ from models.employees.employee import Employee
 from models.employees.employee_status_enum import EmployeeStatusEnum
 from models.shifts.shift import Shift
 from models.shifts.shifts_enum import ShiftTypesEnum
-
-
-# A function to return a string representing the start date of the given shift
-def get_str_start_date_from_shift(shift):
-    return str(shift.start_date_and_time_of_shift.date())
-
-
-# A function to return a string representing the end date of the given shift
-def get_str_end_date_from_shift(shift):
-    return str(shift.end_date_and_time_of_shift.date())
-
-
-# A function to return the start date of the given shift
-def get_start_date_of_shift(shift):
-    return shift.start_date_and_time_of_shift.date()
-
-
-# A function to return the end date of the given shift
-def get_end_date_of_shift(shift):
-    return shift.end_date_and_time_of_shift.date()
+from models.workers_schedule import WorkersSchedule
 
 
 # Returns a list containing all the "new employees" of each shift
-def generate_new_employees_on_shift(employees, shifts, shift_combinations, shift_type: ShiftTypesEnum, day):
+def generate_new_employees_on_shift(employees, shifts, shift_combinations, shift_type: ShiftTypesEnum, day) -> list:
     employees_on_shift = []
 
     for employee in employees:
         for shift in shifts:
 
-            start_date = get_str_start_date_from_shift(shift)
-            end_date = get_str_end_date_from_shift(shift)
+            start_date = shift.get_str_start_date_from_shift()
+            end_date = shift.get_str_end_date_from_shift()
 
             if start_date == day and employee.status == EmployeeStatusEnum.new_employee and shift.type == shift_type:
                 employees_on_shift.append(
@@ -50,14 +31,14 @@ def generate_new_employees_on_shift(employees, shifts, shift_combinations, shift
 #       (as a datetime object) of the shift, end date ( also as a datetime object) of the shift, and the shift's type,
 #       as a key, and the value will be a boolean that will represent true or false based of if the employee is
 #       working that shift or not.
-def generate_shift_employee_combinations(employees: List[Employee], shifts: list[Shift], constraint_model):
+def generate_shift_employee_combinations(employees: List[Employee], shifts: list[Shift], constraint_model) -> dict:
     combinations = {}
     for employee in employees:
         employee_id = employee.id
 
         for shift in shifts:
-            start_date = get_str_start_date_from_shift(shift)
-            end_date = get_str_end_date_from_shift(shift)
+            start_date = shift.get_str_start_date_from_shift()
+            end_date = shift.get_str_end_date_from_shift()
             shift_type = shift.type.value
 
             combinations[(employee_id, start_date, end_date, shift_type)] = constraint_model.NewBoolVar(
@@ -67,17 +48,17 @@ def generate_shift_employee_combinations(employees: List[Employee], shifts: list
 
 
 # A constraint that ensures that there will be only one employee in each shift per day
-def add_one_employee_per_shift_constraint(shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations):
+def add_one_employee_per_shift_constraint(shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations) -> None:
     for shift in shifts:
-        end_date = get_str_end_date_from_shift(shift)
-        start_date = get_str_start_date_from_shift(shift)
+        end_date = shift.get_str_end_date_from_shift()
+        start_date = shift.get_str_start_date_from_shift()
 
         constraint_model.AddExactlyOne(shift_combinations[(employee.id, start_date, end_date, shift.type.value)] for employee in employees)
 
 
 # A constraint that ensures that each employee works at most one shift per day
-def add_at_most_one_shift_in_the_same_day_constraint(shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations):
-    days_in_the_given_shift_list = list(set(get_start_date_of_shift(shift) for shift in shifts))
+def add_at_most_one_shift_in_the_same_day_constraint(shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations) -> None:
+    days_in_the_given_shift_list = list(set(shift.get_start_date_of_shift() for shift in shifts))
 
     for day in days_in_the_given_shift_list:
         for employee in employees:
@@ -85,8 +66,8 @@ def add_at_most_one_shift_in_the_same_day_constraint(shifts: list[Shift], employ
             works_shifts_on_day = []
 
             for shift in shifts:
-                start_date = get_str_start_date_from_shift(shift)
-                end_date = get_str_end_date_from_shift(shift)
+                start_date = shift.get_str_start_date_from_shift()
+                end_date = shift.get_str_end_date_from_shift()
 
                 if start_date == day:
                     works_shifts_on_day.append(shift_combinations[(employee.id, start_date, end_date, shift.type.value)])
@@ -96,8 +77,8 @@ def add_at_most_one_shift_in_the_same_day_constraint(shifts: list[Shift], employ
 
 # A constraint that ensures that on each day, there is no new employee in the given first shift and a new employee
 # in the given second shift
-def add_prevent_new_employees_working_together_constraint(first_shift: ShiftTypesEnum, second_shift: ShiftTypesEnum, shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations):
-    days_in_the_given_shift_list = list(set(get_str_start_date_from_shift(shift) for shift in shifts))
+def add_prevent_new_employees_working_together_constraint(first_shift: ShiftTypesEnum, second_shift: ShiftTypesEnum, shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations) -> None:
+    days_in_the_given_shift_list = list(set(shift.get_str_start_date_from_shift() for shift in shifts))
 
     for day in days_in_the_given_shift_list:
         # collecting all the new employees that are working on this day is specific shifts.
@@ -122,32 +103,30 @@ def add_prevent_new_employees_working_together_constraint(first_shift: ShiftType
 
 
 # A constraint that ensures that each employee does not work more than 6 days in a week
-def add_max_6_working_days_a_week_constraint(shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations):
+def add_max_working_days_a_week_constraint(shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations, max_working_days) -> None:
     # The max working days for an employee in a week is 6 by law.
-    max_working_days_in_a_week = 6
 
     # Count the shifts an employee is assigned to.
     total_shifts_worked = {}
 
     for employee in employees:
         total_shifts_worked[employee.id] = sum(shift_combinations[(
-            employee.id, get_str_start_date_from_shift(shift), get_str_end_date_from_shift(shift), shift.type.value)
+            employee.id, shift.get_str_start_date_from_shift(), shift.get_str_end_date_from_shift(), shift.type.value)
         ] for shift in shifts)
 
     # ensure that the total shifts worked by each employee is not more than 6.
     for employee in employees:
-        constraint_model.Add(total_shifts_worked[employee.id] <= max_working_days_in_a_week)
+        constraint_model.Add(total_shifts_worked[employee.id] <= max_working_days)
 
 
 # A constraint that ensures that only an employee who asked for a day-off in advance will get that day off.
 # And if not, the solver will assign an employee based on needs.
-def add_employee_day_off_request_constraint(self):
+def add_employee_day_off_request_constraint(self) -> None:
     pass
 
 
-# A constraint that ensures that an employee how is working on a closing shift,
-# will not work a morning shift on the day after.
-def add_no_morning_shift_after_closing_shift_constraint(shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations):
+# A constraint that ensures that, an employee working a closing shift will not have a morning shift the next day.
+def add_no_morning_shift_after_closing_shift_constraint(shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations) -> None:
     for employee in employees:
         worked_closing_shift_yesterday = constraint_model.NewBoolVar(f"{employee.id}_worked_closing_shift_yesterday_day")
 
@@ -155,35 +134,39 @@ def add_no_morning_shift_after_closing_shift_constraint(shifts: list[Shift], emp
             first_shift, second_shift = shift_pair
 
             if first_shift.type == ShiftTypesEnum.CLOSING:
-                start_closing_shift = get_str_start_date_from_shift(first_shift)
-                end_closing_shift = get_str_end_date_from_shift(first_shift)
+                start_closing_shift = first_shift.get_str_start_date_from_shift()
+                end_closing_shift = first_shift.get_str_end_date_from_shift()
 
-                start_morning_shift = get_str_start_date_from_shift(second_shift)
-                end_morning_shift = get_str_end_date_from_shift(second_shift)
+                start_morning_shift = second_shift.get_str_start_date_from_shift()
+                end_morning_shift = second_shift.get_str_end_date_from_shift()
 
                 constraint_model.Add(worked_closing_shift_yesterday == shift_combinations.get((employee.id, start_closing_shift, end_closing_shift, first_shift.type.value), 0))
 
                 constraint_model.Add(shift_combinations[(employee.id, start_morning_shift, end_morning_shift, second_shift.type.value)] == 0).OnlyEnforceIf(
-                    (get_start_date_of_shift(second_shift) - get_end_date_of_shift(first_shift)) >= timedelta(hours=24)
+                    (second_shift.get_start_date_of_shift() - first_shift.get_end_date_of_shift()) >= timedelta(hours=24)
                 )
 
 
-def objective_function(shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations):
+def create_optimal_schedule(shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations) -> WorkersSchedule:
     # need maximize on priority and preferences of the employees
     solver = cp_model.CpSolver()
     status = solver.Solve(constraint_model)
-    print(status)
-    print(cp_model.OPTIMAL)
     if status == cp_model.OPTIMAL:
+        schedule_shifts = []
         for shift in shifts:
+
+            working_shift = Shift(shift.type, shift.start_date_and_time_of_shift, shift.end_date_and_time_of_shift)
+
             for employee in employees:
                 if solver.Value(shift_combinations[(
-                        employee.id, get_str_start_date_from_shift(shift),
-                        get_str_end_date_from_shift(shift),
-                        shift.type.value)]):
-                    print(
-                        f"Shift {shift.type.value} on day {get_start_date_of_shift(shift)} starts at: {get_end_date_of_shift(shift)},"
-                        f" employee working that shift: {employee.name}.")
+                        employee.id, working_shift.get_str_start_date_from_shift(),
+                        working_shift.get_str_end_date_from_shift(),
+                        working_shift.type.value)]):
+
+                    working_shift.set_employee(employee)
+
+                    schedule_shifts.append(working_shift)
                     break
+        return WorkersSchedule(schedule_shifts)
     else:
         print("No optimal solution found !")
