@@ -3,8 +3,8 @@ from typing import List
 from .shifts.shift import Shift
 
 
-class WorkersSchedule:
+class WorkersWeekSchedule:
     
-    def __init__(self, shifts: List[Shift]):
-        self.week_schedule = shifts         # The finalized schedule.
+    def __init__(self, week_schedule: list):
+        self.week_schedule = week_schedule         # The finalized schedule.
     

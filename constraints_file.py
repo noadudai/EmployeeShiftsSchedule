@@ -7,7 +7,7 @@ from models.employees.employee import Employee
 from models.employees.employee_status_enum import EmployeeStatusEnum
 from models.shifts.shift import Shift
 from models.shifts.shifts_enum import ShiftTypesEnum
-from models.workers_schedule import WorkersSchedule
+from models.workers_schedule import WorkersWeekSchedule
 
 
 # Returns a list containing all the "new employees" of each shift
@@ -147,7 +147,7 @@ def add_no_morning_shift_after_closing_shift_constraint(shifts: list[Shift], emp
                 )
 
 
-def create_optimal_schedule(shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations) -> WorkersSchedule:
+def create_optimal_schedule(shifts: list[Shift], employees: List[Employee], constraint_model, shift_combinations) -> WorkersWeekSchedule:
     # need maximize on priority and preferences of the employees
     solver = cp_model.CpSolver()
     status = solver.Solve(constraint_model)
@@ -163,10 +163,8 @@ def create_optimal_schedule(shifts: list[Shift], employees: List[Employee], cons
                         working_shift.get_str_end_date_from_shift(),
                         working_shift.type.value)]):
 
-                    working_shift.set_employee(employee)
-
-                    schedule_shifts.append(working_shift)
+                    schedule_shifts.append([working_shift, employee])
                     break
-        return WorkersSchedule(schedule_shifts)
+        return WorkersWeekSchedule(schedule_shifts)
     else:
         print("No optimal solution found !")
