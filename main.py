@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 from ortools.sat.python import cp_model
 
@@ -7,63 +7,53 @@ from models.days_enum import DaysEnum
 from models.employees.employee import Employee, EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
 from models.shifts.shift import Shift
-from models.shifts.shifts_enum import ShiftTypesEnum
+from models.shifts.shifts_types_enum import ShiftTypesEnum
 from models.shifts.shifts_times import ShiftTimes
+from models.shifts.shift_type import ShiftType
 
 
 # A function to generate the shifts from sunday to saturday
-def generate_sun_to_sat_shifts(sun_day: int, sat_day: int, month: int, year: int, shifts):
+def generate_sun_to_sat_shifts_for_test(sunday: datetime.date, saturday: datetime.date, shifts):
+    day = sunday
 
-    for day in range(sun_day, sat_day + 1):
-        # if the day is fri or sat
-        if DaysEnum.THU.value < datetime(year, month, day).weekday() <= DaysEnum.SAT.value:
-            # could do variables for each shift start and end datetime objects to make these lines shorter,
-            # but then there will be a lot of variables..
-            shifts.append(Shift(ShiftTypesEnum.WEEKEND_MORNING,
-                                datetime.combine(datetime(year, month, day), ShiftTimes.weekend_morning_shift_time.value["start"]),
-                                datetime.combine(datetime(year, month, day), ShiftTimes.weekend_morning_shift_time.value["end"])))
+    # these times are for testing.
+    morning_shift = ShiftType(ShiftTypesEnum.MORNING, datetime.time(11, 45), datetime.time(17, 0))
+    evening_shift = ShiftType(ShiftTypesEnum.EVENING, datetime.time(17, 0), datetime.time(22, 0))
+    closing_shift = ShiftType(ShiftTypesEnum.CLOSING, datetime.time(19, 30), datetime.time(2, 0))
+    thu_backup_shift = ShiftType(ShiftTypesEnum.THURSDAY_BACKUP, datetime.time(19, 30), datetime.time(22, 0))
+    thu_closing_shift = ShiftType(ShiftTypesEnum.CLOSING, datetime.time(21, 0), datetime.time(2, 0))
+    weekend_morning_shift = ShiftType(ShiftTypesEnum.WEEKEND_MORNING, datetime.time(9, 15), datetime.time(18, 0))
+    weekend_backup_shift = ShiftType(ShiftTypesEnum.WEEKEND_MORNING_BACKUP, datetime.time(12, 0), datetime.time(18, 0))
+    weekend_evening_shift = ShiftType(ShiftTypesEnum.EVENING, datetime.time(18, 0), datetime.time(22, 0))
 
-            shifts.append(Shift(ShiftTypesEnum.WEEKEND_MORNING_BACKUP,
-                                datetime.combine(datetime(year, month, day), ShiftTimes.weekend_backup_shift_times.value["start"]),
-                                datetime.combine(datetime(year, month, day), ShiftTimes.weekend_backup_shift_times.value["end"])))
+    delta = datetime.timedelta(days=1)
 
-            shifts.append(Shift(ShiftTypesEnum.EVENING,
-                                datetime.combine(datetime(year, month, day), ShiftTimes.weekend_evening_shift_times.value["start"]),
-                                datetime.combine(datetime(year, month, day), ShiftTimes.weekend_evening_shift_times.value["end"])))
-
-            shifts.append(Shift(ShiftTypesEnum.CLOSING,
-                                datetime.combine(datetime(year, month, day), ShiftTimes.weekend_closing_shift_times.value["start"]),
-                                datetime.combine(datetime(year, month, day+1), ShiftTimes.weekend_closing_shift_times.value["end"])))
+    while day <= saturday:
+        if DaysEnum.THU.value < day.weekday() <= DaysEnum.SAT.value:
+            shifts.append(Shift(weekend_morning_shift, day, day))
+            shifts.append(Shift(weekend_backup_shift, day, day))
+            shifts.append(Shift(weekend_evening_shift, day, day))
+            shifts.append(Shift(closing_shift, day, day + delta))
 
         # sun to thu
         else:
-            shifts.append(Shift(ShiftTypesEnum.MORNING,
-                                datetime.combine(datetime(year, month, day), ShiftTimes.morning_shift_times.value["start"]),
-                                datetime.combine(datetime(year, month, day), ShiftTimes.morning_shift_times.value["end"])))
-
-            shifts.append(Shift(ShiftTypesEnum.EVENING,
-                                datetime.combine(datetime(year, month, day), ShiftTimes.evening_shift_times.value["start"]),
-                                datetime.combine(datetime(year, month, day), ShiftTimes.evening_shift_times.value["end"])))
+            shifts.append(Shift(morning_shift, day, day))
+            shifts.append(Shift(evening_shift, day, day))
 
             # if the day is thu
-            if datetime(year, month, day).weekday() == DaysEnum.THU.value:
-                shifts.append(Shift(ShiftTypesEnum.THURSDAY_BACKUP,
-                                    datetime.combine(datetime(year, month, day), ShiftTimes.thu_backup_shift_times.value["start"]),
-                                    datetime.combine(datetime(year, month, day), ShiftTimes.thu_backup_shift_times.value["end"])))
-
-                shifts.append(Shift(ShiftTypesEnum.CLOSING,
-                                    datetime.combine(datetime(year, month, day), ShiftTimes.thu_closing_shift_times.value["start"]),
-                                    datetime.combine(datetime(year, month, day+1), ShiftTimes.thu_closing_shift_times.value["end"])))
+            if day.weekday() == DaysEnum.THU.value:
+                shifts.append(Shift(thu_backup_shift, day, day))
+                shifts.append(Shift(thu_closing_shift, day, day + delta))
             else:
-                shifts.append(Shift(ShiftTypesEnum.CLOSING,
-                                    datetime.combine(datetime(year, month, day), ShiftTimes.closing_shift_times.value["start"]),
-                                    datetime.combine(datetime(year, month, day+1), ShiftTimes.closing_shift_times.value["end"])))
+                shifts.append(Shift(closing_shift, day, day + delta))
+
+        day += delta
 
 
 if __name__ == "__main__":
     shift_this_week = []
 
-    generate_sun_to_sat_shifts(15, 21, 10, 2023, shift_this_week)
+    generate_sun_to_sat_shifts_for_test(datetime.date(2023, 11, 5), datetime.date(2023, 11, 11), shift_this_week)
 
     # If I am leaving only 2 employees, there is no optimal solution because of the constraint
     # that prevents an employee to work more than one shift that starts on the same day.
@@ -90,6 +80,6 @@ if __name__ == "__main__":
     for pair in schedule.week_schedule:
         shift_index = 0
         employee_index = 1
-        print(f"{pair[shift_index].type.value} shift, starts at {pair[shift_index].start_date_and_time_of_shift}, ends at {pair[shift_index].end_date_and_time_of_shift}, worked by {pair[employee_index].name}")
-        if pair[shift_index].type == ShiftTypesEnum.CLOSING:
+        print(f"{pair[shift_index].shift_type.name_of_shift.value} shift, starts at {pair[shift_index].start_date_of_shift}, ends at {pair[shift_index].end_date_of_shift}, worked by {pair[employee_index].name}")
+        if pair[shift_index].shift_type == ShiftTypesEnum.CLOSING:
             print()
