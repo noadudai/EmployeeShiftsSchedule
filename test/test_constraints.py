@@ -17,43 +17,14 @@ from models.shifts.shift_type import ShiftType
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 
 
-def test_add_one_employee_per_shift_constraint_broken_down():
-
-    def add_one_employee_in_shift_constraint(employees_shift_assignment: List[bool], constraint_model) -> None:
-        constraint_model.AddExactlyOne(employees_shift_assignment)
-
-    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, 1)
-    test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, 2)
-    test_shift1 = Shift(ShiftType(ShiftTypesEnum.MORNING, datetime.time(9, 30), datetime.time(16, 0)),
-                        datetime.date(2023, 11, 12), datetime.date(2023, 11, 12))
-
-    model = cp_model.CpModel()
-    shifts = generate_shift_employee_combinations([test_employee, test_employee2], [test_shift1], model)
-    all_shifts_assignments = [shifts[(employee.id, test_shift1.get_str_start_date(), test_shift1.get_str_end_date(), test_shift1.shift_type.name_of_shift.value)] for employee in [test_employee, test_employee2]]
-
-    add_one_employee_in_shift_constraint(all_shifts_assignments, model)
-
-    solver = cp_model.CpSolver()
-    status = solver.Solve(model)
-
-    # the second employee does not work in the same shift as the first employee, it chose the first employee to
-    # work that shift because he is the first value in the given employee list
-    assert (solver.Value(shifts[(
-        test_employee2.id, test_shift1.get_str_start_date(),
-        test_shift1.get_str_end_date(),
-        test_shift1.shift_type.name_of_shift.value)]) == 0)
-
-    assert (status == cp_model.OPTIMAL)
-
-
 def test_add_one_employee_per_shift_constraint():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, 1)
     test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, 2)
 
     test_shift1 = Shift(ShiftType(ShiftTypesEnum.MORNING, datetime.time(9, 30), datetime.time(16, 0)), datetime.date(2023, 11, 12), datetime.date(2023, 11, 12))
     model = cp_model.CpModel()
-    shifts = generate_shift_employee_combinations([test_employee, test_employee2], [test_shift1], model)
 
+    shifts = generate_shift_employee_combinations([test_employee, test_employee2], [test_shift1], model)
     add_one_employee_per_shift_constraint([test_shift1], [test_employee, test_employee2], model, shifts)
 
     solver = cp_model.CpSolver()
@@ -134,10 +105,8 @@ def test_add_at_most_one_shift_in_the_same_day_constraint_with_at_least_one_empl
 def test_add_prevent_new_employees_working_together_constraint():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.new_employee, 1)
     test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.new_employee, 2)
-    test_shift2 = Shift(ShiftType(ShiftTypesEnum.EVENING, datetime.time(16, 0), datetime.time(22, 0)),
-                        datetime.date(2023, 11, 12), datetime.date(2023, 11, 12))
-    test_shift3 = Shift(ShiftType(ShiftTypesEnum.CLOSING, datetime.time(17, 30), datetime.time(2, 0)),
-                        datetime.date(2023, 11, 12), datetime.date(2023, 11, 13))
+    test_shift2 = Shift(ShiftType(ShiftTypesEnum.EVENING, datetime.time(16, 0), datetime.time(22, 0)), datetime.date(2023, 11, 12), datetime.date(2023, 11, 12))
+    test_shift3 = Shift(ShiftType(ShiftTypesEnum.CLOSING, datetime.time(17, 30), datetime.time(2, 0)), datetime.date(2023, 11, 12), datetime.date(2023, 11, 13))
 
     model = cp_model.CpModel()
     shifts = generate_shift_employee_combinations([test_employee, test_employee2],
@@ -158,11 +127,8 @@ def test_add_no_morning_shift_after_closing_shift_constraint():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.new_employee, 1)
     test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, 2)
 
-    test_shift2 = Shift(ShiftType(ShiftTypesEnum.CLOSING, datetime.time(17, 30), datetime.time(2, 0)),
-                        datetime.date(2023, 11, 12), datetime.date(2023, 11, 13))
-
-    test_shift3 = Shift(ShiftType(ShiftTypesEnum.MORNING, datetime.time(11, 45), datetime.time(17, 0)),
-                        datetime.date(2023, 11, 13), datetime.date(2023, 11, 13))
+    test_shift2 = Shift(ShiftType(ShiftTypesEnum.CLOSING, datetime.time(17, 30), datetime.time(2, 0)), datetime.date(2023, 11, 12), datetime.date(2023, 11, 13))
+    test_shift3 = Shift(ShiftType(ShiftTypesEnum.MORNING, datetime.time(11, 45), datetime.time(17, 0)), datetime.date(2023, 11, 13), datetime.date(2023, 11, 13))
 
     model = cp_model.CpModel()
     shifts = generate_shift_employee_combinations([test_employee, test_employee2], [test_shift2, test_shift3], model)
@@ -175,21 +141,25 @@ def test_add_no_morning_shift_after_closing_shift_constraint():
     status = solver.Solve(model)
 
     assert (status == cp_model.OPTIMAL)
-
-    # printing to see that the employee that worked in the closing shift is not the same employee of the morning shift
+    schedule_shifts = []
     for shift in [test_shift2, test_shift3]:
         for employee in [test_employee, test_employee2]:
             if solver.Value(shifts[(employee.id, shift.get_str_start_date(), shift.get_str_end_date(), shift.shift_type.name_of_shift.value)]):
-                print(employee.id, shift.shift_type.name_of_shift.value)
+                schedule_shifts.append([shift, employee.id])
+
+    for pair in itertools.pairwise(schedule_shifts):
+        first_shift, second_shift = pair
+
+        # index 0 is the shift instance, index 1 is the employee id
+        if first_shift[0].shift_type.name_of_shift == ShiftTypesEnum.CLOSING:
+            assert(first_shift[1] != second_shift[1])
 
 
 def test_add_no_morning_shift_after_closing_shift_constraint_with_one_employee():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.new_employee, 1)
 
-    test_shift2 = Shift(ShiftType(ShiftTypesEnum.CLOSING, datetime.time(17, 30), datetime.time(2, 0)),
-                        datetime.date(2023, 11, 12), datetime.date(2023, 11, 13))
-    test_shift3 = Shift(ShiftType(ShiftTypesEnum.MORNING, datetime.time(11, 45), datetime.time(17, 0)),
-                        datetime.date(2023, 11, 13), datetime.date(2023, 11, 13))
+    test_shift2 = Shift(ShiftType(ShiftTypesEnum.CLOSING, datetime.time(17, 30), datetime.time(2, 0)), datetime.date(2023, 11, 12), datetime.date(2023, 11, 13))
+    test_shift3 = Shift(ShiftType(ShiftTypesEnum.MORNING, datetime.time(11, 45), datetime.time(17, 0)), datetime.date(2023, 11, 13), datetime.date(2023, 11, 13))
 
     model = cp_model.CpModel()
     shifts = generate_shift_employee_combinations([test_employee], [test_shift2, test_shift3], model)
@@ -233,23 +203,32 @@ def test_add_max_working_days_a_week_constraint_3_shifts_1_emp():
 def test_add_max_working_days_a_week_constraint():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.new_employee, 1)
 
-    test_shift1 = Shift(ShiftType(ShiftTypesEnum.MORNING, datetime.time(11, 45), datetime.time(17, 0)),
-                        datetime.date(2023, 11, 13), datetime.date(2023, 11, 13))
-    test_shift2 = Shift(ShiftType(ShiftTypesEnum.MORNING, datetime.time(11, 45), datetime.time(17, 0)),
-                        datetime.date(2023, 11, 14), datetime.date(2023, 11, 14))
+    test_shift1 = Shift(ShiftType(ShiftTypesEnum.MORNING, datetime.time(11, 45), datetime.time(17, 0)), datetime.date(2023, 11, 13), datetime.date(2023, 11, 13))
+    test_shift2 = Shift(ShiftType(ShiftTypesEnum.MORNING, datetime.time(11, 45), datetime.time(17, 0)), datetime.date(2023, 11, 14), datetime.date(2023, 11, 14))
 
     model = cp_model.CpModel()
     shifts = generate_shift_employee_combinations([test_employee], [test_shift1, test_shift2], model)
 
+    max_working_days_in_a_week = 2
     # Without "add_one_employee_per_shift_constraint" the solver will not assign an employee to a shift.
     add_one_employee_per_shift_constraint([test_shift1, test_shift2], [test_employee], model, shifts)
-    add_max_working_days_a_week_constraint([test_shift1, test_shift2], [test_employee], model, shifts,
-                                           2)
+    add_max_working_days_a_week_constraint([test_shift1, test_shift2], [test_employee], model, shifts, max_working_days_in_a_week)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
 
     assert (status == cp_model.OPTIMAL)
+    schedule_shifts = []
+    for shift in [test_shift1, test_shift2]:
+        for employee in [test_employee]:
+            if solver.Value(shifts[(employee.id, shift.get_str_start_date(), shift.get_str_end_date(), shift.shift_type.name_of_shift.value)]):
+                schedule_shifts.append([shift, employee.id])
+    schedule = WorkersWeekSchedule(schedule_shifts)
+
+    # printing to see that the solution is satisfying all the constraints
+    dict_schedule = dict(schedule.week_schedule)
+    counter_dict_schedule = Counter(dict_schedule.values())
+    assert (max_working_days_in_a_week >= max(counter_dict_schedule.values()))
 
 
 # A function to generate the shifts from sunday to saturday
@@ -289,47 +268,6 @@ def generate_sun_to_sat_shifts_for_test(sunday: datetime.date, saturday: datetim
 
 
 def test_all_constraints():
-    test_employee = Employee("test", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, 1)
-    test_employee1 = Employee("test1", EmployeePriorityEnum.LOWEST, EmployeeStatusEnum.new_employee, 2)
-    test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, 3)
-    test_employee3 = Employee("test3", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, 4)
-    test_employee4 = Employee("test4", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.new_employee, 5)
-
-    test_shift1 = Shift(ShiftType(ShiftTypesEnum.MORNING, datetime.time(11, 45), datetime.time(17, 0)), datetime.date(2023, 11, 13), datetime.date(2023, 11, 13))
-    test_shift2 = Shift(ShiftType(ShiftTypesEnum.EVENING, datetime.time(17, 0), datetime.time(22, 0)), datetime.date(2023, 11, 13), datetime.date(2023, 11, 13))
-    test_shift3 = Shift(ShiftType(ShiftTypesEnum.CLOSING, datetime.time(19, 30), datetime.time(2, 0)), datetime.date(2023, 11, 13), datetime.date(2023, 11, 14))
-    test_shift4 = Shift(ShiftType(ShiftTypesEnum.MORNING, datetime.time(11, 45), datetime.time(17, 0)), datetime.date(2023, 11, 14), datetime.date(2023, 11, 14))
-    test_shift5 = Shift(ShiftType(ShiftTypesEnum.EVENING, datetime.time(17, 0), datetime.time(22, 0)), datetime.date(2023, 11, 14), datetime.date(2023, 11, 14))
-    test_shift6 = Shift(ShiftType(ShiftTypesEnum.CLOSING, datetime.time(19, 30), datetime.time(2, 0)), datetime.date(2023, 11, 14), datetime.date(2023, 11, 15))
-    test_shift7 = Shift(ShiftType(ShiftTypesEnum.MORNING, datetime.time(11, 45), datetime.time(17, 0)), datetime.date(2023, 11, 15), datetime.date(2023, 11, 15))
-    test_shift8 = Shift(ShiftType(ShiftTypesEnum.EVENING, datetime.time(17, 0), datetime.time(22, 0)), datetime.date(2023, 11, 15), datetime.date(2023, 11, 15))
-    test_shift9 = Shift(ShiftType(ShiftTypesEnum.CLOSING, datetime.time(19, 30), datetime.time(2, 0)), datetime.date(2023, 11, 15), datetime.date(2023, 11, 16))
-
-    employees = [test_employee, test_employee1, test_employee2, test_employee3, test_employee4]
-    shift_this_week = [test_shift1, test_shift2, test_shift3, test_shift4, test_shift5, test_shift6, test_shift7, test_shift8, test_shift9]
-
-    model = cp_model.CpModel()
-    shifts = generate_shift_employee_combinations(employees, shift_this_week, model)
-
-    add_one_employee_per_shift_constraint(shift_this_week, employees, model, shifts)
-    add_at_most_one_shift_in_the_same_day_constraint(shift_this_week, employees, model, shifts)
-    add_prevent_new_employees_working_together_constraint(ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING, shift_this_week, employees, model, shifts)
-    add_no_morning_shift_after_closing_shift_constraint(shift_this_week, employees, model, shifts, timedelta(hours=12))
-    add_max_working_days_a_week_constraint(shift_this_week, employees, model, shifts, 2)
-
-    solver = cp_model.CpSolver()
-    status = solver.Solve(model)
-
-    assert (status == cp_model.OPTIMAL)
-
-    # printing to see that the solution is satisfying all the constraints
-    for shift in shift_this_week:
-        for employee in employees:
-            if solver.Value(shifts[(employee.id, shift.get_str_start_date(), shift.get_str_end_date(), shift.shift_type.name_of_shift.value)]):
-                print(employee.id, employee.status.value, shift.shift_type.name_of_shift.value, shift.get_str_start_date())
-
-
-def test_all_constraints2():
     shift_this_week = []
 
     generate_sun_to_sat_shifts_for_test(datetime.date(2023, 11, 5), datetime.date(2023, 11, 11), shift_this_week)
@@ -351,33 +289,51 @@ def test_all_constraints2():
     all_shifts = generate_shift_employee_combinations(employees, shift_this_week, model)
     add_one_employee_per_shift_constraint(shift_this_week, employees, model, all_shifts)
     add_at_most_one_shift_in_the_same_day_constraint(shift_this_week, employees, model, all_shifts)
-    add_prevent_new_employees_working_together_constraint(ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING,
-                                                          shift_this_week, employees, model, all_shifts)
-    add_no_morning_shift_after_closing_shift_constraint(shift_this_week, employees, model, all_shifts,
-                                                        timedelta(hours=12))
+    add_prevent_new_employees_working_together_constraint(ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING, shift_this_week, employees, model, all_shifts)
+    add_no_morning_shift_after_closing_shift_constraint(shift_this_week, employees, model, all_shifts, timedelta(hours=12))
     add_max_working_days_a_week_constraint(shift_this_week, employees, model, all_shifts, max_working_days_in_a_week)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
 
+    # Test 1 to check for a valid solution
     assert (status == cp_model.OPTIMAL)
     schedule_shifts = []
     for shift in shift_this_week:
         for employee in employees:
-            if solver.Value(all_shifts[(
-                    employee.id, shift.get_str_start_date(),
-                    shift.get_str_end_date(),
-                    shift.shift_type.name_of_shift.value)]):
-                schedule_shifts.append([shift, employee])
-                break
+            if solver.Value(all_shifts[(employee.id, shift.get_str_start_date(), shift.get_str_end_date(), shift.shift_type.name_of_shift.value)]):
+                schedule_shifts.append([shift, employee.id])
     schedule = WorkersWeekSchedule(schedule_shifts)
 
-    # printing to see that the solution is satisfying all the constraints
-    print("")
-    for pair in schedule.week_schedule:
-        shift_index = 0
-        employee_index = 1
-        print(
-            f"{pair[shift_index].shift_type.name_of_shift.value} shift, starts at {pair[shift_index].start_date_of_shift}, ends at {pair[shift_index].end_date_of_shift}, worked by {pair[employee_index].name}")
-        if pair[shift_index].shift_type == ShiftTypesEnum.CLOSING:
-            print()
+    dict_schedule = dict(schedule.week_schedule)
+    counter_dict_schedule = Counter(dict_schedule.values())
+
+    # Test 2 to check if the max days a week constraint is satisfied
+    assert (max_working_days_in_a_week >= max(counter_dict_schedule.values()))
+
+    for pair in itertools.pairwise(schedule.week_schedule):
+        first_shift, second_shift = pair
+
+        # Test 3 to check that the closing employee will not do the next shift according to the time diff between
+        # the shifts in this test.
+
+        # index 0 is the shift instance, index 1 is the employee id
+        if first_shift[0].shift_type.name_of_shift == ShiftTypesEnum.CLOSING:
+            assert (first_shift[1] != second_shift[1])
+
+        # Test 4 to check that the evening employee and the closing employee are not both new employees according to the
+        # shifts in this test
+        if first_shift[0].shift_type.name_of_shift == ShiftTypesEnum.EVENING and second_shift[0].shift_type.name_of_shift == ShiftTypesEnum.CLOSING:
+            first_employee = None
+            second_employee = None
+            for employee in employees:
+                if employee.id == first_shift[1]:
+                    first_employee = employee
+                elif employee.id == second_shift[1]:
+                    second_employee = employee
+
+            if first_employee.status == EmployeeStatusEnum.new_employee:
+                assert (second_employee.status != EmployeeStatusEnum.new_employee)
+            if second_employee.status == EmployeeStatusEnum.new_employee:
+                assert (first_employee.status != EmployeeStatusEnum.new_employee)
+

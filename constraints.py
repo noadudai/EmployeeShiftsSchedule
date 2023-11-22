@@ -11,8 +11,9 @@ from models.shifts.shifts_types_enum import ShiftTypesEnum
 from models.workers_schedule import WorkersWeekSchedule
 
 
-# Returns a list containing all the "new employees" of each shift
-def generate_new_employees_on_shift(employees, shifts, shift_combinations, shift_type: ShiftTypesEnum, day) -> list:
+# Returns a list of boolvars representing a true false of all the "new employees" that work each shift
+# the day parameter is the str date of the given day.
+def generate_new_employees_on_shift(employees: list[Employee], shifts: list[Shift], shift_combinations: dict[tuple, bool], shift_type: ShiftTypesEnum, day: str) -> list:
     employees_on_shift = []
 
     for employee in employees:
@@ -49,7 +50,7 @@ def generate_shift_employee_combinations(employees: List[Employee], shifts: list
 
 
 # A constraint that ensures that there will be only one employee in each shift per day
-def add_one_employee_per_shift_constraint(shifts: list[Shift], employees: List[Employee], constraint_model: cp_model.CpModel, shift_combinations) -> None:
+def add_one_employee_per_shift_constraint(shifts: list[Shift], employees: List[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[tuple, bool]) -> None:
     for shift in shifts:
         start_date = shift.get_str_start_date()
         end_date = shift.get_str_end_date()
@@ -142,16 +143,16 @@ def add_no_morning_shift_after_closing_shift_constraint(shifts: list[Shift], emp
                 start_closing_shift = first_shift.get_str_start_date()
                 end_closing_shift = first_shift.get_str_end_date()
 
-                start_morning_shift = second_shift.get_str_start_date()
+                start_next_shift = second_shift.get_str_start_date()
                 end_morning_shift = second_shift.get_str_end_date()
 
-                datetime_opening_shift = datetime.datetime.combine(second_shift.start_date_of_shift, second_shift.shift_type.start_time)
+                datetime_next_shift = datetime.datetime.combine(second_shift.start_date_of_shift, second_shift.shift_type.start_time)
                 datetime_closing_shift = datetime.datetime.combine(first_shift.end_date_of_shift, first_shift.shift_type.end_time)
 
-                if datetime_opening_shift - datetime_closing_shift <= shifts_time_diff:
+                if datetime_next_shift - datetime_closing_shift <= shifts_time_diff:
                     # setting the worked_closing_shift_yesterday boolvar accordingly if the employee is
                     # working the closing shift.
                     constraint_model.Add(worked_closing_shift_yesterday == shift_combinations.get((employee.id, start_closing_shift, end_closing_shift, first_shift.shift_type.name_of_shift.value), 0))
 
-                    constraint_model.Add(shift_combinations[(employee.id, start_morning_shift, end_morning_shift,
+                    constraint_model.Add(shift_combinations[(employee.id, start_next_shift, end_morning_shift,
                                                              second_shift.shift_type.name_of_shift.value)] == 0).OnlyEnforceIf(worked_closing_shift_yesterday)
