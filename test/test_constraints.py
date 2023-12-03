@@ -39,7 +39,9 @@ def test_add_one_employee_per_shift_constraint():
     assert (status == cp_model.OPTIMAL)
 
     second_employee_assignment = shifts[(test_employee2.id, start_shift, end_shift, shift_type)]
-    assert (solver.Value(second_employee_assignment) == 0)
+
+    expected_employee_working = False
+    assert (solver.Value(second_employee_assignment) == expected_employee_working)
 
 
 def test_add_at_most_one_shift_in_the_same_day_constraint():
@@ -59,12 +61,13 @@ def test_add_at_most_one_shift_in_the_same_day_constraint():
 
     # there is a solution where employees are not assigned to shifts, which is considered an optimal solution.
     assert (status == cp_model.OPTIMAL)
+    expected_employee_working = False
 
     for shift in [test_shift1, test_shift2, test_shift3]:
         for employee in [test_employee, test_employee2]:
             working_assignment = shifts[(employee.id, shift.get_str_start_date(), shift.get_str_end_date(), shift.shift_type.name_of_shift)]
             # the employee does not work this shift
-            assert (solver.Value(working_assignment) == 0)
+            assert (solver.Value(working_assignment) == expected_employee_working)
 
 
 def test_add_at_most_one_shift_in_the_same_day_constraint_with_at_least_one_employee_in_a_shift():
@@ -310,11 +313,15 @@ def test_all_constraints():
         for employee in employees:
             working_assignment = all_shifts[(employee.id, shift.get_str_start_date(), shift.get_str_end_date(), shift.shift_type.name_of_shift)]
             if solver.Value(working_assignment):
-                schedule_shifts.append([shift, employee.id])
+                schedule_shifts.append([shift, employee])
     schedule = WorkersWeekSchedule(schedule_shifts)
 
     dict_schedule = dict(schedule.week_schedule)
-    emp_amount_of_shifts_dict = collections.Counter(dict_schedule.values())
+
+    employee_id_dict_schedule = {key: value.id for key, value in dict_schedule.items()}
+    # to get a dictionary with the amount of shifts for every employee I need an int representing
+    # the employee and not an employee instance.
+    emp_amount_of_shifts_dict = collections.Counter(employee_id_dict_schedule.values())
 
     # Test 2 to check if the max days a week constraint is satisfied
     assert (max_working_days_in_a_week >= max(emp_amount_of_shifts_dict.values()))
@@ -328,21 +335,13 @@ def test_all_constraints():
         # Test 3 to check that the closing employee will not do the next shift according to the time diff between
         # the shifts in this test.
         if shift_in_first_pair.shift_type.name_of_shift == ShiftTypesEnum.CLOSING:
-            assert (emp_in_first_pair != emp_in_second_pair)
+            assert (emp_in_first_pair.id != emp_in_second_pair.id)
 
         # Test 4 to check that the evening employee and the closing employee are not both new employees according to the
         # shifts in this test
         if shift_in_first_pair.shift_type.name_of_shift == ShiftTypesEnum.EVENING and shift_in_second_pair.shift_type.name_of_shift == ShiftTypesEnum.CLOSING:
-            first_employee = None
-            second_employee = None
-            for employee in employees:
-                if employee.id == emp_in_first_pair:
-                    first_employee = employee
-                elif employee.id == emp_in_second_pair:
-                    second_employee = employee
-
-            if first_employee.status == EmployeeStatusEnum.new_employee:
-                assert (second_employee.status != EmployeeStatusEnum.new_employee)
-            if second_employee.status == EmployeeStatusEnum.new_employee:
-                assert (first_employee.status != EmployeeStatusEnum.new_employee)
+            if emp_in_first_pair.status == EmployeeStatusEnum.new_employee:
+                assert (emp_in_second_pair.status != EmployeeStatusEnum.new_employee)
+            if emp_in_second_pair.status == EmployeeStatusEnum.new_employee:
+                assert (emp_in_first_pair.status != EmployeeStatusEnum.new_employee)
 
