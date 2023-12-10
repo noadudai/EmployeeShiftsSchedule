@@ -46,7 +46,8 @@ def test_add_at_most_one_employee_per_shift_constrain():
 
     expected_employee_working = False
     # the employee does not work this shift
-    assert (solver.Value(second_employee_assignment) == expected_employee_working)
+    is_employee_working_value = solver.Value(second_employee_assignment)
+    assert (is_employee_working_value == expected_employee_working)
 
 
 def test_add_at_most_one_employee_per_shift_a_day_with_no_employees_constrains():
@@ -64,7 +65,7 @@ def test_add_at_most_one_employee_per_shift_a_day_with_no_employees_constrains()
 
     for shift in [test_shift]:
         employees_on_shift = [shift_combinations[(employee.id, shift.get_str_start_date(), shift.get_str_end_date(), shift.shift_type.name_of_shift)] for employee in employees]
-        add_at_most_one_employee_per_shift_a_day_constrains(constraint_model, employees_on_shift)
+        add_at_most_one_employee_per_shift_constrain(constraint_model, employees_on_shift)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(constraint_model)
