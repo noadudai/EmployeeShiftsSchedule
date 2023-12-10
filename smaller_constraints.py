@@ -7,7 +7,7 @@ from models.shifts.shift import Shift
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 
 
-def add_at_most_one_employee_per_shift_a_day_constrains(constraint_model: cp_model.CpModel, worker_shifts_worked_on_a_day: list[IntVar]):
+def add_at_most_one_employee_per_shift_constrain(constraint_model: cp_model.CpModel, worker_shifts_worked_on_a_day: list[IntVar]):
     constraint_model.AddAtMostOne(worker_shifts_worked_on_a_day)
 
 
