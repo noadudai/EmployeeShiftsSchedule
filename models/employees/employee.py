@@ -1,12 +1,13 @@
-from dataclasses import dataclass
+from uuid import uuid4
 
 from .employee_priority_enum import EmployeePriorityEnum
 from .employee_status_enum import EmployeeStatusEnum
 
 
-@dataclass
 class Employee:
-    name: str                                   # the name of the employee
-    employee_priority: EmployeePriorityEnum     # the priority of the employee
-    status: EmployeeStatusEnum                  # the status of the employee
-    id: int                                     # the employee id
+    def __init__(self, name: str, employee_priority: EmployeePriorityEnum, employee_status: EmployeeStatusEnum):
+        self.name = name
+        self.priority = employee_priority
+        self.status = employee_status
+        # Generates a random UUID
+        self.id = uuid4()
