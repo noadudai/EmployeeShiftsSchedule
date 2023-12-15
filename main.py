@@ -2,7 +2,7 @@ import datetime
 
 from ortools.sat.python import cp_model
 
-from constraints import generate_shift_employee_combinations, add_at_least_one_employee_per_shift_constraint
+from constraints_file import generate_shift_employee_combinations, add_at_least_one_employee_per_shift_constraint
 from models.employees.employee import Employee
 from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
