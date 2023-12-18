@@ -12,7 +12,7 @@ def generate_shift_employee_combinations(employees: list[Employee], shifts: list
 dict[FrozenShiftCombinationsKey, IntVar]:
     shift_combinations = {}
     for employee in employees:
-        employee_id = employee.id
+        employee_id = employee.employee_id
 
         for shift in shifts:
             key = FrozenShiftCombinationsKey(employee_id, shift.shift_id)
@@ -22,13 +22,13 @@ dict[FrozenShiftCombinationsKey, IntVar]:
     return shift_combinations
 
 
-# A constraint that ensures that there will be only one employee in each shift per day
+# A constraint that ensures that there will be exactly one employee in each shift per day
 def add_at_least_one_employee_per_shift_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[FrozenShiftCombinationsKey, IntVar]) -> None:
     for shift in shifts:
         all_employees_working_this_shift = []
 
         for employee in employees:
-            key = FrozenShiftCombinationsKey(employee.id, shift.shift_id)
+            key = FrozenShiftCombinationsKey(employee.employee_id, shift.shift_id)
 
             all_employees_working_this_shift.append(shift_combinations[key])
 

@@ -15,7 +15,7 @@ from models.shifts.shifts_types_enum import ShiftTypesEnum
 
 # A function to create an employee for testing, so that the uuid will be generated for the 'program user'
 def create_employee(name: str, priority: EmployeePriorityEnum, status: EmployeeStatusEnum) -> Employee:
-    return Employee(name, priority, status, id=uuid4())
+    return Employee(name, priority, status, employee_id=uuid4())
 
 
 # a Test to check that there is an optimal solution and that there is at least one employee that is working that
@@ -27,7 +27,7 @@ def test_add_at_least_one_employee_per_shift_constraint():
 
     employees = [test_employee, test_employee2]
 
-    test_shift = Shift(ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
+    test_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
     model = cp_model.CpModel()
 
     shifts = generate_shift_employee_combinations(employees, [test_shift], model)
@@ -40,11 +40,11 @@ def test_add_at_least_one_employee_per_shift_constraint():
 
     # the second employee does not work in the same shift as the first employee, it chose the first employee to
     # work that shift because he is the first value in the given employee list
-    first_employee_assignment = shifts[FrozenShiftCombinationsKey(test_employee.id, test_shift.shift_id)]
+    first_employee_assignment = shifts[FrozenShiftCombinationsKey(test_employee.employee_id, test_shift.shift_id)]
     expected_first_employee_working = True
     assert (solver.Value(first_employee_assignment) == expected_first_employee_working)
 
-    second_employee_assignment = shifts[FrozenShiftCombinationsKey(test_employee2.id, test_shift.shift_id)]
+    second_employee_assignment = shifts[FrozenShiftCombinationsKey(test_employee2.employee_id, test_shift.shift_id)]
     expected_second_employee_working = False
     assert (solver.Value(second_employee_assignment) == expected_second_employee_working)
 
@@ -55,7 +55,7 @@ def test_add_at_least_one_employee_per_shift_constraint():
 def test_add_at_least_one_employee_per_shift_constraint_with_no_employees():
     employees = []
 
-    test_shift = (Shift(ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0)))
+    test_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
     model = cp_model.CpModel()
 
     shifts = generate_shift_employee_combinations(employees, [test_shift], model)

@@ -9,5 +9,5 @@ from .employee_status_enum import EmployeeStatusEnum
 class Employee:
     name: str
     priority: EmployeePriorityEnum
-    status: EmployeeStatusEnum
-    id: uuid.UUID
+    employee_status: EmployeeStatusEnum
+    employee_id: uuid.UUID

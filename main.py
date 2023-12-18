@@ -27,7 +27,7 @@ def create_schedule(employees: list[Employee], shifts: list[Shift]) -> list[tupl
         for employee in employees:
             for shift in shifts:
 
-                if solver.Value(all_shifts[FrozenShiftCombinationsKey(employee.id, shift.shift_id)]):
+                if solver.Value(all_shifts[FrozenShiftCombinationsKey(employee.employee_id, shift.shift_id)]):
                     schedule.append((employee, shift))
 
     if schedule:
@@ -37,20 +37,16 @@ def create_schedule(employees: list[Employee], shifts: list[Shift]) -> list[tupl
 
 
 if __name__ == "__main__":
-    jane = Employee("jane", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, id=uuid4())
-    doe = Employee("doe", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, id=uuid4())
+    jane = Employee("jane", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
+    doe = Employee("doe", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
 
     employees = [jane, doe]
 
-    test_shift = (
-        Shift(ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0)))
+    test_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
 
     try:
         schedule = create_schedule(employees, [test_shift])
-
-        for shift_employee_pair in schedule:
-            employee, shift = shift_employee_pair
-
+        for employee, shift in schedule:
             print(f"{employee.name} is working {shift.shift_type.value} shift, that starts at {shift.start_time} and ends at {shift.end_time}")
 
     except Exception as e:
