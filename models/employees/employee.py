@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import uuid
 
 from .employee_priority_enum import EmployeePriorityEnum
 from .employee_status_enum import EmployeeStatusEnum
@@ -6,7 +7,7 @@ from .employee_status_enum import EmployeeStatusEnum
 
 @dataclass
 class Employee:
-    name: str                                   # the name of the employee
-    employee_priority: EmployeePriorityEnum     # the priority of the employee
-    status: EmployeeStatusEnum                  # the status of the employee
-    id: int                                     # the employee id
+    name: str
+    priority: EmployeePriorityEnum
+    employee_status: EmployeeStatusEnum
+    employee_id: uuid.UUID
