@@ -22,14 +22,32 @@ dict[FrozenShiftCombinationsKey, IntVar]:
     return shift_combinations
 
 
-# A constraint that ensures that there will be exactly one employee in each shift per day
-def add_at_least_one_employee_per_shift_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[FrozenShiftCombinationsKey, IntVar]) -> None:
+# A constraint that ensures that there will be exactly one employee in each shift per day.
+def add_exactly_one_employee_per_shift_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[FrozenShiftCombinationsKey, IntVar]) -> None:
     for shift in shifts:
         all_employees_working_this_shift = []
 
         for employee in employees:
             key = FrozenShiftCombinationsKey(employee.employee_id, shift.shift_id)
-
             all_employees_working_this_shift.append(shift_combinations[key])
 
         constraint_model.AddExactlyOne(all_employees_working_this_shift)
+
+
+# A constraint that ensures that each employee works at most one shift per day.
+def add_at_most_one_shift_in_the_same_day_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[FrozenShiftCombinationsKey, IntVar]) -> None:
+    days_in_shifts_list = list(set(shift.start_time.date() for shift in shifts))
+
+    for day in days_in_shifts_list:
+        # a list of all the shifts that start on this day
+        shifts_in_day = [shift for shift in shifts if shift.start_time.date() == day]
+
+        for employee in employees:
+            # a list of IntVar of all the shifts that the employee is working on this day
+            works_shifts_on_day = []
+
+            for shift in shifts_in_day:
+                key = FrozenShiftCombinationsKey(employee.employee_id, shift.shift_id)
+                works_shifts_on_day.append(shift_combinations[key])
+
+            constraint_model.AddAtMostOne(works_shifts_on_day)

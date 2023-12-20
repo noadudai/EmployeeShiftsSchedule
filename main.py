@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from ortools.sat.python import cp_model
 
-from constraints_file import generate_shift_employee_combinations, add_at_least_one_employee_per_shift_constraint
+from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint
 from models.employees.employee import Employee
 from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
@@ -18,7 +18,7 @@ def create_schedule(employees: list[Employee], shifts: list[Shift]) -> list[tupl
     constraint_model = cp_model.CpModel()
 
     all_shifts = generate_shift_employee_combinations(employees, shifts, constraint_model)
-    add_at_least_one_employee_per_shift_constraint(shifts, employees, constraint_model, all_shifts)
+    add_exactly_one_employee_per_shift_constraint(shifts, employees, constraint_model, all_shifts)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(constraint_model)
