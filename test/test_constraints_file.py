@@ -67,8 +67,7 @@ def test_add_exactly_one_employee_per_shift_constraint_with_no_employees():
     assert (status != cp_model.OPTIMAL)
 
 
-# A Test to check if there is an optimal solution with 2 employees, while satisfying the
-# 'add_at_most_one_shift_in_the_same_day_constraint' constraint.
+# A Test to check if there is an optimal solution with 2 employees and 3 shifts.
 # Expected result is an Optimal solution because there is a solution where no employee is assigned to shifts.
 def test_add_at_most_one_shift_per_employee_in_the_same_day_constraint_without_add_exactly_one_employee_per_shift_constraint():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
@@ -91,18 +90,16 @@ def test_add_at_most_one_shift_per_employee_in_the_same_day_constraint_without_a
     assert (status == cp_model.OPTIMAL)
     expected_employee_working = False
 
-    for shift in [test_shift1, test_shift2, test_shift3]:
-        for employee in [test_employee, test_employee2]:
-            working_assignment = all_shifts[FrozenShiftCombinationsKey(employee.employee_id, shift.shift_id)]
+    for shift in shifts:
+        for employee in employees:
+            key = FrozenShiftCombinationsKey(employee.employee_id, shift.shift_id)
+            working_assignment = all_shifts[key]
             # the employee does not work this shift
             assert (solver.Value(working_assignment) == expected_employee_working)
 
 
-# A test that checks if the constraint 'add_at_most_one_shift_in_the_same_day_constraint' ensures that an employee does 
-# not work more than 1 shift a day (at most one shift a day). When combining the 2 constraints 
-# (add_exactly_one_employee_per_shift_constraint) the model needs to assign exactly one employee in each shift and at 
-# least one shift per employee per day. When testing with only 2 employees and 3 shift, there is no optimal solution 
-# because there are fewer employees than the shift in the same day. 
+# A Test to check if there is an optimal solution with 2 employees and 3 shifts. With at least one employee that is
+# working each shift. There is no optimal solution because there are fewer employees than the shift in the same day.
 def test_add_at_most_one_shift_per_employee_in_the_same_day_constraint_with_at_least_one_employee_in_a_shift_with_3_shifts_2_employees():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
@@ -127,6 +124,8 @@ def test_add_at_most_one_shift_per_employee_in_the_same_day_constraint_with_at_l
     assert (status != cp_model.OPTIMAL)
 
 
+# A test that checks if the constraint 'add_at_most_one_shift_in_the_same_day_constraint' ensures that an employee does
+# not work more than 1 shift a day (at most one shift a day).
 def test_add_at_most_one_shift_per_employee_in_the_same_day_constraint_with_at_least_one_employee_in_a_shift():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee,  employee_id=uuid4())
@@ -147,3 +146,15 @@ def test_add_at_most_one_shift_per_employee_in_the_same_day_constraint_with_at_l
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
     assert (status == cp_model.OPTIMAL)
+
+    expected_employee_working = True
+
+    first_emp_first_shift_key = FrozenShiftCombinationsKey(test_employee.employee_id, test_shift1.shift_id)
+    first_emp_second_shift_key = FrozenShiftCombinationsKey(test_employee.employee_id, test_shift2.shift_id)
+    second_emp_first_shift_key = FrozenShiftCombinationsKey(test_employee2.employee_id, test_shift1.shift_id)
+    second_emp_second_shift_key = FrozenShiftCombinationsKey(test_employee2.employee_id, test_shift2.shift_id)
+
+    if solver.Value(all_shifts[first_emp_first_shift_key]) == expected_employee_working:
+        assert (solver.Value(all_shifts[first_emp_second_shift_key]) != expected_employee_working)
+    elif solver.Value(all_shifts[second_emp_first_shift_key]) == expected_employee_working:
+        assert (solver.Value(all_shifts[second_emp_second_shift_key]) != expected_employee_working)

@@ -1,4 +1,5 @@
 import datetime
+import itertools
 
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
@@ -40,10 +41,11 @@ def add_exactly_one_employee_per_shift_constraint(shifts: list[Shift], employees
 def add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[FrozenShiftCombinationsKey, IntVar]) -> None:
     # Creating a dictionary that will hold a date as a key and all the shifts that starts in that date as values.
     date_shifts_dict: dict[datetime.date, list[Shift]] = {}
-    list_of_dates = list(set(shift.start_time.date() for shift in shifts))
+    key_func = lambda shift: shift.start_time.date()
+    shifts.sort(key=key_func)
 
-    for date in list_of_dates:
-        date_shifts_dict[date] = [shift for shift in shifts if shift.start_time.date() == date]
+    for key, group in itertools.groupby(shifts, key_func):
+        date_shifts_dict[key] = list(group)
 
     for shifts_in_day in date_shifts_dict.values():
         for employee in employees:
