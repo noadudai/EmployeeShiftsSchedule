@@ -1,3 +1,5 @@
+import datetime
+
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 
@@ -35,17 +37,17 @@ def add_exactly_one_employee_per_shift_constraint(shifts: list[Shift], employees
 
 
 # A constraint that ensures that each employee works at most one shift per day.
-def add_at_most_one_shift_in_the_same_day_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[FrozenShiftCombinationsKey, IntVar]) -> None:
-    days_in_shifts_list = list(set(shift.start_time.date() for shift in shifts))
+def add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[FrozenShiftCombinationsKey, IntVar]) -> None:
+    # Creating a dictionary that will hold a date as a key and all the shifts that starts in that date as values.
+    date_shifts_dict: dict[datetime.date, list[Shift]] = {}
+    list_of_dates = list(set(shift.start_time.date() for shift in shifts))
 
-    for day in days_in_shifts_list:
-        # a list of all the shifts that start on this day
-        shifts_in_day = [shift for shift in shifts if shift.start_time.date() == day]
+    for date in list_of_dates:
+        date_shifts_dict[date] = [shift for shift in shifts if shift.start_time.date() == date]
 
+    for shifts_in_day in date_shifts_dict.values():
         for employee in employees:
-            # a list of IntVar of all the shifts that the employee is working on this day
-            works_shifts_on_day = []
-
+            works_shifts_on_day: list[IntVar] = []
             for shift in shifts_in_day:
                 key = FrozenShiftCombinationsKey(employee.employee_id, shift.shift_id)
                 works_shifts_on_day.append(shift_combinations[key])

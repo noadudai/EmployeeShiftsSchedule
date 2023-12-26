@@ -70,7 +70,7 @@ def test_add_exactly_one_employee_per_shift_constraint_with_no_employees():
 # A Test to check if there is an optimal solution with 2 employees, while satisfying the
 # 'add_at_most_one_shift_in_the_same_day_constraint' constraint.
 # Expected result is an Optimal solution because there is a solution where no employee is assigned to shifts.
-def test_add_at_most_one_shift_in_the_same_day_constraint():
+def test_add_at_most_one_shift_per_employee_in_the_same_day_constraint_without_add_exactly_one_employee_per_shift_constraint():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
@@ -82,7 +82,7 @@ def test_add_at_most_one_shift_in_the_same_day_constraint():
     model = cp_model.CpModel()
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
 
-    add_at_most_one_shift_in_the_same_day_constraint(shifts, employees, model, all_shifts)
+    add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, model, all_shifts)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
@@ -103,7 +103,7 @@ def test_add_at_most_one_shift_in_the_same_day_constraint():
 # (add_exactly_one_employee_per_shift_constraint) the model needs to assign exactly one employee in each shift and at 
 # least one shift per employee per day. When testing with only 2 employees and 3 shift, there is no optimal solution 
 # because there are fewer employees than the shift in the same day. 
-def test_add_at_most_one_shift_in_the_same_day_constraint_with_at_least_one_employee_in_a_shift():
+def test_add_at_most_one_shift_per_employee_in_the_same_day_constraint_with_at_least_one_employee_in_a_shift_with_3_shifts_2_employees():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
@@ -120,8 +120,30 @@ def test_add_at_most_one_shift_in_the_same_day_constraint_with_at_least_one_empl
     # employee in each shift, causing "add_at_most_one_shift_in_the_same_day_constraint" to fail; because the solver
     # needs to assign exactly one employee in each shift, and cannot assign an employee to at most 1 shift a day.
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
-    add_at_most_one_shift_in_the_same_day_constraint(shifts, employees, model, all_shifts)
+    add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, model, all_shifts)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
     assert (status != cp_model.OPTIMAL)
+
+
+def test_add_at_most_one_shift_per_employee_in_the_same_day_constraint_with_at_least_one_employee_in_a_shift():
+    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
+    test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee,  employee_id=uuid4())
+    test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
+    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=datetime.datetime(2023, 12, 11, 16, 0), end_time=datetime.datetime(2023, 12, 11, 22, 0))
+
+    shifts = [test_shift1, test_shift2]
+    employees = [test_employee, test_employee2]
+
+    model = cp_model.CpModel()
+    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
+
+    # When adding the constraint "add_one_employee_per_shift_constraint", it also ensures that there is exactly one
+    # employee in each shift. With 2 employees and 2 shifts that starts at the same day, there is an Optimal solution.
+    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
+    add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, model, all_shifts)
+
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+    assert (status == cp_model.OPTIMAL)

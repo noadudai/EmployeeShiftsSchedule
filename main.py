@@ -3,7 +3,8 @@ from uuid import uuid4
 
 from ortools.sat.python import cp_model
 
-from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint
+from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
+    add_at_most_one_shift_per_employee_in_the_same_day_constraint
 from models.employees.employee import Employee
 from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
@@ -19,6 +20,8 @@ def create_schedule(employees: list[Employee], shifts: list[Shift]) -> list[tupl
 
     all_shifts = generate_shift_employee_combinations(employees, shifts, constraint_model)
     add_exactly_one_employee_per_shift_constraint(shifts, employees, constraint_model, all_shifts)
+    add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, constraint_model, all_shifts)
+
 
     solver = cp_model.CpSolver()
     status = solver.Solve(constraint_model)
@@ -43,9 +46,10 @@ if __name__ == "__main__":
     employees = [jane, doe]
 
     test_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
+    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2023, 12, 11, 16, 0), end_time=datetime.datetime(2023, 12, 12, 1, 0))
 
     try:
-        schedule = create_schedule(employees, [test_shift])
+        schedule = create_schedule(employees, [test_shift, test_shift2])
         for employee, shift in schedule:
             print(f"{employee.name} is working {shift.shift_type.value} shift, that starts at {shift.start_time} and ends at {shift.end_time}")
 
