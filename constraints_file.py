@@ -41,11 +41,11 @@ def add_exactly_one_employee_per_shift_constraint(shifts: list[Shift], employees
 def add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[FrozenShiftCombinationsKey, IntVar]) -> None:
     # Creating a dictionary that will hold a date as a key and all the shifts that starts in that date as values.
     date_shifts_dict: dict[datetime.date, list[Shift]] = {}
-    key_func = lambda shift: shift.start_time.date()
-    shifts.sort(key=key_func)
+    shift_grouping_func = lambda shift: shift.start_time.date()
+    shifts.sort(key=shift_grouping_func)
 
-    for key, group in itertools.groupby(shifts, key_func):
-        date_shifts_dict[key] = list(group)
+    for date, shifts__that_start_in_date in itertools.groupby(shifts, shift_grouping_func):
+        date_shifts_dict[date] = list(shifts__that_start_in_date)
 
     for shifts_in_day in date_shifts_dict.values():
         for employee in employees:
