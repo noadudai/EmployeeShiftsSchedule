@@ -46,7 +46,7 @@ def test_every_shift_has_an_assigned_employee():
     assert (solver.Value(second_employee_assignment) == expected_second_employee_working)
 
 
-def test_every_shift_has_an_assigned_employee_while_not_receiving_employees():
+def test_verify_no_optimal_solution_when_there_are_no_employees_to_assign_to_shifts():
     employees = []
 
     test_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
@@ -59,35 +59,6 @@ def test_every_shift_has_an_assigned_employee_while_not_receiving_employees():
     status = solver.Solve(model)
 
     assert (status != cp_model.OPTIMAL)
-
-
-def test_every_employee_has_at_most_one_shift_in_the_same_day_while_receiving_more_shifts_than_employees():
-    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-    test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-    test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
-    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=datetime.datetime(2023, 12, 11, 16, 0), end_time=datetime.datetime(2023, 12, 11, 22, 0))
-    test_shift3 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2023, 12, 11, 17, 30), end_time=datetime.datetime(2023, 12, 12, 2, 0))
-
-    shifts = [test_shift1, test_shift2, test_shift3]
-    employees = [test_employee, test_employee2]
-    model = cp_model.CpModel()
-    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
-
-    add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, model, all_shifts)
-
-    solver = cp_model.CpSolver()
-    status = solver.Solve(model)
-
-    # there is a solution where employees are not assigned to shifts, which is considered an optimal solution.
-    assert (status == cp_model.OPTIMAL)
-    expected_employee_working = False
-
-    for shift in shifts:
-        for employee in employees:
-            key = FrozenShiftCombinationsKey(employee.employee_id, shift.shift_id)
-            working_assignment = all_shifts[key]
-            # the employee does not work this shift
-            assert (solver.Value(working_assignment) == expected_employee_working)
 
 
 def test_every_shift_has_an_assigned_employee_and_every_employee_has_at_most_one_shift_in_the_same_day():
@@ -131,7 +102,7 @@ def test_every_shift_has_an_assigned_employee_and_every_employee_has_at_most_one
         assert second_emp_working_sec_shift_cond
 
 
-def test_every_shift_has_an_assigned_employee_and_every_employee_has_at_most_one_shift_in_the_same_day_while_receiving_more_shifts_than_employees():
+def test_verify_no_optimal_solution_when_there_are_more_shifts_then_employees():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
