@@ -90,16 +90,16 @@ def test_every_shift_has_an_assigned_employee_and_every_employee_has_at_most_one
     expected_employee_working = True
     expected_employee_not_working = False
 
-    first_emp_working_first_shift_cond = solver.Value(all_shifts[first_emp_first_shift_key]) == expected_employee_working
-    first_emp_working_sec_shift_cond = solver.Value(all_shifts[first_emp_second_shift_key]) == expected_employee_not_working
+    emp1_working_shift1 = solver.Value(all_shifts[first_emp_first_shift_key]) == expected_employee_working
+    emp1_working_shift2 = solver.Value(all_shifts[first_emp_second_shift_key]) == expected_employee_not_working
 
-    second_emp_working_first_shift_cond = solver.Value(all_shifts[second_emp_first_shift_key]) == expected_employee_working
-    second_emp_working_sec_shift_cond = solver.Value(all_shifts[second_emp_second_shift_key]) == expected_employee_not_working
+    emp2_working_shift1 = solver.Value(all_shifts[second_emp_first_shift_key]) == expected_employee_working
+    emp_working_shift2 = solver.Value(all_shifts[second_emp_second_shift_key]) == expected_employee_not_working
 
-    if first_emp_working_first_shift_cond:
-        assert first_emp_working_sec_shift_cond
-    elif second_emp_working_first_shift_cond:
-        assert second_emp_working_sec_shift_cond
+    if emp1_working_shift1:
+        assert emp1_working_shift2
+    elif emp2_working_shift1:
+        assert emp_working_shift2
 
 
 def test_verify_no_optimal_solution_when_there_are_more_shifts_then_employees():
