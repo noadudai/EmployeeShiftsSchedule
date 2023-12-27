@@ -18,7 +18,7 @@ def create_employee(name: str, priority: EmployeePriorityEnum, status: EmployeeS
     return Employee(name, priority, status, employee_id=uuid4())
 
 
-def test_exactly_one_employee_per_shift():
+def test_every_shift_has_an_assigned_employee():
     test_employee = create_employee("test", priority=EmployeePriorityEnum.HIGHEST, status=EmployeeStatusEnum.senior_employee)
     test_employee2 = create_employee("test2", priority=EmployeePriorityEnum.HIGHEST, status=EmployeeStatusEnum.senior_employee)
 
@@ -46,7 +46,7 @@ def test_exactly_one_employee_per_shift():
     assert (solver.Value(second_employee_assignment) == expected_second_employee_working)
 
 
-def test_exactly_one_employee_per_shift_with_no_employees():
+def test_every_shift_has_an_assigned_employee_while_not_receiving_employees():
     employees = []
 
     test_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
@@ -61,7 +61,7 @@ def test_exactly_one_employee_per_shift_with_no_employees():
     assert (status != cp_model.OPTIMAL)
 
 
-def test_at_most_one_shift_per_employee_in_the_same_day():
+def test_every_employee_has_at_most_one_shift_in_the_same_day_while_receiving_more_shifts_than_employees():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
@@ -90,7 +90,7 @@ def test_at_most_one_shift_per_employee_in_the_same_day():
             assert (solver.Value(working_assignment) == expected_employee_working)
 
 
-def test_employee_cannot_work_more_that_1_shift():
+def test_every_shift_has_an_assigned_employee_and_every_employee_has_at_most_one_shift_in_the_same_day():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee,  employee_id=uuid4())
     test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
@@ -131,7 +131,7 @@ def test_employee_cannot_work_more_that_1_shift():
         assert second_emp_working_sec_shift_cond
 
 
-def test_employee_cannot_work_more_that_1_shift_with_fewer_employees_than_shifts():
+def test_every_shift_has_an_assigned_employee_and_every_employee_has_at_most_one_shift_in_the_same_day_while_receiving_more_shifts_than_employees():
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
