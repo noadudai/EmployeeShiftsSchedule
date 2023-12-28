@@ -1,3 +1,6 @@
+import datetime
+import itertools
+
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 
@@ -22,14 +25,28 @@ dict[FrozenShiftCombinationsKey, IntVar]:
     return shift_combinations
 
 
-# A constraint that ensures that there will be exactly one employee in each shift per day
-def add_at_least_one_employee_per_shift_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[FrozenShiftCombinationsKey, IntVar]) -> None:
+def add_exactly_one_employee_per_shift_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[FrozenShiftCombinationsKey, IntVar]) -> None:
     for shift in shifts:
         all_employees_working_this_shift = []
 
         for employee in employees:
             key = FrozenShiftCombinationsKey(employee.employee_id, shift.shift_id)
-
             all_employees_working_this_shift.append(shift_combinations[key])
 
         constraint_model.AddExactlyOne(all_employees_working_this_shift)
+
+
+def add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[FrozenShiftCombinationsKey, IntVar]) -> None:
+    shift_grouping_func = lambda shift: shift.start_time.date()
+
+    for _, shifts_group in itertools.groupby(shifts, shift_grouping_func):
+        shifts_in_day = list(shifts_group)
+        for employee in employees:
+            works_shifts_on_day: list[IntVar] = []
+            for shift in shifts_in_day:
+                key = FrozenShiftCombinationsKey(employee.employee_id, shift.shift_id)
+                works_shifts_on_day.append(shift_combinations[key])
+
+            constraint_model.AddAtMostOne(works_shifts_on_day)
+
+
