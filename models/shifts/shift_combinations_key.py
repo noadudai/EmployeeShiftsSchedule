@@ -3,6 +3,6 @@ from uuid import uuid4
 
 
 @dataclass(frozen=True)
-class FrozenShiftCombinationsKey:
+class ShiftCombinationsKey:
     employee_id: uuid4
     shift_id: uuid4
