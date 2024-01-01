@@ -5,7 +5,7 @@ from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 
 from models.employees.employee import Employee
-from models.shifts.frozen_shift_combinations_key import ShiftCombinationsKey
+from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shift import Shift
 
 
