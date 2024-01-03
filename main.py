@@ -4,7 +4,8 @@ from uuid import uuid4
 from ortools.sat.python import cp_model
 
 from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
-    add_at_most_one_shift_per_employee_in_the_same_day_constraint, add_limit_employees_working_days_constraint
+    add_at_most_one_shift_per_employee_in_the_same_day_constraint, add_limit_employees_working_days_constraint, \
+    add_minimum_time_between_closing_shift_and_next_shift_constraint
 from models.employees.employee import Employee
 from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
@@ -23,6 +24,7 @@ def create_schedule(employees: list[Employee], shifts: list[Shift]) -> list[tupl
     add_exactly_one_employee_per_shift_constraint(shifts, employees, constraint_model, all_shifts)
     add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, constraint_model, all_shifts)
     add_limit_employees_working_days_constraint(shifts, employees, constraint_model, all_shifts, max_working_days)
+    add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts, employees, constraint_model, all_shifts, datetime.timedelta(hours=9))
 
     solver = cp_model.CpSolver()
     status = solver.Solve(constraint_model)
@@ -35,9 +37,12 @@ def create_schedule(employees: list[Employee], shifts: list[Shift]) -> list[tupl
                     schedule.append((employee, shift))
 
     if schedule:
+        shift_index = 1
+        schedule.sort(key= lambda shift_employee_pair: shift_employee_pair[shift_index].start_time.date())
         return schedule
     else:
         raise Exception("Empty schedule. No Optimal solution found.")
+
 
 
 if __name__ == "__main__":
@@ -50,8 +55,8 @@ if __name__ == "__main__":
     test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
     test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=datetime.datetime(2023, 12, 11, 16, 0), end_time=datetime.datetime(2023, 12, 11, 22, 0))
     test_shift3 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 12, 16, 0), end_time=datetime.datetime(2023, 12, 12, 22, 0))
-    test_shift4 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2023, 12, 12, 16, 0), end_time=datetime.datetime(2023, 12, 13, 22, 0))
-    test_shift5 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 13, 16, 0), end_time=datetime.datetime(2023, 12, 13, 22, 0))
+    test_shift4 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2023, 12, 12, 16, 0), end_time=datetime.datetime(2023, 12, 13, 2, 0))
+    test_shift5 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 13, 9, 0), end_time=datetime.datetime(2023, 12, 13, 22, 0))
 
     shifts = [test_shift1, test_shift2, test_shift3, test_shift4, test_shift5]
 

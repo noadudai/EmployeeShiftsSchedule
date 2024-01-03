@@ -4,7 +4,6 @@ import more_itertools
 
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
-
 from models.employees.employee import Employee
 from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shift import Shift
@@ -64,27 +63,17 @@ def add_limit_employees_working_days_constraint(shifts: list[Shift], employees: 
 
 
 def add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar], min_hours_between_shifts: datetime.timedelta) -> None:
+    closing_shifts = [shift for shift in shifts if shift.shift_type == ShiftTypesEnum.CLOSING]
+
     for employee in employees:
-        shifts_window = 3
-        for shift1, shift2, shift3 in more_itertools.windowed(shifts, shifts_window):
-            worked_closing_shift_yesterday = constraint_model.NewBoolVar(f"closing_{shift1.shift_id}_{employee.employee_id}")
 
-            # if the shifts list contain less then a number that is divided by 'shifts_window',
-            # more_itertools.windowed will fill in None.
-            if shift2 and shift1.shift_type == ShiftTypesEnum.CLOSING:
-                end_datetime_shift1 = shift1.end_time
-                start_datetime_shift2 = shift2.start_time
+        for closing_shift in closing_shifts:
+            worked_closing_shift_yesterday = constraint_model.NewBoolVar(f"closing_{closing_shift.shift_id}_{employee.employee_id}")
 
-                shift1_key = ShiftCombinationsKey(employee.employee_id, shift1.shift_id)
-                constraint_model.Add(worked_closing_shift_yesterday == shift_combinations.get(shift1_key, 0))
+            closing_shift_key = ShiftCombinationsKey(employee.employee_id, closing_shift.shift_id)
+            constraint_model.Add(worked_closing_shift_yesterday == shift_combinations.get(closing_shift_key, 0))
 
-                if start_datetime_shift2 - end_datetime_shift1 <= min_hours_between_shifts:
-                    shift2_key = ShiftCombinationsKey(employee.employee_id, shift2.shift_id)
-                    constraint_model.Add(shift_combinations[shift2_key] == 0).OnlyEnforceIf(worked_closing_shift_yesterday)
+            forbidden_shifts = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts if
+                                shift.start_time > closing_shift.end_time and (shift.start_time - closing_shift.end_time) <= min_hours_between_shifts]
 
-                if shift3:
-                    start_datetime_shift3 = shift3.start_time
-
-                    if start_datetime_shift3 - end_datetime_shift1 <= min_hours_between_shifts:
-                        shift3_key = ShiftCombinationsKey(employee.employee_id, shift3.shift_id)
-                        constraint_model.Add(shift_combinations[shift3_key] == 0).OnlyEnforceIf(worked_closing_shift_yesterday)
+            constraint_model.Add(sum(forbidden_shifts) == 0).OnlyEnforceIf(worked_closing_shift_yesterday)
