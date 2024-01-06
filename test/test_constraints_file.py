@@ -232,72 +232,45 @@ def test_verify_working_days_for_employee_does_not_exceed_the_max_working_days()
     assert (max(employees_shifts.values()) <= max_working_days)
 
 
-def test_every_employee_that_worked_closing_shift_does_not_work_the_next_shifts_that_are_too_close_to_the_closing_shift():
+def test_no_optimal_solution_when_the_closing_shift_and_the_next_shift_are_too_close_to_each_other():
+    minimum_time_between_shifts = datetime.timedelta(hours=9)
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-    test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
 
     closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2023, 12, 12, 16, 0), end_time=datetime.datetime(2023, 12, 13, 2, 0))
-    shift1_too_close_to_closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 13, 9, 0), end_time=datetime.datetime(2023, 12, 13, 22, 0))
-    shift2_too_close_to_closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 13, 9, 0), end_time=datetime.datetime(2023, 12, 13, 22, 0))
-    available_shift_after_closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 13, 16, 0), end_time=datetime.datetime(2023, 12, 13, 22, 0))
+    shift_too_close_to_closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=closing_shift.end_time + minimum_time_between_shifts - datetime.timedelta(hours=1), end_time=datetime.datetime(2023, 12, 13, 22, 0))
 
-    shifts = [closing_shift, shift1_too_close_to_closing_shift, shift2_too_close_to_closing_shift, available_shift_after_closing_shift]
-    employees = [test_employee, test_employee2]
-
-    model = cp_model.CpModel()
-    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
-
-    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
-    add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts, employees, model, all_shifts, datetime.timedelta(hours=9))
-
-    solver = cp_model.CpSolver()
-    status = solver.Solve(model)
-    assert (status == cp_model.OPTIMAL)
-
-    emp1_closing_shift_key = ShiftCombinationsKey(test_employee.employee_id, closing_shift.shift_id)
-    emp1_shift2_key = ShiftCombinationsKey(test_employee.employee_id, shift1_too_close_to_closing_shift.shift_id)
-    emp1_shift3_key = ShiftCombinationsKey(test_employee.employee_id, shift2_too_close_to_closing_shift.shift_id)
-    emp1_available_after_closing_shift_key = ShiftCombinationsKey(test_employee.employee_id, available_shift_after_closing_shift.shift_id)
-
-    emp2_closing_shift_key = ShiftCombinationsKey(test_employee2.employee_id, closing_shift.shift_id)
-    emp2_shift2_key = ShiftCombinationsKey(test_employee2.employee_id, shift1_too_close_to_closing_shift.shift_id)
-    emp2_shift3_key = ShiftCombinationsKey(test_employee2.employee_id, shift2_too_close_to_closing_shift.shift_id)
-
-    expected_employee_working = True
-    expected_employee_not_working = False
-
-    emp1_working_closing_shift = solver.Value(all_shifts[emp1_closing_shift_key]) == expected_employee_working
-    emp1_working_shift2 = solver.Value(all_shifts[emp1_shift2_key]) == expected_employee_not_working
-    emp1_working_shift3 = solver.Value(all_shifts[emp1_shift3_key]) == expected_employee_not_working
-    emp1_working_available_after_closing_shift = solver.Value(all_shifts[emp1_available_after_closing_shift_key]) == expected_employee_working
-
-    emp2_working_closing_shift = solver.Value(all_shifts[emp2_closing_shift_key]) == expected_employee_working
-    emp2_working_shift2 = solver.Value(all_shifts[emp2_shift2_key]) == expected_employee_not_working
-    emp2_working_shift3 = solver.Value(all_shifts[emp2_shift3_key]) == expected_employee_not_working
-
-    if emp1_working_closing_shift:
-        assert emp1_working_shift2 and emp1_working_shift3 and emp1_working_available_after_closing_shift
-    # the model choose the first employee to work the last shift because he is the first employee in the list and this
-    # employee satisfy all the constraints
-    elif emp2_working_closing_shift:
-        assert emp2_working_shift2 and emp2_working_shift3 and emp1_working_available_after_closing_shift
-
-
-def test_no_optimal_solution_when_the_closing_shift_and_the_next_shift_are_too_close_to_each_other():
-    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-
-    test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2023, 12, 12, 16, 0), end_time=datetime.datetime(2023, 12, 13, 2, 0))
-    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 13, 9, 0), end_time=datetime.datetime(2023, 12, 13, 22, 0))
-
-    shifts = [test_shift1, test_shift2]
+    shifts = [closing_shift, shift_too_close_to_closing_shift]
     employees = [test_employee]
 
     model = cp_model.CpModel()
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
 
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
-    add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts, employees, model, all_shifts, datetime.timedelta(hours=9))
+    add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, model, all_shifts)
+    add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts, employees, model, all_shifts, minimum_time_between_shifts)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
     assert (status != cp_model.OPTIMAL)
+
+
+def test_every_employee_that_worked_closing_shift_does_not_work_the_next_shifts_that_are_too_close_to_the_closing_shift():
+    minimum_time_between_shifts = datetime.timedelta(hours=9)
+    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
+
+    closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2023, 12, 12, 16, 0), end_time=datetime.datetime(2023, 12, 13, 2, 0))
+    available_shift_after_closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=closing_shift.end_time + minimum_time_between_shifts + datetime.timedelta(hours=1), end_time=datetime.datetime(2023, 12, 13, 22, 0))
+
+    shifts = [closing_shift, available_shift_after_closing_shift]
+    employees = [test_employee]
+
+    model = cp_model.CpModel()
+    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
+
+    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
+    add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, model, all_shifts)
+    add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts, employees, model, all_shifts, minimum_time_between_shifts)
+
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+    assert (status == cp_model.OPTIMAL)
