@@ -1,11 +1,8 @@
 import datetime
 from uuid import uuid4
-
 from ortools.sat.python import cp_model
 
-from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
-    add_at_most_one_shift_per_employee_in_the_same_day_constraint, add_limit_employees_working_days_constraint, \
-    add_minimum_time_between_closing_shift_and_next_shift_constraint
+from constraints_file import *
 from models.employees.employee import Employee
 from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
@@ -42,7 +39,6 @@ def create_schedule(employees: list[Employee], shifts: list[Shift]) -> list[tupl
         return schedule
     else:
         raise Exception("Empty schedule. No Optimal solution found.")
-
 
 
 if __name__ == "__main__":
