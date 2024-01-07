@@ -234,10 +234,15 @@ def test_verify_working_days_for_employee_does_not_exceed_the_max_working_days()
 
 def test_no_optimal_solution_when_the_closing_shift_and_the_next_shift_are_too_close_to_each_other():
     minimum_time_between_shifts = datetime.timedelta(hours=9)
+    shift_duration = datetime.timedelta(hours=8)
+    start_closing_shift_time = datetime.datetime(2023, 12, 12, 18, 0)
+
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
 
-    closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2023, 12, 12, 16, 0), end_time=datetime.datetime(2023, 12, 13, 2, 0))
-    shift_too_close_to_closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=closing_shift.end_time + minimum_time_between_shifts - datetime.timedelta(hours=1), end_time=datetime.datetime(2023, 12, 13, 22, 0))
+    closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_closing_shift_time, end_time=start_closing_shift_time + shift_duration)
+    # the forbidden shift starts 1 hour before the minimum time between the shifts passed
+    start_forbidden_shift_time = closing_shift.end_time + minimum_time_between_shifts - datetime.timedelta(hours=1)
+    shift_too_close_to_closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=start_forbidden_shift_time, end_time=start_forbidden_shift_time + shift_duration)
 
     shifts = [closing_shift, shift_too_close_to_closing_shift]
     employees = [test_employee]
@@ -256,10 +261,15 @@ def test_no_optimal_solution_when_the_closing_shift_and_the_next_shift_are_too_c
 
 def test_every_employee_that_worked_closing_shift_does_not_work_the_next_shifts_that_are_too_close_to_the_closing_shift():
     minimum_time_between_shifts = datetime.timedelta(hours=9)
+    shift_duration = datetime.timedelta(hours=8)
+    start_closing_shift_time = datetime.datetime(2023, 12, 12, 18, 0)
+
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
 
-    closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2023, 12, 12, 16, 0), end_time=datetime.datetime(2023, 12, 13, 2, 0))
-    available_shift_after_closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=closing_shift.end_time + minimum_time_between_shifts + datetime.timedelta(hours=1), end_time=datetime.datetime(2023, 12, 13, 22, 0))
+    closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_closing_shift_time, end_time=start_closing_shift_time + shift_duration)
+    # the forbidden shift starts 1 hour after the minimum time between the shifts passed
+    start_available_shift_time = closing_shift.end_time + minimum_time_between_shifts + datetime.timedelta(hours=1)
+    available_shift_after_closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=start_available_shift_time, end_time=start_available_shift_time + shift_duration)
 
     shifts = [closing_shift, available_shift_after_closing_shift]
     employees = [test_employee]
