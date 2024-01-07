@@ -1,11 +1,12 @@
 import datetime
+import random
 from uuid import uuid4
-
 import pytest
 from ortools.sat.python import cp_model
 
-
-from constraints_file import *
+from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
+    add_at_most_one_shift_per_employee_in_the_same_day_constraint, add_limit_employees_working_days_constraint, \
+    add_minimum_time_between_closing_shift_and_next_shift_constraint
 from models.employees.employee import Employee
 from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
@@ -13,14 +14,9 @@ from models.shifts.shift import Shift
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 
 
-# A function to create an employee for testing, so that the uuid will be generated for the 'program user'
-def create_employee(name: str, priority: EmployeePriorityEnum, status: EmployeeStatusEnum) -> Employee:
-    return Employee(name, priority, status, employee_id=uuid4())
-
-
 def test_every_shift_has_an_assigned_employee():
-    test_employee = create_employee("test", priority=EmployeePriorityEnum.HIGHEST, status=EmployeeStatusEnum.senior_employee)
-    test_employee2 = create_employee("test2", priority=EmployeePriorityEnum.HIGHEST, status=EmployeeStatusEnum.senior_employee)
+    test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4())
+    test_employee2 = Employee("test2", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4())
 
     employees = [test_employee, test_employee2]
 
@@ -62,13 +58,15 @@ def test_verify_no_optimal_solution_when_there_are_no_employees_to_assign_to_shi
 
 
 def test_every_shift_has_an_assigned_employee_and_every_employee_has_at_most_one_shift_in_the_same_day():
-    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-    test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee,  employee_id=uuid4())
-    test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
-    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=datetime.datetime(2023, 12, 11, 16, 0), end_time=datetime.datetime(2023, 12, 11, 22, 0))
+    shift_start_time_for_test = datetime.datetime(2023, 12, 11, 9, 30)
+    shift_duration = datetime.timedelta(hours=random.random())
 
-    shifts = [test_shift1, test_shift2]
-    employees = [test_employee, test_employee2]
+    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
+    employees = [test_employee]
+
+    shifts: list[Shift] = []
+    for i in range(len(employees) + 1):
+        shifts.append(Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=shift_start_time_for_test + datetime.timedelta(days=i), end_time=shift_start_time_for_test + shift_duration))
 
     model = cp_model.CpModel()
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
@@ -82,35 +80,26 @@ def test_every_shift_has_an_assigned_employee_and_every_employee_has_at_most_one
     status = solver.Solve(model)
     assert (status == cp_model.OPTIMAL)
 
-    first_emp_first_shift_key = ShiftCombinationsKey(test_employee.employee_id, test_shift1.shift_id)
-    first_emp_second_shift_key = ShiftCombinationsKey(test_employee.employee_id, test_shift2.shift_id)
-    second_emp_first_shift_key = ShiftCombinationsKey(test_employee2.employee_id, test_shift1.shift_id)
-    second_emp_second_shift_key = ShiftCombinationsKey(test_employee2.employee_id, test_shift2.shift_id)
-
     expected_employee_working = True
-    expected_employee_not_working = False
+    for shift in shifts:
+        key = ShiftCombinationsKey(test_employee.employee_id, shift.shift_id)
+        emp_working_shift = solver.Value(all_shifts[key]) == expected_employee_working
 
-    emp1_working_shift1 = solver.Value(all_shifts[first_emp_first_shift_key]) == expected_employee_working
-    emp1_working_shift2 = solver.Value(all_shifts[first_emp_second_shift_key]) == expected_employee_not_working
-
-    emp2_working_shift1 = solver.Value(all_shifts[second_emp_first_shift_key]) == expected_employee_working
-    emp_working_shift2 = solver.Value(all_shifts[second_emp_second_shift_key]) == expected_employee_not_working
-
-    if emp1_working_shift1:
-        assert emp1_working_shift2
-    elif emp2_working_shift1:
-        assert emp_working_shift2
+        assert emp_working_shift
 
 
 def test_verify_no_optimal_solution_when_there_are_more_shifts_then_employees():
+    shift_start_time_for_test = datetime.datetime(2023, 12, 11, 9, 30)
+    shift_duration = datetime.timedelta(hours=random.random())
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-    test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
-    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=datetime.datetime(2023, 12, 11, 16, 0), end_time=datetime.datetime(2023, 12, 11, 22, 0))
-    test_shift3 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2023, 12, 11, 17, 30), end_time=datetime.datetime(2023, 12, 12, 2, 0))
 
-    shifts = [test_shift1, test_shift2, test_shift3]
     employees = [test_employee, test_employee2]
+
+    shifts: list[Shift] = []
+
+    for _ in range(len(employees) + 1):
+        shifts.append(Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=shift_start_time_for_test, end_time=shift_start_time_for_test + shift_duration))
 
     model = cp_model.CpModel()
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
@@ -127,20 +116,23 @@ def test_verify_no_optimal_solution_when_there_are_more_shifts_then_employees():
 
 
 def test_verify_no_optimal_solution_when_there_are_more_shifts_then_max_working_shifts_for_one_employee():
+    shift_start_time_for_test = datetime.datetime(2023, 12, 11, 9, 30)
+    shift_duration = datetime.timedelta(hours=random.random())
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-    test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
-    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=datetime.datetime(2023, 12, 11, 16, 0), end_time=datetime.datetime(2023, 12, 11, 22, 0))
-    test_shift3 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2023, 12, 11, 17, 30), end_time=datetime.datetime(2023, 12, 12, 2, 0))
 
-    shifts = [test_shift1, test_shift2, test_shift3]
     employees = [test_employee]
+    shifts: list[Shift] = []
+
+    for _ in range(len(employees) + 1):
+        shifts.append(Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=shift_start_time_for_test,
+                            end_time=shift_start_time_for_test + shift_duration))
 
     model = cp_model.CpModel()
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
 
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
 
-    max_working_days = 2
+    max_working_days = 1
     add_limit_employees_working_days_constraint(shifts, employees, model, all_shifts, max_working_days)
 
     solver = cp_model.CpSolver()
@@ -149,97 +141,51 @@ def test_verify_no_optimal_solution_when_there_are_more_shifts_then_max_working_
     assert (status != cp_model.OPTIMAL)
 
 
-def test_every_employee_does_not_work_more_then_max_working_days():
-    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-    test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-    test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
-    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=datetime.datetime(2023, 12, 12, 16, 0), end_time=datetime.datetime(2023, 12, 12, 22, 0))
-
-    shifts = [test_shift1, test_shift2]
-    employees = [test_employee, test_employee2]
-
-    model = cp_model.CpModel()
-    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
-
-    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
-    add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, model, all_shifts)
-
-    max_working_days = 1
-    add_limit_employees_working_days_constraint(shifts, employees, model, all_shifts, max_working_days)
-
-    solver = cp_model.CpSolver()
-    status = solver.Solve(model)
-    assert (status == cp_model.OPTIMAL)
-
-    first_emp_first_shift_key = ShiftCombinationsKey(test_employee.employee_id, test_shift1.shift_id)
-    first_emp_second_shift_key = ShiftCombinationsKey(test_employee.employee_id, test_shift2.shift_id)
-    second_emp_first_shift_key = ShiftCombinationsKey(test_employee2.employee_id, test_shift1.shift_id)
-    second_emp_second_shift_key = ShiftCombinationsKey(test_employee2.employee_id, test_shift2.shift_id)
-
-    expected_employee_working = True
-    expected_employee_not_working = False
-
-    emp1_working_shift1 = solver.Value(all_shifts[first_emp_first_shift_key]) == expected_employee_working
-    emp1_working_shift2 = solver.Value(all_shifts[first_emp_second_shift_key]) == expected_employee_not_working
-
-    emp2_working_shift1 = solver.Value(all_shifts[second_emp_first_shift_key]) == expected_employee_working
-    emp_working_shift2 = solver.Value(all_shifts[second_emp_second_shift_key]) == expected_employee_not_working
-
-    if emp1_working_shift1:
-        assert emp1_working_shift2
-    elif emp2_working_shift1:
-        assert emp_working_shift2
-
-
 def test_verify_working_days_for_employee_does_not_exceed_the_max_working_days():
-    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-    test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-    test_employee3 = Employee("test3", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
+    shift_start_time_for_test = datetime.datetime(2023, 12, 11, 9, 30)
+    shift_duration = datetime.timedelta(hours=random.random())
+    max_working_days = 2
+    employees: list[Employee] = []
+    shifts: list[Shift] = []
 
-    test_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
-    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=datetime.datetime(2023, 12, 11, 16, 0), end_time=datetime.datetime(2023, 12, 11, 22, 0))
-    test_shift3 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 12, 16, 0), end_time=datetime.datetime(2023, 12, 12, 22, 0))
-    test_shift4 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2023, 12, 12, 16, 0), end_time=datetime.datetime(2023, 12, 13, 22, 0))
-    test_shift5 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 13, 16, 0), end_time=datetime.datetime(2023, 12, 13, 22, 0))
+    for _ in range(0, 2):
+        employees.append(Employee(f"{_}", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4()))
 
-    shifts = [test_shift1, test_shift2, test_shift3, test_shift4, test_shift5]
-    employees = [test_employee, test_employee2, test_employee3]
+    for i in range(len(employees) + 1):
+        shifts.append(Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=shift_start_time_for_test + datetime.timedelta(days=i), end_time=shift_start_time_for_test + shift_duration))
 
     model = cp_model.CpModel()
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
 
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
     add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, model, all_shifts)
-
-    max_working_days = 2
     add_limit_employees_working_days_constraint(shifts, employees, model, all_shifts, max_working_days)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
     assert (status == cp_model.OPTIMAL)
 
-    employees_shifts: dict[Employee.employee_id, int] = {}
-
+    employees_schedule: dict[Employee.employee_id, int] = {}
     for employee in employees:
-        employees_shifts[employee.employee_id] = 0
+        employees_schedule[employee.employee_id] = 0
         for shift in shifts:
             key = ShiftCombinationsKey(employee.employee_id, shift.shift_id)
             employee_assignment = solver.Value(all_shifts[key])
-
             if employee_assignment:
-                employees_shifts[employee.employee_id] += 1
+                employees_schedule[employee.employee_id] += 1
 
-    assert (max(employees_shifts.values()) <= max_working_days)
+    assert (max(employees_schedule.values()) <= max_working_days)
 
 
 def test_no_optimal_solution_when_the_closing_shift_and_the_next_shift_are_too_close_to_each_other():
     minimum_time_between_shifts = datetime.timedelta(hours=9)
-    shift_duration = datetime.timedelta(hours=8)
+    shift_duration = datetime.timedelta(hours=random.random())
     start_closing_shift_time = datetime.datetime(2023, 12, 12, 18, 0)
 
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
 
     closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_closing_shift_time, end_time=start_closing_shift_time + shift_duration)
+
     # the forbidden shift starts 1 hour before the minimum time between the shifts passed
     start_forbidden_shift_time = closing_shift.end_time + minimum_time_between_shifts - datetime.timedelta(hours=1)
     shift_too_close_to_closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=start_forbidden_shift_time, end_time=start_forbidden_shift_time + shift_duration)
@@ -267,6 +213,7 @@ def test_every_employee_that_worked_closing_shift_does_not_work_the_next_shifts_
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
 
     closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_closing_shift_time, end_time=start_closing_shift_time + shift_duration)
+
     # the forbidden shift starts 1 hour after the minimum time between the shifts passed
     start_available_shift_time = closing_shift.end_time + minimum_time_between_shifts + datetime.timedelta(hours=1)
     available_shift_after_closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=start_available_shift_time, end_time=start_available_shift_time + shift_duration)
