@@ -11,6 +11,7 @@ from models.employees.employee import Employee
 from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
 from models.shifts.shift import Shift
+from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 
 
