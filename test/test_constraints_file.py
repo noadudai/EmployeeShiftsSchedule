@@ -4,7 +4,9 @@ from uuid import uuid4
 import pytest
 from ortools.sat.python import cp_model
 
-from constraints_file import *
+from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
+    add_at_most_one_shift_per_employee_in_the_same_day_constraint, add_limit_employees_working_days_constraint, \
+    add_minimum_time_between_closing_shift_and_next_shift_constraint
 from models.employees.employee import Employee
 from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
@@ -211,7 +213,7 @@ def test_every_employee_that_worked_closing_shift_does_not_work_the_next_shifts_
     test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
 
     closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_closing_shift_time, end_time=start_closing_shift_time + shift_duration)
-    
+
     # the forbidden shift starts 1 hour after the minimum time between the shifts passed
     start_available_shift_time = closing_shift.end_time + minimum_time_between_shifts + datetime.timedelta(hours=1)
     available_shift_after_closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=start_available_shift_time, end_time=start_available_shift_time + shift_duration)
