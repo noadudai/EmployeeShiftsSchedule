@@ -235,7 +235,7 @@ def test_every_employee_that_worked_closing_shift_does_not_work_the_next_shifts_
     assert (status == cp_model.OPTIMAL)
 
 
-def test_verify_no_optimal_when_there_are_2_new_employees_to_work_2_consecutive_shifts():
+def test_verify_no_optimal_solution_when_there_are_2_new_employees_to_work_2_consecutive_shifts():
     start_shifts_time = datetime.datetime(2023, 12, 12, 18, 0)
     shift_duration = datetime.timedelta(hours=random.random())
     evening_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=start_shifts_time, end_time=start_shifts_time + shift_duration)
