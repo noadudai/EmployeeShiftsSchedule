@@ -84,13 +84,13 @@ def add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts: lis
             constraint_model.Add(sum(forbidden_shifts) == 0).OnlyEnforceIf(worked_closing_shift_yesterday)
 
 
-def add_prevent_two_new_employees_working_consecutive_shifts(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar], first_consecutive_shift: ShiftTypesEnum, second_consecutive_shift: ShiftTypesEnum) -> None:
+def add_prevent_two_new_employees_working_consecutive_shifts(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar], first_parallel_shift_type: ShiftTypesEnum, second_parallel_shift_type: ShiftTypesEnum) -> None:
     new_emps_in_first_and_second_consecutive_shifts: list[IntVar] = []
 
     for employee in employees:
         for shift in shifts:
             if employee.employee_status == EmployeeStatusEnum.new_employee and \
-                shift.shift_type == first_consecutive_shift or shift.shift_type == second_consecutive_shift:
+                shift.shift_type == first_parallel_shift_type or shift.shift_type == second_parallel_shift_type:
 
                 key = ShiftCombinationsKey(employee.employee_id, shift.shift_id)
                 new_emps_in_first_and_second_consecutive_shifts.append(shift_combinations[key])
