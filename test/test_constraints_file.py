@@ -7,7 +7,7 @@ from ortools.sat.python import cp_model
 from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
     add_at_most_one_shift_per_employee_in_the_same_day_constraint, add_limit_employees_working_days_constraint, \
     add_minimum_time_between_closing_shift_and_next_shift_constraint, \
-    add_prevent_two_new_employees_working_consecutive_shifts
+    add_prevent_new_employees_working_parallel_shifts_together
 from models.employees.employee import Employee
 from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
@@ -235,7 +235,7 @@ def test_every_employee_that_worked_closing_shift_does_not_work_the_next_shifts_
     assert (status == cp_model.OPTIMAL)
 
 
-def test_verify_no_optimal_solution_when_there_are_2_new_employees_to_work_2_consecutive_shifts():
+def test_verify_no_optimal_solution_when_2_new_employees_are_working_in_parallel_shifts():
     start_shifts_time = datetime.datetime(2023, 12, 12, 18, 0)
     shift_duration = datetime.timedelta(hours=random.random())
     evening_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=start_shifts_time, end_time=start_shifts_time + shift_duration)
@@ -252,14 +252,14 @@ def test_verify_no_optimal_solution_when_there_are_2_new_employees_to_work_2_con
 
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
     add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, model, all_shifts)
-    add_prevent_two_new_employees_working_consecutive_shifts(shifts, employees, model, all_shifts, ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING)
+    add_prevent_new_employees_working_parallel_shifts_together(shifts, employees, model, all_shifts, parallel_shifts=[ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING])
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
     assert (status != cp_model.OPTIMAL)
 
 
-def test_verify_2_new_employees_does_not_work_2_consecutive_shifts():
+def test_verify_new_employees_do_not_work_in_parallel_shifts():
     start_shifts_time = datetime.datetime(2023, 12, 12, 18, 0)
     shift_duration = datetime.timedelta(hours=random.random())
     evening_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=start_shifts_time, end_time=start_shifts_time + shift_duration)
@@ -276,7 +276,7 @@ def test_verify_2_new_employees_does_not_work_2_consecutive_shifts():
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
     add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, model, all_shifts)
-    add_prevent_two_new_employees_working_consecutive_shifts(shifts, employees, model, all_shifts, ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING)
+    add_prevent_new_employees_working_parallel_shifts_together(shifts, employees, model, all_shifts, parallel_shifts=[ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING])
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
