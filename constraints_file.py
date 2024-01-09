@@ -85,14 +85,18 @@ def add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts: lis
 
 
 def add_prevent_two_new_employees_working_consecutive_shifts(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar], first_parallel_shift_type: ShiftTypesEnum, second_parallel_shift_type: ShiftTypesEnum) -> None:
-    new_emps_in_first_and_second_consecutive_shifts: list[IntVar] = []
 
-    for employee in employees:
-        for shift in shifts:
-            if employee.employee_status == EmployeeStatusEnum.new_employee and \
-                shift.shift_type == first_parallel_shift_type or shift.shift_type == second_parallel_shift_type:
+    shift_grouping_func = lambda shift: shift.start_time.date()
 
-                key = ShiftCombinationsKey(employee.employee_id, shift.shift_id)
-                new_emps_in_first_and_second_consecutive_shifts.append(shift_combinations[key])
+    for _, shifts_group in itertools.groupby(shifts, shift_grouping_func):
+        shifts_in_day = list(shifts_group)
+        new_emps_in_parallel_shifts: list[IntVar] = []
+        for employee in employees:
+            for shift in shifts_in_day:
+                if employee.employee_status == EmployeeStatusEnum.new_employee and \
+                        shift.shift_type == first_parallel_shift_type or shift.shift_type == second_parallel_shift_type:
 
-    constraint_model.AddAtMostOne(new_emps_in_first_and_second_consecutive_shifts)
+                    key = ShiftCombinationsKey(employee.employee_id, shift.shift_id)
+                    new_emps_in_parallel_shifts.append(shift_combinations[key])
+
+        constraint_model.AddAtMostOne(new_emps_in_parallel_shifts)
