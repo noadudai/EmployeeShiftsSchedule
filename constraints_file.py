@@ -100,10 +100,10 @@ def add_prevent_new_employees_from_working_parallel_shifts_together(shifts: list
 def add_prevent_overlapping_shifts_for_employees_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]) -> None:
     for employee in employees:
         for shift in shifts:
-            overlapping_shift_for_employee: list[IntVar] = []
+            overlapping_shifts_for_employee: list[IntVar] = []
             for comparison_shift in shifts:
                 if shift.are_shifts_parallel(comparison_shift):
                     key = ShiftCombinationsKey(employee.employee_id, comparison_shift.shift_id)
-                    overlapping_shift_for_employee.append(shift_combinations[key])
+                    overlapping_shifts_for_employee.append(shift_combinations[key])
 
-            constraint_model.AddAtMostOne(overlapping_shift_for_employee)
+            constraint_model.AddAtMostOne(overlapping_shifts_for_employee)
