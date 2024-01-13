@@ -14,7 +14,7 @@ from models.shifts.shifts_types_enum import ShiftTypesEnum
 # Returns a dictionary that contains all the combinations of shifts and employees as: FrozenShiftCombinationsKey
 # as a key, and the value will be an IntVar using "constraint_model.NewBoolVar"
 def generate_shift_employee_combinations(employees: list[Employee], shifts: list[Shift], constraint_model: cp_model.CpModel) -> \
-dict[ShiftCombinationsKey, IntVar]:
+        dict[ShiftCombinationsKey, IntVar]:
     shift_combinations = {}
     for employee in employees:
         employee_id = employee.employee_id
@@ -69,7 +69,8 @@ def add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts: lis
     for employee in employees:
 
         for closing_shift in closing_shifts:
-            worked_closing_shift_yesterday = constraint_model.NewBoolVar(f"closing_{closing_shift.shift_id}_{employee.employee_id}")
+            worked_closing_shift_yesterday = constraint_model.NewBoolVar(
+                f"closing_{closing_shift.shift_id}_{employee.employee_id}")
 
             closing_shift_key = ShiftCombinationsKey(employee.employee_id, closing_shift.shift_id)
             # A variable for better visualization, this represents the assignment to
@@ -78,23 +79,32 @@ def add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts: lis
             employee_assignment_closing_shift = worked_closing_shift_yesterday == shift_combinations[closing_shift_key]
             constraint_model.Add(employee_assignment_closing_shift)
 
-            forbidden_shifts = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts if
-                                shift.start_time > closing_shift.start_time and (shift.start_time - closing_shift.end_time) <= min_time_between_shifts]
+            forbidden_shifts = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for
+                                shift in shifts if shift.start_time > closing_shift.start_time and (shift.start_time - closing_shift.end_time) <= min_time_between_shifts]
 
             constraint_model.Add(sum(forbidden_shifts) == 0).OnlyEnforceIf(worked_closing_shift_yesterday)
 
 
-def add_prevent_new_employees_from_working_parallel_shifts_together(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar], parallel_shift_types: list[ShiftTypesEnum]) -> None:
-    shift_grouping_func = lambda shift: shift.start_time.date()
+def add_prevent_new_employees_from_working_parallel_shifts_together(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]) -> None:
+    for shift in shifts:
+        parallel_shifts: list[Shift] = []
+        for comparison_shift in shifts:
+            if shift.are_shifts_parallel(comparison_shift):
+                parallel_shifts.append(comparison_shift)
+        new_emps_in_parallel_shift = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for
+                                      shift in parallel_shifts for employee in employees if employee.employee_status == EmployeeStatusEnum.new_employee]
 
-    for _, shifts_group in itertools.groupby(shifts, shift_grouping_func):
-        shifts_in_day = list(shifts_group)
-        new_emps_in_parallel_shifts: list[IntVar] = []
-        for employee in employees:
-            for shift in shifts_in_day:
-                if employee.employee_status == EmployeeStatusEnum.new_employee and shift.shift_type in parallel_shift_types:
+        # At least 1 employee that is not new in all the parallel shifts.
+        constraint_model.Add(sum(new_emps_in_parallel_shift) <= (len(parallel_shifts) - 1))
 
-                    key = ShiftCombinationsKey(employee.employee_id, shift.shift_id)
-                    new_emps_in_parallel_shifts.append(shift_combinations[key])
 
-        constraint_model.AddAtMostOne(new_emps_in_parallel_shifts)
+def add_prevent_overlapping_shifts_for_employees_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]) -> None:
+    for employee in employees:
+        for shift in shifts:
+            overlapping_shift_for_employee: list[IntVar] = []
+            for comparison_shift in shifts:
+                if shift.are_shifts_parallel(comparison_shift):
+                    key = ShiftCombinationsKey(employee.employee_id, comparison_shift.shift_id)
+                    overlapping_shift_for_employee.append(shift_combinations[key])
+
+            constraint_model.AddAtMostOne(overlapping_shift_for_employee)
