@@ -14,7 +14,7 @@ from models.shifts.shifts_types_enum import ShiftTypesEnum
 # Returns a dictionary that contains all the combinations of shifts and employees as: FrozenShiftCombinationsKey
 # as a key, and the value will be an IntVar using "constraint_model.NewBoolVar"
 def generate_shift_employee_combinations(employees: list[Employee], shifts: list[Shift], constraint_model: cp_model.CpModel) -> \
-        dict[ShiftCombinationsKey, IntVar]:
+dict[ShiftCombinationsKey, IntVar]:
     shift_combinations = {}
     for employee in employees:
         employee_id = employee.employee_id
@@ -69,8 +69,7 @@ def add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts: lis
     for employee in employees:
 
         for closing_shift in closing_shifts:
-            worked_closing_shift_yesterday = constraint_model.NewBoolVar(
-                f"closing_{closing_shift.shift_id}_{employee.employee_id}")
+            worked_closing_shift_yesterday = constraint_model.NewBoolVar(f"closing_{closing_shift.shift_id}_{employee.employee_id}")
 
             closing_shift_key = ShiftCombinationsKey(employee.employee_id, closing_shift.shift_id)
             # A variable for better visualization, this represents the assignment to
@@ -79,8 +78,8 @@ def add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts: lis
             employee_assignment_closing_shift = worked_closing_shift_yesterday == shift_combinations[closing_shift_key]
             constraint_model.Add(employee_assignment_closing_shift)
 
-            forbidden_shifts = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for
-                                shift in shifts if shift.start_time > closing_shift.start_time and (shift.start_time - closing_shift.end_time) <= min_time_between_shifts]
+            forbidden_shifts = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts if
+                                shift.start_time > closing_shift.start_time and (shift.start_time - closing_shift.end_time) <= min_time_between_shifts]
 
             constraint_model.Add(sum(forbidden_shifts) == 0).OnlyEnforceIf(worked_closing_shift_yesterday)
 
