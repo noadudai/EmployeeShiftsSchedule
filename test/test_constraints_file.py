@@ -244,9 +244,9 @@ def test_verify_no_optimal_solution_when_2_new_employees_are_working_in_parallel
     start shifts and end shifts
 
     |main shift|
-    |support_shift1|    |
-    |support_shift2|    |    |
-                |support_shift3|    |
+    |support_shift1    |
+    |support_shift2        |
+                |support_shift3    |
     """
 
     main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=start_main_shift_time, end_time=start_main_shift_time + shift_duration)
@@ -288,9 +288,9 @@ def test_senior_employee_works_2_non_parallel_shifts_and_2_new_employees_working
     start shifts and end shifts
     
     |main shift|
-    |support_shift1|    |
-    |support_shift2|    |    |
-                |support_shift3|    |
+    |support_shift1    |
+    |support_shift2        |
+                |support_shift3    |
     """
 
     main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=start_main_shift_time, end_time=start_main_shift_time + shift_duration)
@@ -332,10 +332,10 @@ def test_optimal_solution_when_2_new_employees_are_working_in_parallel_shifts_an
     """
     start shifts and end shifts
 
-    |main shift|
-    |support_shift1|    |
-    |support_shift2|    |    |
-                |support_shift3|    |
+    ||main shift|
+    |support_shift1    |
+    |support_shift2        |
+                |support_shift3    |
     """
 
     main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=start_main_shift_time, end_time=start_main_shift_time + shift_duration)
