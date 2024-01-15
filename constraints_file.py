@@ -88,7 +88,7 @@ def add_prevent_new_employees_from_working_parallel_shifts_together(shifts: list
     for shift in shifts:
         parallel_shifts: list[Shift] = []
         for comparison_shift in shifts:
-            if shift.are_shifts_parallel(comparison_shift):
+            if shift.parallel_to(comparison_shift):
                 parallel_shifts.append(comparison_shift)
         new_emps_in_parallel_shift = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for
                                       shift in parallel_shifts for employee in employees if employee.employee_status == EmployeeStatusEnum.new_employee]
@@ -102,7 +102,7 @@ def add_prevent_overlapping_shifts_for_employees_constraint(shifts: list[Shift],
         for shift in shifts:
             overlapping_shifts_for_employee: list[IntVar] = []
             for comparison_shift in shifts:
-                if shift.are_shifts_parallel(comparison_shift):
+                if shift.parallel_to(comparison_shift):
                     key = ShiftCombinationsKey(employee.employee_id, comparison_shift.shift_id)
                     overlapping_shifts_for_employee.append(shift_combinations[key])
 

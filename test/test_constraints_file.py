@@ -236,52 +236,8 @@ def test_every_employee_that_worked_closing_shift_does_not_work_the_next_shifts_
     assert (status == cp_model.OPTIMAL)
 
 
-def test_verify_no_optimal_solution_when_2_new_employees_are_working_in_parallel_shifts_and_one_shift_per_employee_per_day():
-    start_main_shift_time = datetime.datetime(2023, 12, 12, 9, 0)
-    shift_duration = datetime.timedelta(hours=4)
-
-    """
-    start shifts and end shifts
-
-    |main shift|
-    |support_shift1    |
-    |support_shift2        |
-                |support_shift3    |
-    """
-
-    main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=start_main_shift_time, end_time=start_main_shift_time + shift_duration)
-
-    support_shift1_end_time = main_shift.end_time + shift_duration  # A double shift
-    support_shift_1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_main_shift_time, end_time=support_shift1_end_time)
-
-    support_shift2_end_time = support_shift_1.end_time + shift_duration  # A triple shift
-    support_shift_2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_main_shift_time, end_time=support_shift2_end_time)
-
-    start_support_3_shift = main_shift.end_time
-    support_shift3_end_time = support_shift2_end_time + shift_duration
-    support_shift_3 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_support_3_shift + datetime.timedelta(minutes=30), end_time=support_shift3_end_time)
-
-    senior_employee = Employee("senior_employee", EmployeePriorityEnum.LOW, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-    new_employee1 = Employee("new_employee1", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id=uuid4())
-    new_employee2 = Employee("new_employee2", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id=uuid4())
-
-    shifts = [main_shift, support_shift_1, support_shift_2, support_shift_3]
-    employees = [senior_employee, new_employee1, new_employee2]
-
-    model = cp_model.CpModel()
-    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
-
-    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
-    add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, model, all_shifts)
-    add_prevent_new_employees_from_working_parallel_shifts_together(shifts, employees, model, all_shifts)
-
-    solver = cp_model.CpSolver()
-    status = solver.Solve(model)
-    assert (status != cp_model.OPTIMAL)
-
-
-def test_senior_employee_works_2_non_parallel_shifts_and_2_new_employees_working_parallel_shifts_together():
-    start_main_shift_time = datetime.datetime(2023, 12, 12, 9, 0)
+def test_new_employees_can_work_together_if_there_is_at_least_one_employee_that_is_not_new_with_them_in_parallel_shifts():
+    main_shift_start_time = datetime.datetime(2023, 12, 12, 9, 0)
     shift_duration = datetime.timedelta(hours=4)
 
     """
@@ -293,17 +249,17 @@ def test_senior_employee_works_2_non_parallel_shifts_and_2_new_employees_working
                 |support_shift3    |
     """
 
-    main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=start_main_shift_time, end_time=start_main_shift_time + shift_duration)
+    main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=main_shift_start_time, end_time=main_shift_start_time + shift_duration)
 
     support_shit1_end_time = main_shift.end_time + shift_duration  # A double shift
-    support_shift_1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_main_shift_time, end_time=support_shit1_end_time)
+    support_shift_1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=main_shift_start_time, end_time=support_shit1_end_time)
 
     support_shift2_end_time = support_shift_1.end_time + shift_duration  # A triple shift
-    support_shift_2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_main_shift_time, end_time=support_shift2_end_time)
+    support_shift_2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=main_shift_start_time, end_time=support_shift2_end_time)
 
-    start_support_3_shift = main_shift.end_time
+    support_shift3_start_time = main_shift.end_time
     support_shit3_end_time = support_shift2_end_time + shift_duration
-    support_shift_3 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_support_3_shift + datetime.timedelta(minutes=30), end_time=support_shit3_end_time)
+    support_shift_3 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=support_shift3_start_time + datetime.timedelta(minutes=30), end_time=support_shit3_end_time)
 
     senior_employee = Employee("senior_employee", EmployeePriorityEnum.LOW, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     new_employee1 = Employee("new_employee1", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id=uuid4())
@@ -317,7 +273,6 @@ def test_senior_employee_works_2_non_parallel_shifts_and_2_new_employees_working
 
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
     add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, model, all_shifts)
-
     add_prevent_new_employees_from_working_parallel_shifts_together(shifts, employees, model, all_shifts)
 
     solver = cp_model.CpSolver()
@@ -338,36 +293,33 @@ def test_senior_employee_works_2_non_parallel_shifts_and_2_new_employees_working
     new_employee1_support_shift3_key = ShiftCombinationsKey(new_employee1.employee_id, support_shift_3.shift_id)
     new_employee1_support_shift3 = solver.Value(all_shifts[new_employee1_support_shift3_key]) == expected_employee_working
 
-    assert senior_working_support_shift1
-    assert new_employee1_working_main_shift
-    assert new_employee2_working_support_shift2
-    assert new_employee1_support_shift3
+    assert (senior_working_support_shift1 and new_employee1_working_main_shift and new_employee2_working_support_shift2 and new_employee1_support_shift3)
 
 
-def test_optimal_solution_when_2_new_employees_are_working_in_parallel_shifts_and_2_senior_employees():
-    start_main_shift_time = datetime.datetime(2023, 12, 12, 9, 0)
+def test_new_employees_can_work_parallel_shifts_with_senior_employees():
+    main_shift_start_time = datetime.datetime(2023, 12, 12, 9, 0)
     shift_duration = datetime.timedelta(hours=4)
 
     """
     start shifts and end shifts
 
-    ||main shift|
+    |main shift|
     |support_shift1    |
     |support_shift2        |
                 |support_shift3    |
     """
 
-    main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=start_main_shift_time, end_time=start_main_shift_time + shift_duration)
+    main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=main_shift_start_time, end_time=main_shift_start_time + shift_duration)
 
     support_shift1_end_time = main_shift.end_time + shift_duration  # A double shift
-    support_shift_1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_main_shift_time, end_time=support_shift1_end_time)
+    support_shift_1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=main_shift_start_time, end_time=support_shift1_end_time)
 
     support_shit2_end_time = support_shift_1.end_time + shift_duration  # A triple shift
-    support_shift_2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_main_shift_time, end_time=support_shit2_end_time)
+    support_shift_2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=main_shift_start_time, end_time=support_shit2_end_time)
 
-    start_support_3_shift = main_shift.end_time
+    support_shift3_start_time = main_shift.end_time
     support_shit3_end_time = support_shit2_end_time + shift_duration
-    support_shift_3 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_support_3_shift, end_time=support_shit3_end_time)
+    support_shift_3 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=support_shift3_start_time, end_time=support_shit3_end_time)
 
     senior_employee = Employee("senior_employee", EmployeePriorityEnum.LOW, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
     senior_employee2 = Employee("senior_employee2", EmployeePriorityEnum.LOW, EmployeeStatusEnum.senior_employee, employee_id=uuid4())
@@ -402,21 +354,51 @@ def test_optimal_solution_when_2_new_employees_are_working_in_parallel_shifts_an
     senior_employee2_support_shift2_key = ShiftCombinationsKey(senior_employee2.employee_id, support_shift_2.shift_id)
     senior_employee2_support_shift2 = solver.Value(all_shifts[senior_employee2_support_shift2_key]) == expected_employee_working
 
-    assert senior_working_support_shift1
-    assert new_employee1_working_main_shift
-    assert new_employee2_working_support_shift3
-    assert senior_employee2_support_shift2
+    assert (senior_working_support_shift1 and new_employee1_working_main_shift and new_employee2_working_support_shift3 and senior_employee2_support_shift2)
 
 
-def test_employee_has_one_shift_that_does_not_overlap():
-    test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-    test_employee2 = Employee("test2", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4())
+def test_new_employees_cannot_work_parallel_shift_without_at_least_one_employee_that_is_not_new():
+    main_shift_start_time = datetime.datetime(2023, 12, 12, 9, 0)
+    shift_duration = datetime.timedelta(hours=4)
 
-    test_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
-    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 30))
+    """
+    start shifts and end shifts
+
+    |main shift|
+    |support_shift1    |
+    """
+
+    main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=main_shift_start_time, end_time=main_shift_start_time + shift_duration)
+
+    support_shift1_end_time = main_shift.end_time + shift_duration  # A double shift
+    support_shift_1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=main_shift_start_time, end_time=support_shift1_end_time)
+
+    new_employee1 = Employee("new_employee1", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id=uuid4())
+    new_employee2 = Employee("new_employee2", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id=uuid4())
+
+    shifts = [main_shift, support_shift_1]
+    employees = [new_employee1, new_employee2]
 
     model = cp_model.CpModel()
-    employees = [test_employee, test_employee2]
+    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
+
+    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
+    add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, model, all_shifts)
+    add_prevent_new_employees_from_working_parallel_shifts_together(shifts, employees, model, all_shifts)
+
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+    assert (status != cp_model.OPTIMAL)
+
+
+def test_employees_can_work_non_overlapping_shifts():
+    test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4())
+
+    test_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
+    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=datetime.datetime(2023, 12, 11, 16, 30), end_time=datetime.datetime(2023, 12, 11, 17, 30))
+
+    model = cp_model.CpModel()
+    employees = [test_employee]
     shifts = [test_shift, test_shift2]
 
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
@@ -430,25 +412,24 @@ def test_employee_has_one_shift_that_does_not_overlap():
 
     expected_employee_working = True
 
-    test_employee_working_test_shit2_key = ShiftCombinationsKey(test_employee.employee_id, test_shift2.shift_id)
-    test_employee_working_test_shit2 = solver.Value(all_shifts[test_employee_working_test_shit2_key]) == expected_employee_working
+    test_employee_working_test_shift2_key = ShiftCombinationsKey(test_employee.employee_id, test_shift2.shift_id)
+    test_employee_working_test_shift2 = solver.Value(all_shifts[test_employee_working_test_shift2_key]) == expected_employee_working
 
-    test_employee2_working_test_shit_key = ShiftCombinationsKey(test_employee2.employee_id, test_shift.shift_id)
-    test_employee2_working_test_shit = solver.Value(all_shifts[test_employee2_working_test_shit_key]) == expected_employee_working
+    test_employee_working_test_shift_key = ShiftCombinationsKey(test_employee.employee_id, test_shift.shift_id)
+    test_employee_working_test_shift = solver.Value(all_shifts[test_employee_working_test_shift_key]) == expected_employee_working
 
-    assert test_employee_working_test_shit2
-    assert test_employee2_working_test_shit
+    assert test_employee_working_test_shift2 and test_employee_working_test_shift
 
 
-def test_verify_no_optimal_solution_with_one_employee_and_2_parallel_shifts():
+def test_employees_can_not_work_overlapping_shifts():
     test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4())
 
     test_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
-    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
+    overlapping_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
 
     model = cp_model.CpModel()
     employees = [test_employee]
-    shifts = [test_shift, test_shift2]
+    shifts = [test_shift, overlapping_shift]
 
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)

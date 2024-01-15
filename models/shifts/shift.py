@@ -12,6 +12,6 @@ class Shift:
     start_time: datetime.datetime
     end_time: datetime.datetime
 
-    def are_shifts_parallel(self, shift_to_compare) -> bool:
+    def parallel_to(self, shift_to_compare: 'Shift') -> bool:
         return (shift_to_compare.start_time <= self.start_time <= shift_to_compare.end_time) \
                 or (shift_to_compare.start_time >= self.start_time >= shift_to_compare.start_time)
