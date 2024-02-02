@@ -91,58 +91,64 @@ def add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts: lis
 def add_prevent_new_employees_from_working_parallel_shifts_together(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar])-> \
 tuple[dict[UUID, IntVar], dict[UUID, IntVar], dict[str, IntVar], dict[str, IntVar]]:
 
-    new_employees_in_each_shifts: dict[uuid.UUID, IntVar] = {}
-    non_new_employees_in_each_shifts: dict[uuid.UUID, IntVar] = {}
-    non_new_emps_working_in_all_shift_permutations: dict[str, IntVar] = {}
+    new_emps_in_each_shifts: dict[uuid.UUID, IntVar] = {}
+    non_new_emps_in_each_shifts: dict[uuid.UUID, IntVar] = {}
+    fully_non_new_emps_in_all_shift_permutations: dict[str, IntVar] = {}
     any_perm_for_each_shift: dict[str, IntVar] = {}
 
     for shift in shifts:
-        # Set the values for new_employees_in_each_shifts and non_new_employees_in_each_shifts for each shift.
-        new_employees_work_shift = constraint_model.NewBoolVar(f"new_emps_{shift.shift_id}")
+        # Set the values for new_emps_in_each_shifts and non_new_emps_in_each_shifts for each shift.
+        new_emps_work_shift = constraint_model.NewBoolVar(f"new_emps_{shift.shift_id}")
         new_emps_in_shifts = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for employee in employees if employee.employee_status == EmployeeStatusEnum.new_employee]
-        constraint_model.AddBoolOr(new_emps_in_shifts).OnlyEnforceIf(new_employees_work_shift)
-        constraint_model.AddBoolAnd(new_emp_in_shift.Not() for new_emp_in_shift in new_emps_in_shifts).OnlyEnforceIf(new_employees_work_shift.Not())
-        new_employees_in_each_shifts[shift.shift_id] = new_employees_work_shift
+        constraint_model.AddBoolOr(new_emps_in_shifts).OnlyEnforceIf(new_emps_work_shift)
+        constraint_model.AddBoolAnd(new_emp_in_shift.Not() for new_emp_in_shift in new_emps_in_shifts).OnlyEnforceIf(new_emps_work_shift.Not())
+        new_emps_in_each_shifts[shift.shift_id] = new_emps_work_shift
 
-        non_new_employees_work_shift = constraint_model.NewBoolVar(f"non_new_emps_{shift.shift_id}")
+        non_new_emps_work_shift = constraint_model.NewBoolVar(f"non_new_emps_{shift.shift_id}")
         non_new_emps_in_shifts = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for employee in employees if employee.employee_status != EmployeeStatusEnum.new_employee]
-        constraint_model.AddBoolOr(non_new_emps_in_shifts).OnlyEnforceIf(non_new_employees_work_shift)
-        constraint_model.AddBoolAnd(non_new_emp_in_shift.Not() for non_new_emp_in_shift in non_new_emps_in_shifts).OnlyEnforceIf(non_new_employees_work_shift.Not())
-        non_new_employees_in_each_shifts[shift.shift_id] = non_new_employees_work_shift
+        constraint_model.AddBoolOr(non_new_emps_in_shifts).OnlyEnforceIf(non_new_emps_work_shift)
+        constraint_model.AddBoolAnd(non_new_emp_in_shift.Not() for non_new_emp_in_shift in non_new_emps_in_shifts).OnlyEnforceIf(non_new_emps_work_shift.Not())
+        non_new_emps_in_each_shifts[shift.shift_id] = non_new_emps_work_shift
 
     for shift in shifts:
         parallel_shifts_to_shift: list[Shift] = get_parallel_shifts(shift, shifts)
         parallel_shift_permutations: list[list[Shift]] = get_shift_permutations_from_shifts(parallel_shifts_to_shift)
         fully_overlapping_permutations: list[set[Shift]] = [set(permutation) for permutation in parallel_shift_permutations if is_fully_overlapping(shift, permutation)]
-        # Non-supersets
-        perfect_overlapping_permutations: list[set[Shift]] = remove_supersets_from_permutations(fully_overlapping_permutations)
+        perfect_overlapping_permutations: list[set[Shift]] = remove_supersets_from_permutations(fully_overlapping_permutations)  # Non-supersets
+        non_new_emps_in_shift_permutations: dict[str, IntVar] = get_non_new_emps_in_shift_permutations(constraint_model, non_new_emps_in_each_shifts, fully_non_new_emps_in_all_shift_permutations, perfect_overlapping_permutations)
 
-        # Initializing non_new_emps_working_in_all_shift_permutations for all shifts,
-        # and non_new_emps_in_shift_permutations related to shift.
-        non_new_emps_in_shift_permutations: dict[str, IntVar] = {}
-        for shifts_permutation in perfect_overlapping_permutations:
-            permutation_id = get_permutation_id(shifts_permutation)
-            if permutation_id not in non_new_emps_working_in_all_shift_permutations:
-                non_new_employees_work_perm = constraint_model.NewBoolVar(f"fully_non_new_emps_{permutation_id}")
-                non_new_emps_in_perm = [non_new_employees_in_each_shifts[shift_in_perm.shift_id] for shift_in_perm in shifts_permutation]
-                constraint_model.AddBoolAnd(non_new_emps_in_perm).OnlyEnforceIf(non_new_employees_work_perm)
-                constraint_model.AddBoolOr(non_new_emp_in_shift.Not() for non_new_emp_in_shift in non_new_emps_in_perm).OnlyEnforceIf(non_new_employees_work_perm.Not())
-                non_new_emps_working_in_all_shift_permutations[permutation_id] = non_new_employees_work_perm
-            else:
-                non_new_employees_work_perm = non_new_emps_working_in_all_shift_permutations[permutation_id]
-            non_new_emps_in_shift_permutations[permutation_id] = non_new_employees_work_perm
-
-        non_new_emps_in_shift_permutations_key = ','.join(non_new_emps_in_shift_permutations.keys())
-        any_perm = constraint_model.NewBoolVar(f"any_perm_{non_new_emps_in_shift_permutations_key}")
-        all_perms = non_new_emps_working_in_all_shift_permutations.values()
+        non_new_emps_in_shift_permutations_id = ','.join(non_new_emps_in_shift_permutations.keys())
+        any_perm = constraint_model.NewBoolVar(f"any_perm_{non_new_emps_in_shift_permutations_id}")
+        all_perms = fully_non_new_emps_in_all_shift_permutations.values()
         constraint_model.AddAtLeastOne(all_perms).OnlyEnforceIf(any_perm)
-        any_perm_for_each_shift[non_new_emps_in_shift_permutations_key] = any_perm
+        any_perm_for_each_shift[non_new_emps_in_shift_permutations_id] = any_perm
 
-        # only if one of the permutations are worked by non-new employees, a new employee can work shift.
-        new_employees_works_this_shift = new_employees_in_each_shifts[shift.shift_id]
+        # Only if one of the permutations are worked by non-new employees, a new employee can work shift.
+        new_employees_works_this_shift = new_emps_in_each_shifts[shift.shift_id]
         constraint_model.AddBoolOr(non_new_emps_in_shift_permutations.values()).OnlyEnforceIf(new_employees_works_this_shift)
 
-    return new_employees_in_each_shifts, non_new_employees_in_each_shifts, non_new_emps_working_in_all_shift_permutations, any_perm_for_each_shift
+    return new_emps_in_each_shifts, non_new_emps_in_each_shifts, fully_non_new_emps_in_all_shift_permutations, any_perm_for_each_shift
+
+
+def get_non_new_emps_in_shift_permutations(constraint_model: cp_model.CpModel, non_new_employees_in_shifts: dict[uuid.UUID, IntVar], non_new_emps_in_all_permutations: dict[str, IntVar], overlapping_permutations: list[set[Shift]]) -> dict[str, IntVar]:
+    non_new_emps_in_shift_permutations: dict[str, IntVar] = {}
+
+    for shifts_permutation in overlapping_permutations:
+        permutation_id = get_permutation_id(shifts_permutation)
+
+        if permutation_id not in non_new_emps_in_all_permutations:
+            non_new_employees_work_perm = constraint_model.NewBoolVar(f"fully_non_new_emps_{permutation_id}")
+            non_new_emps_in_perm = [non_new_employees_in_shifts[shift_in_perm.shift_id] for shift_in_perm in shifts_permutation]
+            constraint_model.AddBoolAnd(non_new_emps_in_perm).OnlyEnforceIf(non_new_employees_work_perm)
+
+            not_non_new_emp_in_shift = [non_new_emp_in_shift.Not() for non_new_emp_in_shift in non_new_emps_in_perm]
+            constraint_model.AddBoolOr(not_non_new_emp_in_shift).OnlyEnforceIf(non_new_employees_work_perm.Not())
+            non_new_emps_in_all_permutations[permutation_id] = non_new_employees_work_perm
+        else:
+            non_new_employees_work_perm = non_new_emps_in_all_permutations[permutation_id]
+        non_new_emps_in_shift_permutations[permutation_id] = non_new_employees_work_perm
+
+    return non_new_emps_in_shift_permutations
 
 
 def remove_supersets_from_permutations(fully_overlapping_permutations: list[set[Shift]]):
