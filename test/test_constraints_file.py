@@ -362,12 +362,14 @@ def test_employees_can_work_non_overlapping_shifts():
 def test_employees_can_not_work_overlapping_shifts():
     test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4())
 
-    test_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
-    overlapping_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=datetime.datetime(2023, 12, 11, 9, 30), end_time=datetime.datetime(2023, 12, 11, 16, 0))
+    shift_a_start_time = datetime.datetime(2024, 1, 1, 12)
+    shift_duration = datetime.timedelta(hours=random.random())
+    shift_a = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=shift_a_start_time, end_time=shift_a_start_time + shift_duration)
+    shift_b = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=shift_a_start_time, end_time=shift_a.end_time + shift_duration)
 
     model = cp_model.CpModel()
     employees = [test_employee]
-    shifts = [test_shift, overlapping_shift]
+    shifts = [shift_a, shift_b]
 
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
@@ -379,19 +381,13 @@ def test_employees_can_not_work_overlapping_shifts():
     assert (status != cp_model.OPTIMAL)
 
 
-def test_shifts_are_overlapping():
-    main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2024, 1, 11, 9, 0), end_time=datetime.datetime(2024, 1, 11, 9, 30))
-    shift_bigger_then_main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=main_shift.start_time + datetime.timedelta(minutes=15), end_time=main_shift.end_time + datetime.timedelta(minutes=15))
-
-    assert main_shift.overlaps_with(shift_bigger_then_main_shift)
-    assert shift_bigger_then_main_shift.overlaps_with(main_shift)
-
-
 def test_a_shift_that_starts_when_a_different_shift_ends_does_not_overlaps_with_each_other():
     test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4())
 
-    main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2024, 1, 11, 9, 0), end_time=datetime.datetime(2024, 1, 11, 9, 30))
-    shift_bigger_then_main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=main_shift.end_time, end_time=main_shift.end_time + datetime.timedelta(minutes=15))
+    main_shift_start_time = datetime.datetime(2024, 1, 11, 9, 0)
+    shift_duration = datetime.timedelta(minutes=30)
+    main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=main_shift_start_time, end_time=main_shift_start_time + shift_duration)
+    shift_bigger_then_main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=main_shift.end_time, end_time=main_shift.end_time + (shift_duration / 2))
 
     model = cp_model.CpModel()
     employees = [test_employee]
@@ -484,14 +480,14 @@ def test_senior_employee_and_new_employee_in_parallel_shifts():
 def test_shifts_are_parallel_to_each_other():
     main_shift_start_time = datetime.datetime(2023, 12, 12, 9)
 
-    main_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=main_shift_start_time, end_time=main_shift_start_time + datetime.timedelta(hours=4))
-    support_shift1 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=main_shift_start_time, end_time=main_shift_start_time + datetime.timedelta(hours=2))
-    support_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=support_shift1.end_time, end_time=main_shift.end_time)
-    support_shift3 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=main_shift_start_time, end_time=support_shift1.end_time)
+    main_shift = Shift("main_shitf", shift_type=ShiftTypesEnum.MORNING, start_time=main_shift_start_time, end_time=main_shift_start_time + datetime.timedelta(hours=4))
+    support_shift1 = Shift("support_shift1", shift_type=ShiftTypesEnum.MORNING, start_time=main_shift_start_time, end_time=main_shift_start_time + datetime.timedelta(hours=2))
+    support_shift2 = Shift("support_shift2", shift_type=ShiftTypesEnum.MORNING, start_time=support_shift1.end_time, end_time=main_shift.end_time)
+    support_shift3 = Shift("support_shift3", shift_type=ShiftTypesEnum.MORNING, start_time=main_shift_start_time, end_time=support_shift1.end_time)
 
     assert(False == is_fully_overlapping(main_shift, [support_shift2]))
     assert(False == is_fully_overlapping(main_shift, [support_shift1]))
-    assert(False == is_fully_overlapping(main_shift, [support_shift3]))
+    assert(False == is_fully_overlapping(main_shift,[support_shift3]))
     assert(True == is_fully_overlapping(main_shift, [support_shift1, support_shift2]))
     assert(True == is_fully_overlapping(main_shift, [support_shift3, support_shift2]))
     assert(False == is_fully_overlapping(main_shift, [support_shift3, support_shift1]))
@@ -553,3 +549,115 @@ def test_solver_assignments_for_variables_in_the_model_are_as_expected():
         assert(solution[key_new_emps_in_support_shift] == False)
         assert(solution[key_non_new_emps_in_main_shift] == False)
         assert(solution[key_fully_non_new_emps_in_support_shift] == True)
+
+
+def test_overlapping_shifts_where_shift_starts_in_the_same_time():
+    """
+    [ A ]
+    [ B   ]
+    """
+    shift_a_start_time = datetime.datetime(2024, 1, 1, 9)
+    shift_duration = datetime.timedelta(hours=random.random())
+    shift_a = Shift("shift_a", ShiftTypesEnum.MORNING, shift_a_start_time, end_time=shift_a_start_time + shift_duration)
+    shift_b = Shift("shift_b", ShiftTypesEnum.MORNING, shift_a_start_time, end_time=shift_a.end_time + shift_duration)
+
+    assert shift_a.overlaps_with(shift_b)
+    assert shift_b.overlaps_with(shift_a)
+
+    pass
+
+
+def test_overlapping_shifts_where_shift_ends_in_the_same_time():
+    """
+      [ A ]
+    [ B   ]
+    """
+    shift_a_start_time = datetime.datetime(2024, 1, 1, 12)
+    shift_duration = datetime.timedelta(hours=random.random())
+    shift_a = Shift("shift_a", ShiftTypesEnum.MORNING, shift_a_start_time, end_time=shift_a_start_time + shift_duration)
+    shift_b = Shift("shift_b", ShiftTypesEnum.MORNING, shift_a_start_time - shift_duration, end_time=shift_a.end_time)
+
+    assert shift_a.overlaps_with(shift_b)
+    assert shift_b.overlaps_with(shift_a)
+
+    pass
+
+
+def test_overlapping_shifts_where_shift_starts_before_other_shift_and_ends_before_other_shift_ends():
+    """
+    [ A ]
+      [ B ]
+    """
+    shift_a_start_time = datetime.datetime(2024, 1, 1, 9)
+    shift_duration = datetime.timedelta(hours=random.random())
+    shift_a = Shift("shift_a", ShiftTypesEnum.MORNING, shift_a_start_time, end_time=shift_a_start_time + shift_duration)
+    shift_b = Shift("shift_b", ShiftTypesEnum.MORNING, shift_a_start_time + (shift_duration / 2), end_time=shift_a.end_time + (shift_duration / 2))
+
+    assert shift_a.overlaps_with(shift_b)
+    assert shift_b.overlaps_with(shift_a)
+
+    pass
+
+
+def test_overlapping_shifts_where_shift_starts_after_other_shift_starts_and_ends_after_other_shift_ends():
+    """
+      [ A ]
+    [ B ]
+    """
+    shift_a_start_time = datetime.datetime(2024, 1, 1, 12)
+    shift_duration = datetime.timedelta(hours=random.random())
+    shift_a = Shift("shift_a", ShiftTypesEnum.MORNING, shift_a_start_time, end_time=shift_a_start_time + shift_duration)
+    shift_b = Shift("shift_b", ShiftTypesEnum.MORNING, shift_a_start_time - (shift_duration / 2), end_time=shift_a.end_time - (shift_duration / 2))
+
+    assert shift_a.overlaps_with(shift_b)
+    assert shift_b.overlaps_with(shift_a)
+
+    pass
+
+
+def test_overlapping_shifts_where_other_shift_starts_when_shift_ends():
+    """
+    [ A ]
+        [ B ]
+    """
+    shift_a_start_time = datetime.datetime(2024, 1, 1, 9)
+    shift_duration = datetime.timedelta(hours=random.random())
+    shift_a = Shift("shift_a", ShiftTypesEnum.MORNING, shift_a_start_time, end_time=shift_a_start_time + shift_duration)
+    shift_b = Shift("shift_b", ShiftTypesEnum.MORNING, shift_a.end_time, end_time=shift_a.end_time + shift_duration)
+
+    assert not shift_a.overlaps_with(shift_b)
+    assert not shift_b.overlaps_with(shift_a)
+
+    pass
+
+
+def test_overlapping_shifts_where_shift_starts_when_other_shift_ends():
+    """
+        [ A ]
+    [ B ]
+    """
+    shift_a_start_time = datetime.datetime(2024, 1, 1, 12)
+    shift_duration = datetime.timedelta(hours=random.random())
+    shift_a = Shift("shift_a", ShiftTypesEnum.MORNING, shift_a_start_time, end_time=shift_a_start_time + shift_duration)
+    shift_b = Shift("shift_b", ShiftTypesEnum.MORNING, shift_a.start_time - shift_duration, end_time=shift_a.start_time)
+
+    assert not shift_a.overlaps_with(shift_b)
+    assert not shift_b.overlaps_with(shift_a)
+
+    pass
+
+
+def test_overlapping_shifts_where_shifts_dont_overlap_at_all():
+    """
+    [ A ]
+           [ B ]
+    """
+    shift_a_start_time = datetime.datetime(2024, 1, 1, 9)
+    shift_duration = datetime.timedelta(hours=random.random())
+    shift_a = Shift("shift_a", ShiftTypesEnum.MORNING, shift_a_start_time, end_time=shift_a_start_time + shift_duration)
+    shift_b = Shift("shift_b", ShiftTypesEnum.MORNING, shift_a.end_time + shift_duration, end_time=shift_a.end_time + shift_duration + shift_duration)
+
+    assert not shift_a.overlaps_with(shift_b)
+    assert not shift_b.overlaps_with(shift_a)
+
+    pass

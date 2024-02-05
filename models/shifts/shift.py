@@ -13,14 +13,7 @@ class Shift:
     end_time: datetime.datetime
 
     def overlaps_with(self, shift_to_compare: 'Shift') -> bool:
-        is_starts_or_ends_in_the_same_time = True
-        is_overlap_shifts = False
+        shift_start_time_smaller_then_other_shift_end_time = self.start_time < shift_to_compare.end_time
+        shift_end_time_bigger_then_other_shift_start_time = self.end_time > shift_to_compare.start_time
 
-        if ((shift_to_compare.start_time <= self.start_time <= shift_to_compare.end_time) or
-                (self.start_time <= shift_to_compare.start_time <= self.end_time <= shift_to_compare.end_time)):
-            is_overlap_shifts = True
-
-        if self.start_time == shift_to_compare.end_time or self.end_time == shift_to_compare.start_time:
-            is_starts_or_ends_in_the_same_time = False  # This shifts does not overlap
-
-        return is_overlap_shifts and is_starts_or_ends_in_the_same_time
+        return shift_start_time_smaller_then_other_shift_end_time and shift_end_time_bigger_then_other_shift_start_time
