@@ -113,7 +113,8 @@ tuple[dict[UUID, IntVar], dict[UUID, IntVar], dict[str, IntVar], dict[str, IntVa
         non_new_emps_in_each_shifts[shift.shift_id] = non_new_emps_work_shift
 
     for shift in shifts:
-        parallel_shifts_to_shift: list[Shift] = get_overlapping_shifts(shift, shifts)
+        shifts_without_shift = [s for s in shifts if s != shift]
+        parallel_shifts_to_shift: list[Shift] = get_overlapping_shifts(shift, shifts_without_shift)
         parallel_shift_permutations: list[list[Shift]] = get_shift_permutations_from_shifts(parallel_shifts_to_shift)
         fully_overlapping_permutations: list[set[Shift]] = [set(permutation) for permutation in parallel_shift_permutations if is_fully_overlapping(shift, permutation)]
         hermetic_non_supersets_permutations: list[set[Shift]] = get_permutations_without_supersets(fully_overlapping_permutations)  # Non-supersets
@@ -123,7 +124,7 @@ tuple[dict[UUID, IntVar], dict[UUID, IntVar], dict[str, IntVar], dict[str, IntVa
         any_of_the_perms_are_true = constraint_model.NewBoolVar(f"any_perm_{non_new_emps_in_shift_permutations_id}")
         all_perms = fully_non_new_emps_in_all_shift_permutations.values()
         not_perms = [perm.Not() for perm in all_perms]
-        constraint_model.AddAtLeastOne(all_perms).OnlyEnforceIf(any_of_the_perms_are_true)
+        constraint_model.AddBoolOr(all_perms).OnlyEnforceIf(any_of_the_perms_are_true)
         constraint_model.AddBoolAnd(not_perms).OnlyEnforceIf(any_of_the_perms_are_true.Not())
         any_of_the_perms_are_true_for_each_shift[non_new_emps_in_shift_permutations_id] = any_of_the_perms_are_true
 
@@ -137,16 +138,18 @@ tuple[dict[UUID, IntVar], dict[UUID, IntVar], dict[str, IntVar], dict[str, IntVa
 
 
 def is_fully_overlapping(shift, overlapping_shifts: list['Shift']):
-    shifts_start_time_end_time_range: list['Shift'] = [overlapping_shifts[0]]
-    for shift_perm in overlapping_shifts:
+    shifts_sorted_by_start_time = sorted(overlapping_shifts, key=lambda shift: shift.start_time)
+    shifts_start_time_end_time_range: list['Shift'] = [shifts_sorted_by_start_time[0]]
+
+    for shift_perm in shifts_sorted_by_start_time:
         if shifts_start_time_end_time_range[-1] != shift_perm and shift_perm.start_time <= shifts_start_time_end_time_range[-1].end_time:
             shifts_start_time_end_time_range.append(shift_perm)
         elif shift_perm.start_time > shifts_start_time_end_time_range[-1].end_time:
             return False
-    if shifts_start_time_end_time_range[0].start_time <= shift.start_time and shifts_start_time_end_time_range[-1].end_time >= shift.end_time:
-        return True
-    else:
-        return False
+    first_shift_in_range_start_time_smaller_or_equal_to_shift_start_time = shifts_start_time_end_time_range[0].start_time <= shift.start_time
+    last_shift_in_range_end_time_bigger_or_equal_to_shift_end_time = shifts_start_time_end_time_range[-1].end_time >= shift.end_time
+
+    return first_shift_in_range_start_time_smaller_or_equal_to_shift_start_time and last_shift_in_range_end_time_bigger_or_equal_to_shift_end_time
 
 
 def get_non_new_emps_in_shift_permutations(constraint_model: cp_model.CpModel, non_new_employees_in_shifts: dict[uuid.UUID, IntVar], non_new_emps_in_all_permutations: dict[str, IntVar], overlapping_permutations: list[set[Shift]]) -> dict[str, IntVar]:
@@ -170,7 +173,7 @@ def get_non_new_emps_in_shift_permutations(constraint_model: cp_model.CpModel, n
     return non_new_emps_in_shift_permutations
 
 
-def get_permutations_without_supersets(fully_overlapping_permutations: list[set[Shift]]):
+def get_permutations_without_supersets(fully_overlapping_permutations: list[set[Shift]]) -> list[set[Shift]]:
     super_perms: list[set[Shift]] = []
     for overlapping_permutation in fully_overlapping_permutations:
         if overlapping_permutation in super_perms:
@@ -180,14 +183,19 @@ def get_permutations_without_supersets(fully_overlapping_permutations: list[set[
                 if overlapping_permutation != other_overlapping_permutation and other_overlapping_permutation.issuperset(overlapping_permutation):
                     super_perms.append(other_overlapping_permutation)
 
-    perfect_overlapping_permutations: list[set[Shift]] = [perm for perm in fully_overlapping_permutations if perm not in super_perms]
+    # Sets are not hashable because they are mutable. Converting these lists to frozensets allows me to use the "-"
+    # operator, because then these lists are immutable and hashable.
+    frozenset_fully_overlapping_permutations = {frozenset(perm) for perm in fully_overlapping_permutations}
+    frozenset_super_perms = {frozenset(perm) for perm in super_perms}
+
+    perfect_overlapping_permutations = list(frozenset_fully_overlapping_permutations - frozenset_super_perms)
     return perfect_overlapping_permutations
 
 
 def get_overlapping_shifts(shift: Shift, shifts: list[Shift]) -> list[Shift]:
     overlapping_shifts_to_shift: list[Shift] = []
     for comparison_shift in shifts:
-        if comparison_shift != shift and shift.overlaps_with(comparison_shift):
+        if shift.overlaps_with(comparison_shift):
             overlapping_shifts_to_shift.append(comparison_shift)
     return overlapping_shifts_to_shift
 

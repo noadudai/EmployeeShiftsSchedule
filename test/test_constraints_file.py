@@ -282,9 +282,13 @@ def test_new_employees_can_work_parallel_shifts_with_senior_employees():
 
     senior_employee_working_main_shift_key = ShiftCombinationsKey(senior_employee.employee_id, main_shift.shift_id)
     senior_employee_working_support_shift3_key = ShiftCombinationsKey(senior_employee.employee_id, support_shift_3.shift_id)
+    senior_employee_working_support_shift1_key = ShiftCombinationsKey(senior_employee.employee_id, support_shift_1.shift_id)
+    senior_employee_working_support_shift2_key = ShiftCombinationsKey(senior_employee.employee_id, support_shift_2.shift_id)
 
     assert solver.Value(all_shifts[senior_employee_working_main_shift_key]) == True
     assert solver.Value(all_shifts[senior_employee_working_support_shift3_key]) == True
+    assert solver.Value(all_shifts[senior_employee_working_support_shift1_key]) == False
+    assert solver.Value(all_shifts[senior_employee_working_support_shift2_key]) == False
 
 
 def test_new_employees_cannot_work_parallel_shift_without_at_least_one_employee_that_is_not_new():
@@ -326,18 +330,19 @@ def test_new_employees_cannot_work_parallel_shift_without_at_least_one_employee_
 
 
 def test_employees_can_work_non_overlapping_shifts():
+    """
+    |shift1     | |shift2       |
+    """
+    test_shift_start_time = datetime.datetime(2023, 12, 11, 9, 30)
+    shift_duration = datetime.timedelta(hours=random.random())
+    test_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=test_shift_start_time, end_time=test_shift_start_time + shift_duration)
+    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift.end_time + shift_duration, end_time=test_shift.end_time + (shift_duration * 2))
+
     test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4())
-    shift1_start_time = datetime.datetime(2023, 12, 11, 9, 30)
-    shift1_end_time = datetime.datetime(2023, 12, 11, 16, 0)
-    shift2_start_time = datetime.datetime(2023, 12, 11, 16, 30)
-    shift2_end_time = datetime.datetime(2023, 12, 11, 17, 30)
 
-    test_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=shift1_start_time, end_time=shift1_end_time)
-    test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=shift2_start_time, end_time=shift2_end_time)
-
-    model = cp_model.CpModel()
     employees = [test_employee]
     shifts = [test_shift, test_shift2]
+    model = cp_model.CpModel()
 
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
@@ -580,8 +585,6 @@ def test_overlapping_shifts_where_shift_ends_in_the_same_time():
     assert shift_a.overlaps_with(shift_b)
     assert shift_b.overlaps_with(shift_a)
 
-    pass
-
 
 def test_overlapping_shifts_where_shift_starts_before_other_shift_and_ends_before_other_shift_ends():
     """
@@ -595,8 +598,6 @@ def test_overlapping_shifts_where_shift_starts_before_other_shift_and_ends_befor
 
     assert shift_a.overlaps_with(shift_b)
     assert shift_b.overlaps_with(shift_a)
-
-    pass
 
 
 def test_overlapping_shifts_where_shift_starts_after_other_shift_starts_and_ends_after_other_shift_ends():
@@ -612,8 +613,6 @@ def test_overlapping_shifts_where_shift_starts_after_other_shift_starts_and_ends
     assert shift_a.overlaps_with(shift_b)
     assert shift_b.overlaps_with(shift_a)
 
-    pass
-
 
 def test_overlapping_shifts_where_other_shift_starts_when_shift_ends():
     """
@@ -627,8 +626,6 @@ def test_overlapping_shifts_where_other_shift_starts_when_shift_ends():
 
     assert not shift_a.overlaps_with(shift_b)
     assert not shift_b.overlaps_with(shift_a)
-
-    pass
 
 
 def test_overlapping_shifts_where_shift_starts_when_other_shift_ends():
@@ -644,8 +641,6 @@ def test_overlapping_shifts_where_shift_starts_when_other_shift_ends():
     assert not shift_a.overlaps_with(shift_b)
     assert not shift_b.overlaps_with(shift_a)
 
-    pass
-
 
 def test_overlapping_shifts_where_shifts_dont_overlap_at_all():
     """
@@ -659,5 +654,3 @@ def test_overlapping_shifts_where_shifts_dont_overlap_at_all():
 
     assert not shift_a.overlaps_with(shift_b)
     assert not shift_b.overlaps_with(shift_a)
-
-    pass
