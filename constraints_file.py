@@ -145,12 +145,10 @@ def is_fully_overlapping(comparison_shift, overlapping_shifts: list['Shift']):
 
     for shift_perm in shifts_sorted_by_start_time[1:]:
         shift_start_during_prev_one = shift_perm.start_time <= shifts_start_time_end_time_range[-1].end_time
-        shift_starts_after_prev_one = shift_perm.start_time > shifts_start_time_end_time_range[-1].end_time
 
-        if shift_start_during_prev_one:
-            shifts_start_time_end_time_range.append(shift_perm)
-        elif shift_starts_after_prev_one:
+        if not shift_start_during_prev_one:
             return False
+        shifts_start_time_end_time_range.append(shift_perm)
     first_shift_starts_before_shift_starts = shifts_start_time_end_time_range[0].start_time <= comparison_shift.start_time
     last_shift_ends_after_shift_ends = shifts_start_time_end_time_range[-1].end_time >= comparison_shift.end_time
 
