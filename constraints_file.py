@@ -144,17 +144,17 @@ def is_fully_overlapping(shift, overlapping_shifts: list['Shift']):
     shifts_start_time_end_time_range: list['Shift'] = [shifts_sorted_by_start_time[0]]
 
     for shift_perm in shifts_sorted_by_start_time[1:]:
-        start_shift_perm_smaller_or_equal_to_end_prev_perm = shift_perm.start_time <= shifts_start_time_end_time_range[-1].end_time
-        start_shift_perm_time_bigger_then_end_prev_perm = shift_perm.start_time > shifts_start_time_end_time_range[-1].end_time
+        shift_perm_start_during_or_right_after_prev_shift_perm = shift_perm.start_time <= shifts_start_time_end_time_range[-1].end_time
+        shift_perm_starts_after_prev_shift_perm = shift_perm.start_time > shifts_start_time_end_time_range[-1].end_time
 
-        if start_shift_perm_smaller_or_equal_to_end_prev_perm:
+        if shift_perm_start_during_or_right_after_prev_shift_perm:
             shifts_start_time_end_time_range.append(shift_perm)
-        elif start_shift_perm_time_bigger_then_end_prev_perm:
+        elif shift_perm_starts_after_prev_shift_perm:
             return False
-    first_shift_start_time_smaller_or_equal_to_shift_start_time = shifts_start_time_end_time_range[0].start_time <= shift.start_time
-    last_shift_end_time_bigger_or_equal_to_shift_end_time = shifts_start_time_end_time_range[-1].end_time >= shift.end_time
+    first_shift_starts_before_or_right_as_shift_starts = shifts_start_time_end_time_range[0].start_time <= shift.start_time
+    last_shift_ends_after_or_right_when_shift_ends = shifts_start_time_end_time_range[-1].end_time >= shift.end_time
 
-    return first_shift_start_time_smaller_or_equal_to_shift_start_time and last_shift_end_time_bigger_or_equal_to_shift_end_time
+    return first_shift_starts_before_or_right_as_shift_starts and last_shift_ends_after_or_right_when_shift_ends
 
 
 def add_values_to_fully_non_new_emps_in_all_shift_permutations(shifts: set[Shift], fully_non_new_emps_in_all_shift_permutations: dict[str, IntVar], constraint_model: cp_model.CpModel, non_new_employees_in_shifts: dict[uuid.UUID, IntVar]):
