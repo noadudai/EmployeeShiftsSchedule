@@ -139,22 +139,22 @@ tuple[dict[UUID, IntVar], dict[UUID, IntVar], dict[str, IntVar], dict[str, IntVa
     return new_emps_in_each_shifts, non_new_emps_in_each_shifts, fully_non_new_emps_in_all_shift_permutations, any_of_the_perms_are_true_for_each_shift
 
 
-def is_fully_overlapping(shift, overlapping_shifts: list['Shift']):
+def is_fully_overlapping(comparison_shift, overlapping_shifts: list['Shift']):
     shifts_sorted_by_start_time = sorted(overlapping_shifts, key=lambda shift: shift.start_time)
     shifts_start_time_end_time_range: list['Shift'] = [shifts_sorted_by_start_time[0]]
 
     for shift_perm in shifts_sorted_by_start_time[1:]:
-        shift_perm_start_during_or_right_after_prev_shift_perm = shift_perm.start_time <= shifts_start_time_end_time_range[-1].end_time
-        shift_perm_starts_after_prev_shift_perm = shift_perm.start_time > shifts_start_time_end_time_range[-1].end_time
+        shift_start_during_prev_one = shift_perm.start_time <= shifts_start_time_end_time_range[-1].end_time
+        shift_starts_after_prev_one = shift_perm.start_time > shifts_start_time_end_time_range[-1].end_time
 
-        if shift_perm_start_during_or_right_after_prev_shift_perm:
+        if shift_start_during_prev_one:
             shifts_start_time_end_time_range.append(shift_perm)
-        elif shift_perm_starts_after_prev_shift_perm:
+        elif shift_starts_after_prev_one:
             return False
-    first_shift_starts_before_or_right_as_shift_starts = shifts_start_time_end_time_range[0].start_time <= shift.start_time
-    last_shift_ends_after_or_right_when_shift_ends = shifts_start_time_end_time_range[-1].end_time >= shift.end_time
+    first_shift_starts_before_shift_starts = shifts_start_time_end_time_range[0].start_time <= comparison_shift.start_time
+    last_shift_ends_after_shift_ends = shifts_start_time_end_time_range[-1].end_time >= comparison_shift.end_time
 
-    return first_shift_starts_before_or_right_as_shift_starts and last_shift_ends_after_or_right_when_shift_ends
+    return first_shift_starts_before_shift_starts and last_shift_ends_after_shift_ends
 
 
 def add_values_to_fully_non_new_emps_in_all_shift_permutations(shifts: set[Shift], fully_non_new_emps_in_all_shift_permutations: dict[str, IntVar], constraint_model: cp_model.CpModel, non_new_employees_in_shifts: dict[uuid.UUID, IntVar]):
