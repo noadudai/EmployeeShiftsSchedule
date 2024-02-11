@@ -1,7 +1,7 @@
 import datetime
 import itertools
 import uuid
-from typing import Tuple, Dict
+from typing import Tuple
 from uuid import UUID
 
 from ortools.sat.python import cp_model
@@ -234,3 +234,18 @@ def add_prevent_overlapping_shifts_for_employees_constraint(shifts: list[Shift],
                     overlapping_shifts_for_employee.append(shift_combinations[key])
                     seen_shifts.append(shift)
             constraint_model.AddAtMostOne(overlapping_shifts_for_employee)
+
+
+def add_maximize_employees_shift_preferences(employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]) -> None:
+    # Shift_preferences_and_assignments is a list of the "shift preference" * the "employee assignment". The "objective"
+    # is the summation of this list given all the assignments are "true". The solver will explore different combinations
+    # of assignments for employees to shifts, trying to increase the value of the "objective" at each step until it
+    # finds the best possible assignment that maximizes the total preference value.
+    shift_preferences_and_assignments = []
+
+    for employee in employees:
+        for shift in employee.preferences:
+            key = ShiftCombinationsKey(employee.employee_id, shift.shift_id)
+            shift_preferences_and_assignments.append(shift_combinations[key] * (employee.priority.value + employee.employee_status.value))
+
+    constraint_model.Maximize(sum(shift_preferences_and_assignments))
