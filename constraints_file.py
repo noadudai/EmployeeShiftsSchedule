@@ -234,3 +234,17 @@ def add_prevent_overlapping_shifts_for_employees_constraint(shifts: list[Shift],
                     overlapping_shifts_for_employee.append(shift_combinations[key])
                     seen_shifts.append(shift)
             constraint_model.AddAtMostOne(overlapping_shifts_for_employee)
+
+
+def add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]) -> list[IntVar]:
+    deviations = []
+    for employee in employees:
+        emp_shifts = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts]
+        deviation = constraint_model.NewIntVar(0, len(emp_shifts), f'deviation_{employee.employee_id}')
+        multy_deviation = constraint_model.NewIntVar(0, pow(len(emp_shifts), 2), f'multy_deviation_{employee.employee_id}')
+
+        constraint_model.AddAbsEquality(deviation, sum(emp_shifts) - employee.position.value)
+        constraint_model.AddMultiplicationEquality(multy_deviation, deviation, 2)
+        deviations.append(multy_deviation)
+    constraint_model.Minimize(sum(deviations))
+    return deviations
