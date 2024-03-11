@@ -658,7 +658,7 @@ def test_overlapping_shifts_where_shifts_dont_overlap_at_all():
     assert not shift_b.overlaps_with(shift_a)
 
 
-def test_part_timers_gets_1_shift_while_full_timer_get_3_shifts():
+def test_part_timer_gets_1_shift_while_full_timer_get_3_shifts():
     test_shift1_start_time = datetime.datetime(2023, 12, 11, 9, 30)
     shift_duration = datetime.timedelta(hours=random.random())
     test_shift1 = Shift("test_shift1", shift_type=ShiftTypesEnum.MORNING, start_time=test_shift1_start_time, end_time=test_shift1_start_time + shift_duration)
@@ -688,13 +688,14 @@ def test_part_timers_gets_1_shift_while_full_timer_get_3_shifts():
         for shift in shifts:
             emp_assignment = all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]
             if solver.Value(emp_assignment):
-                print(f"{employee.employee_id}, {shift.shift_id} = {solver.Value(emp_assignment)}")
+                # print(f"{employee.employee_id}, {shift.shift_id} = {solver.Value(emp_assignment)}")
                 emp_shifts.append(solver.Value(emp_assignment))
         emp_shift_assignments[employee.employee_id] = emp_shifts
 
     assert len(emp_shift_assignments["full_timer_employee"]) == 3
     assert len(emp_shift_assignments["part_timer_employee"]) == 1
-    print(emp_shift_assignments)
+
+    # print(emp_shift_assignments)
 
 
 def test_part_timers_gets_2_shifts_and_full_timer_get_4_shifts():
@@ -707,7 +708,6 @@ def test_part_timers_gets_2_shifts_and_full_timer_get_4_shifts():
     test_shift5 = Shift("test_shift5", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift4.end_time, end_time=test_shift4.end_time + shift_duration)
     test_shift6 = Shift("test_shift6", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift4.end_time, end_time=test_shift4.end_time + shift_duration)
 
-
     full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.full_timer)
     part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.part_timer)
 
@@ -717,23 +717,22 @@ def test_part_timers_gets_2_shifts_and_full_timer_get_4_shifts():
 
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
-    deviations = add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint(shifts, employees, model, all_shifts)
+    vars = add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint(shifts, employees, model, all_shifts)
 
     # solver = cp_model.CpSolver()
     # status = solver.Solve(model)
     solver = cp_model.CpSolver()
-    vars = deviations
     solution_printer = VarArraySolutionPrinter(vars)
     solver.parameters.enumerate_all_solutions = True
     status = solver.Solve(model, solution_printer)
 
     # For visually testing the solver, to see if the assignments are as expected.
-    solutions = solution_printer.get_solutions()
-    print("-----solutions-----")
-    for solution in solutions.optimal_solutions:
-        for key, val in solution.items():
-            print(f"{key} = {val}")
-        print("")
+    # solutions = solution_printer.get_solutions()
+    # print("-----solutions-----")
+    # for solution in solutions.optimal_solutions:
+    #     for key, val in solution.items():
+    #         print(f"{key} = {val}")
+    #     print("")
 
     assert (status == cp_model.OPTIMAL)
 
@@ -743,7 +742,7 @@ def test_part_timers_gets_2_shifts_and_full_timer_get_4_shifts():
         for shift in shifts:
             emp_assignment = all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]
             if solver.Value(emp_assignment):
-                print(f"{employee.employee_id}, {shift.shift_id} = {solver.Value(emp_assignment)}")
+                # print(f"{employee.employee_id}, {shift.shift_id} = {solver.Value(emp_assignment)}")
                 emp_shifts.append(solver.Value(emp_assignment))
         emp_shift_assignments[employee.employee_id] = emp_shifts
 

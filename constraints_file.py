@@ -244,6 +244,8 @@ def add_aspire_for_minimal_deviation_between_employees_position_and_number_of_sh
         multy_deviation = constraint_model.NewIntVar(0, pow(len(emp_shifts), 2), f'multy_deviation_{employee.employee_id}')
 
         constraint_model.AddAbsEquality(deviation, sum(emp_shifts) - employee.position.value)
+        # Adding the deviation as its multiplication, indicates the solver that the outcome of giving a higher number
+        # of shifts to an employee is more severe than the outcome of dividing the same number of shifts among employees.
         constraint_model.AddMultiplicationEquality(multy_deviation, deviation, 2)
         deviations.append(multy_deviation)
     constraint_model.Minimize(sum(deviations))
