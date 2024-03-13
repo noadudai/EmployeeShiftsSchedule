@@ -658,7 +658,7 @@ def test_overlapping_shifts_where_shifts_dont_overlap_at_all():
     assert not shift_b.overlaps_with(shift_a)
 
 
-def test_part_timer_gets_1_shift_while_full_timer_get_3_shifts():
+def test_full_timer_and_part_timer_gets_their_positions_amount_of_shifts():
     test_shift1_start_time = datetime.datetime(2023, 12, 11, 9, 30)
     shift_duration = datetime.timedelta(hours=random.random())
     test_shift1 = Shift("test_shift1", shift_type=ShiftTypesEnum.MORNING, start_time=test_shift1_start_time, end_time=test_shift1_start_time + shift_duration)
@@ -688,25 +688,22 @@ def test_part_timer_gets_1_shift_while_full_timer_get_3_shifts():
         for shift in shifts:
             emp_assignment = all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]
             if solver.Value(emp_assignment):
-                # print(f"{employee.employee_id}, {shift.shift_id} = {solver.Value(emp_assignment)}")
                 emp_shifts.append(solver.Value(emp_assignment))
         emp_shift_assignments[employee.employee_id] = emp_shifts
 
-    assert len(emp_shift_assignments["full_timer_employee"]) == 3
-    assert len(emp_shift_assignments["part_timer_employee"]) == 1
-
-    # print(emp_shift_assignments)
+    assert len(emp_shift_assignments["full_timer_employee"]) == full_timer_employee.position.value
+    assert len(emp_shift_assignments["part_timer_employee"]) == part_timer_employee.position.value
 
 
-def test_part_timers_gets_2_shifts_and_full_timer_get_4_shifts():
+def test_the_shifts_are_divided_between_the_employees_making_the_deviation_between_the_given_shifts_and_the_positions_amount_of_shifts_for_all_employees_is_minimal():
     test_shift1_start_time = datetime.datetime(2023, 12, 11, 9, 30)
     shift_duration = datetime.timedelta(hours=random.random())
     test_shift1 = Shift("test_shift1", shift_type=ShiftTypesEnum.MORNING, start_time=test_shift1_start_time, end_time=test_shift1_start_time + shift_duration)
     test_shift2 = Shift("test_shift2", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift1.end_time, end_time=test_shift1.end_time + shift_duration)
-    test_shift3 = Shift("test_shift3", shift_type=ShiftTypesEnum.MORNING, start_time=test_shift2.end_time,  end_time=test_shift2.end_time + shift_duration)
+    test_shift3 = Shift("test_shift3", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift2.end_time,  end_time=test_shift2.end_time + shift_duration)
     test_shift4 = Shift("test_shift4", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift3.end_time, end_time=test_shift3.end_time + shift_duration)
     test_shift5 = Shift("test_shift5", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift4.end_time, end_time=test_shift4.end_time + shift_duration)
-    test_shift6 = Shift("test_shift6", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift4.end_time, end_time=test_shift4.end_time + shift_duration)
+    test_shift6 = Shift("test_shift6", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift5.end_time, end_time=test_shift5.end_time + shift_duration)
 
     full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.full_timer)
     part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.part_timer)
@@ -719,20 +716,10 @@ def test_part_timers_gets_2_shifts_and_full_timer_get_4_shifts():
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
     vars = add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint(shifts, employees, model, all_shifts)
 
-    # solver = cp_model.CpSolver()
-    # status = solver.Solve(model)
     solver = cp_model.CpSolver()
     solution_printer = VarArraySolutionPrinter(vars)
     solver.parameters.enumerate_all_solutions = True
     status = solver.Solve(model, solution_printer)
-
-    # For visually testing the solver, to see if the assignments are as expected.
-    # solutions = solution_printer.get_solutions()
-    # print("-----solutions-----")
-    # for solution in solutions.optimal_solutions:
-    #     for key, val in solution.items():
-    #         print(f"{key} = {val}")
-    #     print("")
 
     assert (status == cp_model.OPTIMAL)
 
@@ -742,9 +729,52 @@ def test_part_timers_gets_2_shifts_and_full_timer_get_4_shifts():
         for shift in shifts:
             emp_assignment = all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]
             if solver.Value(emp_assignment):
-                # print(f"{employee.employee_id}, {shift.shift_id} = {solver.Value(emp_assignment)}")
                 emp_shifts.append(solver.Value(emp_assignment))
         emp_shift_assignments[employee.employee_id] = emp_shifts
 
-    assert len(emp_shift_assignments["full_timer_employee"]) == 4
-    assert len(emp_shift_assignments["part_timer_employee"]) == 2
+    assert len(emp_shift_assignments["full_timer_employee"]) == full_timer_employee.position.value + 1
+    assert len(emp_shift_assignments["part_timer_employee"]) == part_timer_employee.position.value + 1
+
+
+def test_the_shifts_are_divided_between_the_employees_and_no_employee_works_more_than_one_shift_than_the_other():
+    test_shift1_start_time = datetime.datetime(2023, 12, 11, 9, 30)
+    shift_duration = datetime.timedelta(hours=random.random())
+    test_shift1 = Shift("test_shift1", shift_type=ShiftTypesEnum.MORNING, start_time=test_shift1_start_time, end_time=test_shift1_start_time + shift_duration)
+    test_shift2 = Shift("test_shift2", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift1.end_time, end_time=test_shift1.end_time + shift_duration)
+    test_shift3 = Shift("test_shift3", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift2.end_time,  end_time=test_shift2.end_time + shift_duration)
+    test_shift4 = Shift("test_shift4", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift3.end_time, end_time=test_shift3.end_time + shift_duration)
+    test_shift5 = Shift("test_shift5", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift4.end_time, end_time=test_shift4.end_time + shift_duration)
+    test_shift6 = Shift("test_shift6", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift5.end_time, end_time=test_shift5.end_time + shift_duration)
+    test_shift7 = Shift("test_shift7", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift5.end_time, end_time=test_shift5.end_time + shift_duration)
+
+    full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.full_timer)
+    part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.part_timer)
+
+    employees = [full_timer_employee, part_timer_employee]
+    shifts = [test_shift1, test_shift2, test_shift3, test_shift4, test_shift5, test_shift6, test_shift7]
+    model = cp_model.CpModel()
+
+    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
+    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
+    vars = add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint(shifts, employees, model, all_shifts)
+
+    solver = cp_model.CpSolver()
+    solution_printer = VarArraySolutionPrinter(vars)
+    solver.parameters.enumerate_all_solutions = True
+    status = solver.Solve(model, solution_printer)
+
+    assert (status == cp_model.OPTIMAL)
+
+    emp_shift_assignments = {}
+    for employee in employees:
+        emp_shifts = []
+        for shift in shifts:
+            emp_assignment = all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]
+            if solver.Value(emp_assignment):
+                emp_shifts.append(solver.Value(emp_assignment))
+        emp_shift_assignments[employee.employee_id] = emp_shifts
+
+    full_timer_shifts_deviation = len(emp_shift_assignments["full_timer_employee"]) - full_timer_employee.position.value
+    part_timer_deviation = len(emp_shift_assignments["part_timer_employee"]) - part_timer_employee.position.value
+
+    assert abs(full_timer_shifts_deviation-part_timer_deviation) <= 1
