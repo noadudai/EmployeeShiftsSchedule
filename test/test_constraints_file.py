@@ -682,14 +682,7 @@ def test_full_timer_and_part_timer_gets_their_positions_amount_of_shifts():
 
     assert (status == cp_model.OPTIMAL)
 
-    emp_shift_assignments = {}
-    for employee in employees:
-        emp_shifts = []
-        for shift in shifts:
-            emp_assignment = all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]
-            if solver.Value(emp_assignment):
-                emp_shifts.append(solver.Value(emp_assignment))
-        emp_shift_assignments[employee.employee_id] = emp_shifts
+    emp_shift_assignments = get_employees_shifts_assignments(all_shifts, employees, shifts, solver)
 
     assert len(emp_shift_assignments["full_timer_employee"]) == full_timer_employee.position.value
     assert len(emp_shift_assignments["part_timer_employee"]) == part_timer_employee.position.value
@@ -763,7 +756,10 @@ def test_the_shifts_are_divided_between_the_employees_and_no_employee_works_more
     full_timer_shifts_deviation = len(emp_shift_assignments["full_timer_employee"]) - full_timer_employee.position.value
     part_timer_deviation = len(emp_shift_assignments["part_timer_employee"]) - part_timer_employee.position.value
 
-    assert abs(full_timer_shifts_deviation-part_timer_deviation) <= 1
+    full_timer_deviation_with_2_more_shifts = full_timer_shifts_deviation + 2
+    part_timer_have_one_more_shift_deviation_then_the_full_timer = full_timer_deviation_with_2_more_shifts > part_timer_deviation > full_timer_shifts_deviation
+
+    assert part_timer_have_one_more_shift_deviation_then_the_full_timer
 
 
 def get_employees_shifts_assignments(all_shifts, employees, shifts, solver):
