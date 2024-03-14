@@ -695,7 +695,7 @@ def test_full_timer_and_part_timer_gets_their_positions_amount_of_shifts():
     assert len(emp_shift_assignments["part_timer_employee"]) == part_timer_employee.position.value
 
 
-def test_the_shifts_are_divided_between_the_employees_making_the_deviation_between_the_given_shifts_and_the_positions_amount_of_shifts_for_all_employees_is_minimal():
+def test_the_2_extra_shifts_aside_from_the_positions_shifts_amount_are_divided_evenly_between_the_employees():
     test_shift1_start_time = datetime.datetime(2023, 12, 11, 9, 30)
     shift_duration = datetime.timedelta(hours=random.random())
     test_shift1 = Shift("test_shift1", shift_type=ShiftTypesEnum.MORNING, start_time=test_shift1_start_time, end_time=test_shift1_start_time + shift_duration)
@@ -723,14 +723,7 @@ def test_the_shifts_are_divided_between_the_employees_making_the_deviation_betwe
 
     assert (status == cp_model.OPTIMAL)
 
-    emp_shift_assignments = {}
-    for employee in employees:
-        emp_shifts = []
-        for shift in shifts:
-            emp_assignment = all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]
-            if solver.Value(emp_assignment):
-                emp_shifts.append(solver.Value(emp_assignment))
-        emp_shift_assignments[employee.employee_id] = emp_shifts
+    emp_shift_assignments = get_employees_shifts_assignments(all_shifts, employees, shifts, solver)
 
     assert len(emp_shift_assignments["full_timer_employee"]) == full_timer_employee.position.value + 1
     assert len(emp_shift_assignments["part_timer_employee"]) == part_timer_employee.position.value + 1
@@ -765,6 +758,15 @@ def test_the_shifts_are_divided_between_the_employees_and_no_employee_works_more
 
     assert (status == cp_model.OPTIMAL)
 
+    emp_shift_assignments = get_employees_shifts_assignments(all_shifts, employees, shifts, solver)
+
+    full_timer_shifts_deviation = len(emp_shift_assignments["full_timer_employee"]) - full_timer_employee.position.value
+    part_timer_deviation = len(emp_shift_assignments["part_timer_employee"]) - part_timer_employee.position.value
+
+    assert abs(full_timer_shifts_deviation-part_timer_deviation) <= 1
+
+
+def get_employees_shifts_assignments(all_shifts, employees, shifts, solver):
     emp_shift_assignments = {}
     for employee in employees:
         emp_shifts = []
@@ -773,8 +775,4 @@ def test_the_shifts_are_divided_between_the_employees_and_no_employee_works_more
             if solver.Value(emp_assignment):
                 emp_shifts.append(solver.Value(emp_assignment))
         emp_shift_assignments[employee.employee_id] = emp_shifts
-
-    full_timer_shifts_deviation = len(emp_shift_assignments["full_timer_employee"]) - full_timer_employee.position.value
-    part_timer_deviation = len(emp_shift_assignments["part_timer_employee"]) - part_timer_employee.position.value
-
-    assert abs(full_timer_shifts_deviation-part_timer_deviation) <= 1
+    return emp_shift_assignments
