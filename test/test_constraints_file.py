@@ -4,26 +4,31 @@ from uuid import uuid4
 import pytest
 from ortools.sat.python import cp_model
 
-from models.employees.employee_position_enum import EmployeePositionEnum
+from models.employees.employee_preferences.day_preference import DayPreference
+from models.employees.employee_preferences.shifts_preference import ShiftsPreference
 from .var_array_solution_printer import VarArraySolutionPrinter
 
-from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
-    add_at_most_one_shift_per_employee_in_the_same_day_constraint, add_limit_employees_working_days_constraint, \
-    add_minimum_time_between_closing_shift_and_next_shift_constraint, \
-    add_prevent_new_employees_from_working_parallel_shifts_together, \
-    add_prevent_overlapping_shifts_for_employees_constraint, is_fully_overlapping, \
-    add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint
+from models.employees.employee_position_enum import EmployeePositionEnum
+from models.employees.employee_preferences.preferences import Preferences
 from models.employees.employee import Employee
 from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
 from models.shifts.shift import Shift
 from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shifts_types_enum import ShiftTypesEnum
+from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
+    add_at_most_one_shift_per_employee_in_the_same_day_constraint, add_limit_employees_working_days_constraint, \
+    add_minimum_time_between_closing_shift_and_next_shift_constraint, \
+    add_prevent_new_employees_from_working_parallel_shifts_together, \
+    add_prevent_overlapping_shifts_for_employees_constraint, is_fully_overlapping, \
+    add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint, \
+    employee_does_not_work_his_days_off, add_aspire_to_maximize_all_employees_preferences_constraint, \
+    aspire_to_give_an_employee_a_day_off_if_he_prefers_not_to_work, maximize_on_employees_shifts_preferences_in_days
 
 
 def test_every_shift_has_an_assigned_employee():
-    test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
-    test_employee2 = Employee("test2", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
+    test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
+    test_employee2 = Employee("test2", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     employees = [test_employee, test_employee2]
 
@@ -68,7 +73,7 @@ def test_every_shift_has_an_assigned_employee_and_every_employee_has_at_most_one
     shift_start_time_for_test = datetime.datetime(2023, 12, 11, 9, 30)
     shift_duration = datetime.timedelta(hours=random.random())
 
-    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
+    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
     employees = [test_employee]
 
     shifts: list[Shift] = []
@@ -98,8 +103,8 @@ def test_every_shift_has_an_assigned_employee_and_every_employee_has_at_most_one
 def test_verify_no_optimal_solution_when_there_are_more_shifts_then_employees():
     shift_start_time_for_test = datetime.datetime(2023, 12, 11, 9, 30)
     shift_duration = datetime.timedelta(hours=random.random())
-    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
-    test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
+    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
+    test_employee2 = Employee("test2", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     employees = [test_employee, test_employee2]
 
@@ -125,7 +130,7 @@ def test_verify_no_optimal_solution_when_there_are_more_shifts_then_employees():
 def test_verify_no_optimal_solution_when_there_are_more_shifts_then_max_working_shifts_for_one_employee():
     shift_start_time_for_test = datetime.datetime(2023, 12, 11, 9, 30)
     shift_duration = datetime.timedelta(hours=random.random())
-    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
+    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     employees = [test_employee]
     shifts: list[Shift] = []
@@ -156,7 +161,7 @@ def test_verify_working_days_for_employee_does_not_exceed_the_max_working_days()
     shifts: list[Shift] = []
 
     for _ in range(0, 2):
-        employees.append(Employee(f"{_}", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer))
+        employees.append(Employee(f"{_}", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], [])))
 
     for i in range(len(employees) + 1):
         shifts.append(Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=shift_start_time_for_test + datetime.timedelta(days=i), end_time=shift_start_time_for_test + shift_duration))
@@ -189,7 +194,7 @@ def test_no_optimal_solution_when_the_closing_shift_and_the_next_shift_are_too_c
     shift_duration = datetime.timedelta(hours=random.random())
     start_closing_shift_time = datetime.datetime(2023, 12, 12, 18, 0)
 
-    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
+    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_closing_shift_time, end_time=start_closing_shift_time + shift_duration)
 
@@ -217,7 +222,7 @@ def test_every_employee_that_worked_closing_shift_does_not_work_the_next_shifts_
     shift_duration = datetime.timedelta(hours=8)
     start_closing_shift_time = datetime.datetime(2023, 12, 12, 18, 0)
 
-    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
+    test_employee = Employee("test", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     closing_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=start_closing_shift_time, end_time=start_closing_shift_time + shift_duration)
 
@@ -265,9 +270,9 @@ def test_new_employees_can_work_parallel_shifts_with_senior_employees():
     support_shit3_end_time = support_shit2_end_time + shift_duration
     support_shift_3 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=support_shift3_start_time, end_time=support_shit3_end_time)
 
-    senior_employee = Employee("senior_employee", EmployeePriorityEnum.LOW, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
-    new_employee1 = Employee("new_employee1", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
-    new_employee2 = Employee("new_employee2", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
+    senior_employee = Employee("senior_employee", EmployeePriorityEnum.LOW, EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
+    new_employee1 = Employee("new_employee1", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
+    new_employee2 = Employee("new_employee2", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     shifts = [main_shift, support_shift_1, support_shift_2, support_shift_3]
     employees = [senior_employee, new_employee1, new_employee2]
@@ -310,8 +315,8 @@ def test_new_employees_cannot_work_parallel_shift_without_at_least_one_employee_
     support_shift1_end_time = main_shift.end_time + shift_duration  # A double shift
     support_shift_1 = Shift("support_shift", shift_type=ShiftTypesEnum.CLOSING, start_time=main_shift_start_time, end_time=support_shift1_end_time)
 
-    new_employee1 = Employee("new_emp1", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id="new_emp1", position=EmployeePositionEnum.part_timer)
-    new_employee2 = Employee("new_emp2", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id="new_emp2", position=EmployeePositionEnum.part_timer)
+    new_employee1 = Employee("new_emp1", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id="new_emp1", position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
+    new_employee2 = Employee("new_emp2", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id="new_emp2", position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     shifts = [main_shift, support_shift_1]
     employees = [new_employee1, new_employee2]
@@ -340,7 +345,7 @@ def test_employees_can_work_non_overlapping_shifts():
     test_shift = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING, start_time=test_shift_start_time, end_time=test_shift_start_time + shift_duration)
     test_shift2 = Shift(shift_id=uuid4(), shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift.end_time + shift_duration, end_time=test_shift.end_time + (shift_duration * 2))
 
-    test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
+    test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     employees = [test_employee]
     shifts = [test_shift, test_shift2]
@@ -367,7 +372,7 @@ def test_employees_can_work_non_overlapping_shifts():
 
 
 def test_employees_can_not_work_overlapping_shifts():
-    test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
+    test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     shift_a_start_time = datetime.datetime(2024, 1, 1, 12)
     shift_duration = datetime.timedelta(hours=random.random())
@@ -389,7 +394,7 @@ def test_employees_can_not_work_overlapping_shifts():
 
 
 def test_a_shift_that_starts_when_a_different_shift_ends_does_not_overlaps_with_each_other():
-    test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer)
+    test_employee = Employee("test", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id=uuid4(), position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     main_shift_start_time = datetime.datetime(2024, 1, 11, 9, 0)
     shift_duration = datetime.timedelta(minutes=30)
@@ -437,9 +442,9 @@ def test_senior_employee_and_new_employee_in_parallel_shifts():
 
     support_shift_2 = Shift("shift2", shift_type=ShiftTypesEnum.CLOSING, start_time=support_shift2_start_time, end_time=support_shift2_end_time)
 
-    senior_employee = Employee("senior_employee", EmployeePriorityEnum.LOW, EmployeeStatusEnum.senior_employee, "senior_employee", position=EmployeePositionEnum.part_timer)
+    senior_employee = Employee("senior_employee", EmployeePriorityEnum.LOW, EmployeeStatusEnum.senior_employee, "senior_employee", position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
-    new_employee1 = Employee("new_employee1", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, "new_employee1", position=EmployeePositionEnum.part_timer)
+    new_employee1 = Employee("new_employee1", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, "new_employee1", position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     shifts = [support_shift_1, support_shift_2, main_shift]
     employees = [new_employee1, senior_employee]
@@ -518,8 +523,8 @@ def test_solver_assignments_for_variables_in_the_model_are_as_expected():
 
     support_shift_1 = Shift("support_shift", shift_type=ShiftTypesEnum.CLOSING, start_time=main_shift_start_time, end_time=support_shift1_end_time)
 
-    new_employee1 = Employee("new_emp1", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id="new_emp1", position=EmployeePositionEnum.part_timer)
-    senior_employee = Employee("sen_emp", EmployeePriorityEnum.LOW, EmployeeStatusEnum.senior_employee, employee_id="sen_emp", position=EmployeePositionEnum.part_timer)
+    new_employee1 = Employee("new_emp1", EmployeePriorityEnum.LOW, EmployeeStatusEnum.new_employee, employee_id="new_emp1", position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
+    senior_employee = Employee("sen_emp", EmployeePriorityEnum.LOW, EmployeeStatusEnum.senior_employee, employee_id="sen_emp", position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     shifts = [main_shift, support_shift_1]
     employees = [senior_employee, new_employee1]
@@ -666,8 +671,8 @@ def test_full_timer_and_part_timer_gets_their_positions_amount_of_shifts():
     test_shift3 = Shift("test_shift3", shift_type=ShiftTypesEnum.MORNING, start_time=test_shift2.end_time,  end_time=test_shift2.end_time + shift_duration)
     test_shift4 = Shift("test_shift4", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift3.end_time, end_time=test_shift3.end_time + shift_duration)
 
-    full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.full_timer)
-    part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.part_timer)
+    full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.full_timer, preferences=Preferences([], [], []))
+    part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     employees = [full_timer_employee, part_timer_employee]
     shifts = [test_shift1, test_shift2, test_shift3, test_shift4]
@@ -698,8 +703,8 @@ def test_the_2_extra_shifts_aside_from_the_positions_shifts_amount_are_divided_e
     test_shift5 = Shift("test_shift5", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift4.end_time, end_time=test_shift4.end_time + shift_duration)
     test_shift6 = Shift("test_shift6", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift5.end_time, end_time=test_shift5.end_time + shift_duration)
 
-    full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.full_timer)
-    part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.part_timer)
+    full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.full_timer, preferences=Preferences([], [], []))
+    part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     employees = [full_timer_employee, part_timer_employee]
     shifts = [test_shift1, test_shift2, test_shift3, test_shift4, test_shift5, test_shift6]
@@ -733,8 +738,8 @@ def test_the_shifts_are_divided_between_the_employees_and_no_employee_works_more
     test_shift6 = Shift("test_shift6", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift5.end_time, end_time=test_shift5.end_time + shift_duration)
     test_shift7 = Shift("test_shift7", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift5.end_time, end_time=test_shift5.end_time + shift_duration)
 
-    full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.full_timer)
-    part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.part_timer)
+    full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.full_timer, preferences=Preferences([], [], []))
+    part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.part_timer, preferences=Preferences([], [], []))
 
     employees = [full_timer_employee, part_timer_employee]
     shifts = [test_shift1, test_shift2, test_shift3, test_shift4, test_shift5, test_shift6, test_shift7]
@@ -772,3 +777,128 @@ def get_employees_shifts_assignments(all_shifts, employees, shifts, solver):
                 emp_shifts.append(solver.Value(emp_assignment))
         emp_shift_assignments[employee.employee_id] = emp_shifts
     return emp_shift_assignments
+
+
+def test_an_employee_is_not_working_in_a_day_he_can_not_worky():
+    shift1 = Shift(shift_id="shift1", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=30))
+    emp_preferences = Preferences(days_cannot_work=[DayPreference(datetime.date.today())], days_prefer_not_to_work=[], shifts_prefer_to_work_in_days=[])
+    emp_with_day_off = Employee("emp_with_day_off", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="emp_with_day_off", position=EmployeePositionEnum.full_timer, preferences=emp_preferences)
+    emp = Employee("emp", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="test_employee", position=EmployeePositionEnum.full_timer, preferences=Preferences([], [], []))
+
+    employees = [emp_with_day_off, emp]
+    shifts = [shift1]
+    model = cp_model.CpModel()
+
+    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
+    employee_does_not_work_his_days_off(model, employees, all_shifts, shifts)
+    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
+
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+
+    assert (status == cp_model.OPTIMAL)
+    assert (solver.Value(all_shifts[ShiftCombinationsKey(emp.employee_id, shift1.shift_id)]) == True)
+
+
+def test_an_employee_is_not_working_in_a_day_he_prefers_not_to_work():
+    shift1 = Shift(shift_id="shift1", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=30))
+    shift2 = Shift(shift_id="shift2", shift_type=ShiftTypesEnum.MORNING, start_time=shift1.end_time, end_time=shift1.end_time + datetime.timedelta(minutes=30))
+    emp_preferences = Preferences([], days_prefer_not_to_work=[DayPreference(datetime.date.today())], shifts_prefer_to_work_in_days=[])
+    emp_with_a_day_off_request = Employee("emp_with_a_day_off_request", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="emp_with_a_day_off_request", position=EmployeePositionEnum.full_timer, preferences=emp_preferences)
+    emp_with_no_preferences = Employee("emp_with_no_preferences", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="test_employee", position=EmployeePositionEnum.full_timer, preferences=Preferences([], [], []))
+
+    employees = [emp_with_a_day_off_request, emp_with_no_preferences]
+    shifts = [shift1, shift2]
+    model = cp_model.CpModel()
+
+    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
+    aspire_to_give_an_employee_a_day_off_if_he_prefers_not_to_work(model, employees, all_shifts, shifts)
+    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
+
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+
+    assert (status == cp_model.OPTIMAL)
+    assert (solver.Value(all_shifts[ShiftCombinationsKey(emp_with_no_preferences.employee_id, shift1.shift_id)]) == True)
+    assert (solver.Value(all_shifts[ShiftCombinationsKey(emp_with_no_preferences.employee_id, shift2.shift_id)]) == True)
+
+
+def test_an_employee_gets_hes_preferred_shifts():
+    morning_shift = Shift(shift_id="morning_shift", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=30))
+    closing_shift = Shift(shift_id="closing_shift", shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=30))
+
+    emp_preferences = Preferences([], [], shifts_prefer_to_work_in_days=[ShiftsPreference(datetime.datetime.today().date(), [ShiftTypesEnum.MORNING, ShiftTypesEnum.MORNING_BACKUP])])
+    emp_wants_shift1 = Employee("emp_wants_shift1", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="emp_wants_shift1", position=EmployeePositionEnum.full_timer, preferences=emp_preferences)
+    emp = Employee("emp", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="test_employee", position=EmployeePositionEnum.full_timer, preferences=Preferences([], [], []))
+
+    employees = [emp_wants_shift1, emp]
+    shifts = [morning_shift, closing_shift]
+    model = cp_model.CpModel()
+
+    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
+    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
+    add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, model, all_shifts)
+    maximize_on_employees_shifts_preferences_in_days(model, employees, all_shifts, shifts)
+
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+
+    assert (status == cp_model.OPTIMAL)
+    assert (solver.Value(all_shifts[ShiftCombinationsKey(emp_wants_shift1.employee_id, morning_shift.shift_id)]) == True)
+    assert (solver.Value(all_shifts[ShiftCombinationsKey(emp.employee_id, closing_shift.shift_id)]) == True)
+    assert (solver.Value(all_shifts[ShiftCombinationsKey(emp_wants_shift1.employee_id, closing_shift.shift_id)]) == False)
+
+
+def test_an_emp_who_prefers_not_to_work_is_working_so_a_different_emp_with_a_day_off_will_not_work():
+    morning_shift = Shift(shift_id="morning_shift", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
+
+    emp_with_day_off_preferences = Preferences(days_cannot_work=[DayPreference(datetime.datetime.today().date())], days_prefer_not_to_work=[], shifts_prefer_to_work_in_days=[])
+    emp_wants_day_off_preferences = Preferences([], [DayPreference(datetime.datetime.today().date())], [])
+
+    emp_with_day_off = Employee("emp_with_day_off", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="emp_with_day_off", position=EmployeePositionEnum.full_timer, preferences=emp_with_day_off_preferences)
+    emp_wants_day_off = Employee("emp_wants_day_off", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="test_employee", position=EmployeePositionEnum.full_timer, preferences=emp_wants_day_off_preferences)
+
+    employees = [emp_with_day_off, emp_wants_day_off]
+    shifts = [morning_shift]
+    model = cp_model.CpModel()
+
+    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
+    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
+    add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, model, all_shifts)
+    add_aspire_to_maximize_all_employees_preferences_constraint(shifts, employees, model, all_shifts)
+
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+
+    assert (status == cp_model.OPTIMAL)
+    assert (solver.Value(all_shifts[ShiftCombinationsKey(emp_wants_day_off.employee_id, morning_shift.shift_id)]) == True)
+    assert (solver.Value(all_shifts[ShiftCombinationsKey(emp_with_day_off.employee_id, morning_shift.shift_id)]) == False)
+
+
+def test_an_emp_who_does_not_have_preferences_is_working_so_other_employees_can_have_a_day_off():
+    shift1 = Shift(shift_id="shift1", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
+    shift2 = Shift(shift_id="shift2", shift_type=ShiftTypesEnum.MORNING, start_time=shift1.end_time, end_time=shift1.end_time + datetime.timedelta(minutes=random.random()))
+
+    emp_with_day_off_preferences = Preferences(days_cannot_work=[DayPreference(datetime.datetime.today().date())], days_prefer_not_to_work=[], shifts_prefer_to_work_in_days=[])
+    emp_wants_day_off_preferences = Preferences([], [DayPreference(datetime.datetime.today().date())], [])
+
+    emp_with_day_off = Employee("emp_with_day_off", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="emp_with_day_off", position=EmployeePositionEnum.full_timer, preferences=emp_with_day_off_preferences)
+    emp_wants_day_off = Employee("emp_wants_day_off", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="emp_wants_day_off", position=EmployeePositionEnum.full_timer, preferences=emp_wants_day_off_preferences)
+    emp_with_no_preferences = Employee("emp_with_no_preferences", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="emp_with_no_preferences", position=EmployeePositionEnum.full_timer, preferences=Preferences([], [], []))
+
+    employees = [emp_with_day_off, emp_wants_day_off, emp_with_no_preferences]
+    shifts = [shift1, shift2]
+    model = cp_model.CpModel()
+
+    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
+    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
+    add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, model, all_shifts)
+
+    add_aspire_to_maximize_all_employees_preferences_constraint(shifts, employees, model, all_shifts)
+
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+
+    assert (status == cp_model.OPTIMAL)
+    assert (solver.Value(all_shifts[ShiftCombinationsKey(emp_with_no_preferences.employee_id, shift1.shift_id)]) == True)
+    assert (solver.Value(all_shifts[ShiftCombinationsKey(emp_with_no_preferences.employee_id, shift2.shift_id)]) == True)
