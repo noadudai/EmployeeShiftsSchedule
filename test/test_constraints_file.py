@@ -4,7 +4,7 @@ from uuid import uuid4
 import pytest
 from ortools.sat.python import cp_model
 
-from models.employees.employee_preferences.day_preference import DayPreference
+from models.employees.employee_preferences.day_preference import DayOffPreference
 from models.employees.employee_preferences.shifts_preference import ShiftsPreference
 from .var_array_solution_printer import VarArraySolutionPrinter
 
@@ -22,8 +22,7 @@ from constraints_file import generate_shift_employee_combinations, add_exactly_o
     add_prevent_new_employees_from_working_parallel_shifts_together, \
     add_prevent_overlapping_shifts_for_employees_constraint, is_fully_overlapping, \
     add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint, \
-    employee_does_not_work_his_days_off, add_aspire_to_maximize_all_employees_preferences_constraint, \
-    aspire_to_give_an_employee_a_day_off_if_he_prefers_not_to_work, maximize_on_employees_shifts_preferences_in_days
+    add_aspire_to_maximize_all_employees_preferences_constraint
 
 
 def test_every_shift_has_an_assigned_employee():
@@ -781,7 +780,7 @@ def get_employees_shifts_assignments(all_shifts, employees, shifts, solver):
 
 def test_an_employee_is_not_working_in_a_day_he_can_not_worky():
     shift1 = Shift(shift_id="shift1", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=30))
-    emp_preferences = Preferences(days_cannot_work=[DayPreference(datetime.date.today())], days_prefer_not_to_work=[], shifts_prefer_to_work_in_days=[])
+    emp_preferences = Preferences(days_cannot_work=[DayOffPreference(datetime.date.today())], days_prefer_not_to_work=[], shifts_prefer_to_work_in_days=[])
     emp_with_day_off = Employee("emp_with_day_off", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="emp_with_day_off", position=EmployeePositionEnum.full_timer, preferences=emp_preferences)
     emp = Employee("emp", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="test_employee", position=EmployeePositionEnum.full_timer, preferences=Preferences([], [], []))
 
@@ -790,7 +789,7 @@ def test_an_employee_is_not_working_in_a_day_he_can_not_worky():
     model = cp_model.CpModel()
 
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
-    employee_does_not_work_his_days_off(model, employees, all_shifts, shifts)
+    add_aspire_to_maximize_all_employees_preferences_constraint(shifts, employees, model, all_shifts)
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
 
     solver = cp_model.CpSolver()
@@ -803,7 +802,7 @@ def test_an_employee_is_not_working_in_a_day_he_can_not_worky():
 def test_an_employee_is_not_working_in_a_day_he_prefers_not_to_work():
     shift1 = Shift(shift_id="shift1", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=30))
     shift2 = Shift(shift_id="shift2", shift_type=ShiftTypesEnum.MORNING, start_time=shift1.end_time, end_time=shift1.end_time + datetime.timedelta(minutes=30))
-    emp_preferences = Preferences([], days_prefer_not_to_work=[DayPreference(datetime.date.today())], shifts_prefer_to_work_in_days=[])
+    emp_preferences = Preferences([], days_prefer_not_to_work=[DayOffPreference(datetime.date.today())], shifts_prefer_to_work_in_days=[])
     emp_with_a_day_off_request = Employee("emp_with_a_day_off_request", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="emp_with_a_day_off_request", position=EmployeePositionEnum.full_timer, preferences=emp_preferences)
     emp_with_no_preferences = Employee("emp_with_no_preferences", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="test_employee", position=EmployeePositionEnum.full_timer, preferences=Preferences([], [], []))
 
@@ -812,7 +811,7 @@ def test_an_employee_is_not_working_in_a_day_he_prefers_not_to_work():
     model = cp_model.CpModel()
 
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
-    aspire_to_give_an_employee_a_day_off_if_he_prefers_not_to_work(model, employees, all_shifts, shifts)
+    add_aspire_to_maximize_all_employees_preferences_constraint(shifts, employees, model, all_shifts)
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
 
     solver = cp_model.CpSolver()
@@ -838,7 +837,7 @@ def test_an_employee_gets_hes_preferred_shifts():
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
     add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, model, all_shifts)
-    maximize_on_employees_shifts_preferences_in_days(model, employees, all_shifts, shifts)
+    add_aspire_to_maximize_all_employees_preferences_constraint(shifts, employees, model, all_shifts)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
@@ -852,8 +851,8 @@ def test_an_employee_gets_hes_preferred_shifts():
 def test_an_emp_who_prefers_not_to_work_is_working_so_a_different_emp_with_a_day_off_will_not_work():
     morning_shift = Shift(shift_id="morning_shift", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
 
-    emp_with_day_off_preferences = Preferences(days_cannot_work=[DayPreference(datetime.datetime.today().date())], days_prefer_not_to_work=[], shifts_prefer_to_work_in_days=[])
-    emp_wants_day_off_preferences = Preferences([], [DayPreference(datetime.datetime.today().date())], [])
+    emp_with_day_off_preferences = Preferences(days_cannot_work=[DayOffPreference(datetime.datetime.today().date())], days_prefer_not_to_work=[], shifts_prefer_to_work_in_days=[])
+    emp_wants_day_off_preferences = Preferences([], [DayOffPreference(datetime.datetime.today().date())], [])
 
     emp_with_day_off = Employee("emp_with_day_off", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="emp_with_day_off", position=EmployeePositionEnum.full_timer, preferences=emp_with_day_off_preferences)
     emp_wants_day_off = Employee("emp_wants_day_off", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="test_employee", position=EmployeePositionEnum.full_timer, preferences=emp_wants_day_off_preferences)
@@ -879,12 +878,12 @@ def test_an_emp_who_does_not_have_preferences_is_working_so_other_employees_can_
     shift1 = Shift(shift_id="shift1", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
     shift2 = Shift(shift_id="shift2", shift_type=ShiftTypesEnum.MORNING, start_time=shift1.end_time, end_time=shift1.end_time + datetime.timedelta(minutes=random.random()))
 
-    emp_with_day_off_preferences = Preferences(days_cannot_work=[DayPreference(datetime.datetime.today().date())], days_prefer_not_to_work=[], shifts_prefer_to_work_in_days=[])
-    emp_wants_day_off_preferences = Preferences([], [DayPreference(datetime.datetime.today().date())], [])
+    emp_with_day_off_preferences = Preferences(days_cannot_work=[DayOffPreference(datetime.datetime.today().date())])
+    emp_wants_day_off_preferences = Preferences([DayOffPreference(datetime.datetime.today().date())])
 
-    emp_with_day_off = Employee("emp_with_day_off", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="emp_with_day_off", position=EmployeePositionEnum.full_timer, preferences=emp_with_day_off_preferences)
-    emp_wants_day_off = Employee("emp_wants_day_off", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="emp_wants_day_off", position=EmployeePositionEnum.full_timer, preferences=emp_wants_day_off_preferences)
-    emp_with_no_preferences = Employee("emp_with_no_preferences", EmployeePriorityEnum.HIGHEST, EmployeeStatusEnum.senior_employee, employee_id="emp_with_no_preferences", position=EmployeePositionEnum.full_timer, preferences=Preferences([], [], []))
+    emp_with_day_off = Employee(name="emp_with_day_off", employee_id="emp_with_day_off", preferences=emp_with_day_off_preferences)
+    emp_wants_day_off = Employee(name="emp_wants_day_off", employee_id="emp_wants_day_off", preferences=emp_wants_day_off_preferences)
+    emp_with_no_preferences = Employee(name="emp_with_no_preferences", employee_id="emp_with_no_preferences")
 
     employees = [emp_with_day_off, emp_wants_day_off, emp_with_no_preferences]
     shifts = [shift1, shift2]

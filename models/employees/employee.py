@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import uuid
 
 from .employee_position_enum import EmployeePositionEnum
@@ -9,9 +9,9 @@ from .employee_status_enum import EmployeeStatusEnum
 
 @dataclass
 class Employee:
-    name: str
-    priority: EmployeePriorityEnum
-    employee_status: EmployeeStatusEnum
-    employee_id: uuid.UUID
-    position: EmployeePositionEnum
-    preferences: Preferences
+    name: str = "test"
+    priority: EmployeePriorityEnum = EmployeePriorityEnum.HIGHEST
+    employee_status: EmployeeStatusEnum = EmployeeStatusEnum.senior_employee
+    employee_id: uuid.UUID = uuid.uuid4()
+    position: EmployeePositionEnum = EmployeePositionEnum.full_timer
+    preferences: Preferences = field(default_factory=Preferences)

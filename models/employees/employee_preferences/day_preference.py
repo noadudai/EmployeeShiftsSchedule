@@ -3,5 +3,5 @@ from dataclasses import dataclass
 
 
 @dataclass
-class DayPreference:
+class DayOffPreference:
     day_date: datetime.date
