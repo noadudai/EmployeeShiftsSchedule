@@ -9,9 +9,9 @@ from .employee_status_enum import EmployeeStatusEnum
 
 @dataclass
 class Employee:
-    name: str = "test"
-    priority: EmployeePriorityEnum = EmployeePriorityEnum.HIGHEST
-    employee_status: EmployeeStatusEnum = EmployeeStatusEnum.senior_employee
+    name: str
+    priority: EmployeePriorityEnum = EmployeePriorityEnum.LOW
+    employee_status: EmployeeStatusEnum = EmployeeStatusEnum.mid_level_employee
     employee_id: uuid.UUID = uuid.uuid4()
     position: EmployeePositionEnum = EmployeePositionEnum.full_timer
     preferences: Preferences = field(default_factory=Preferences)
