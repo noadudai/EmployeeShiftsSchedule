@@ -14,11 +14,11 @@ from models.shifts.shifts_types_enum import ShiftTypesEnum
 
 
 def test_no_optimal_solution_if_there_is_an_employee_how_cannot_work_closing_shift():
-    employee_how_cannot_close = Employee(name="employee_how_cannot_close", shifts_trained_to_do=[ShiftTypesEnum.MORNING])
+    employee_who_cannot_close = Employee(name="employee_how_cannot_close", shifts_trained_to_do=[ShiftTypesEnum.MORNING])
 
     closing_shift = Shift(shift_id="closing_shift", shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
 
-    employees = [employee_how_cannot_close]
+    employees = [employee_who_cannot_close]
 
     shifts = [closing_shift]
     model = cp_model.CpModel()
@@ -34,13 +34,13 @@ def test_no_optimal_solution_if_there_is_an_employee_how_cannot_work_closing_shi
 
 
 def test_an_employee_how_cannot_morning_is_not_working_in_the_morning():
-    employee_how_cannot_work_morning = Employee(name="employee_how_cannot_work_morning", employee_id="employee_how_cannot_work_morning", shifts_trained_to_do=[ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING, ShiftTypesEnum.WEEKEND_EVENING_BACKUP])
-    employee_how_can_work_morning = Employee(name="employee_how_can_work_morning", employee_id="employee_how_can_work_morning", shifts_trained_to_do=[ShiftTypesEnum.MORNING])
+    employee_who_cannot_work_morning = Employee(name="employee_who_cannot_work_morning", employee_id="employee_who_cannot_work_morning", shifts_trained_to_do=[ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING, ShiftTypesEnum.WEEKEND_EVENING_BACKUP])
+    employee_who_can_work_morning = Employee(name="employee_who_can_work_morning", employee_id="employee_who_can_work_morning", shifts_trained_to_do=[ShiftTypesEnum.MORNING])
 
     morning_shift = Shift(shift_id="morning_shift", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
     morning_shift2 = Shift(shift_id="morning_shift2", shift_type=ShiftTypesEnum.MORNING, start_time=morning_shift.end_time, end_time=morning_shift.end_time + datetime.timedelta(minutes=random.random()))
 
-    employees = [employee_how_cannot_work_morning, employee_how_can_work_morning]
+    employees = [employee_who_cannot_work_morning, employee_who_can_work_morning]
 
     shifts = [morning_shift, morning_shift2]
     model = cp_model.CpModel()
@@ -54,13 +54,13 @@ def test_an_employee_how_cannot_morning_is_not_working_in_the_morning():
 
     assert (status == cp_model.OPTIMAL)
 
-    employee_how_can_work_morning_working_morning_shift_key = all_shifts[ShiftCombinationsKey(employee_how_can_work_morning.employee_id, morning_shift.shift_id)]
+    employee_how_can_work_morning_working_morning_shift_key = all_shifts[ShiftCombinationsKey(employee_who_can_work_morning.employee_id, morning_shift.shift_id)]
     assert (solver.Value(employee_how_can_work_morning_working_morning_shift_key) == True)
 
-    employee_how_can_work_morning_working_morning_shift2_key = all_shifts[ShiftCombinationsKey(employee_how_can_work_morning.employee_id, morning_shift2.shift_id)]
+    employee_how_can_work_morning_working_morning_shift2_key = all_shifts[ShiftCombinationsKey(employee_who_can_work_morning.employee_id, morning_shift2.shift_id)]
     assert (solver.Value(employee_how_can_work_morning_working_morning_shift2_key) == True)
 
-    employee_how_cannot_work_morning_working_morning_shift_key = all_shifts[ShiftCombinationsKey(employee_how_cannot_work_morning.employee_id, morning_shift.shift_id)]
+    employee_how_cannot_work_morning_working_morning_shift_key = all_shifts[ShiftCombinationsKey(employee_who_cannot_work_morning.employee_id, morning_shift.shift_id)]
     assert (solver.Value(employee_how_cannot_work_morning_working_morning_shift_key) == False)
 
 

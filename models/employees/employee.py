@@ -16,4 +16,4 @@ class Employee:
     employee_id: uuid.UUID = uuid.uuid4()
     position: EmployeePositionEnum = EmployeePositionEnum.full_timer
     preferences: Preferences = field(default_factory=Preferences)
-    shifts_trained_to_do: list[ShiftTypesEnum] = field(default_factory=list)
+    shift_types_trained_to_do: list[ShiftTypesEnum] = field(default_factory=list)
