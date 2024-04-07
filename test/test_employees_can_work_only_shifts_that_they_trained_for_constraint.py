@@ -13,7 +13,7 @@ from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 
 
-def test_no_optimal_solution_if_there_is_an_employee_who_cannot_work_closing_shift():
+def test_no_schedule_when_an_employee_cannot_work_because_he_is_not_trained_to_do_the_shift():
     employee_who_cannot_close = Employee(name="employee_who_cannot_close", shifts_trained_to_do=[ShiftTypesEnum.MORNING])
 
     closing_shift = Shift(shift_id="closing_shift", shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
@@ -33,7 +33,7 @@ def test_no_optimal_solution_if_there_is_an_employee_who_cannot_work_closing_shi
     assert (status != cp_model.OPTIMAL)
 
 
-def test_an_employee_who_cannot_morning_is_not_working_in_the_morning():
+def test_an_employee_who_is_not_trained_to_work_a_shift_is_not_working_that_shift():
     employee_who_cannot_work_morning = Employee(name="employee_who_cannot_work_morning", employee_id="employee_who_cannot_work_morning", shifts_trained_to_do=[ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING, ShiftTypesEnum.WEEKEND_EVENING_BACKUP])
     employee_who_can_work_morning = Employee(name="employee_who_can_work_morning", employee_id="employee_who_can_work_morning", shifts_trained_to_do=[ShiftTypesEnum.MORNING])
 
@@ -64,7 +64,7 @@ def test_an_employee_who_cannot_morning_is_not_working_in_the_morning():
     assert (solver.Value(employee_who_cannot_work_morning_working_morning_shift_key) == False)
 
 
-def test_no_schedule_when_there_are_2_emps_and_one_of_them_is_not_capable_of_doing_the_shift():
+def test_no_schedule_when_there_are_2_emps_and_one_of_them_is_not_trained_to_do_any_of_the_shifts():
     employee_who_cannot_work_morning = Employee(name="employee_who_cannot_work_morning", employee_id="employee_who_cannot_work_morning", shifts_trained_to_do=[ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING, ShiftTypesEnum.WEEKEND_EVENING_BACKUP])
     employee_who_can_work_morning = Employee(name="employee_who_can_work_morning", employee_id="employee_who_can_work_morning", shifts_trained_to_do=[ShiftTypesEnum.MORNING])
 
