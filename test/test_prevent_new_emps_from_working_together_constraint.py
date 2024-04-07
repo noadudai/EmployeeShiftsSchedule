@@ -6,7 +6,7 @@ from .var_array_solution_printer import VarArraySolutionPrinter
 
 from constraints_file import generate_shift_employee_combinations, \
     add_prevent_overlapping_shifts_for_employees_constraint, \
-    add_prevent_new_employees_from_working_parallel_shifts_together, add_exactly_one_employee_per_shift_constraint
+    add_prevent_new_employees_from_working_parallel_shifts_together_constraint, add_exactly_one_employee_per_shift_constraint
 from models.employees.employee import Employee
 from models.employees.employee_position_enum import EmployeePositionEnum
 from models.employees.employee_priority_enum import EmployeePriorityEnum
@@ -53,7 +53,7 @@ def test_new_employees_can_work_parallel_shifts_with_senior_employees():
 
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
     add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, model, all_shifts)
-    add_prevent_new_employees_from_working_parallel_shifts_together(shifts, employees, model, all_shifts)
+    add_prevent_new_employees_from_working_parallel_shifts_together_constraint(shifts, employees, model, all_shifts)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
@@ -97,7 +97,7 @@ def test_new_employees_cannot_work_parallel_shift_without_at_least_one_employee_
 
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
     add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, model, all_shifts)
-    new_employees_in_each_shifts, non_new_employees_in_each_shifts,non_new_emps_working_in_all_shift_permutations,any_perm_for_each_shift = add_prevent_new_employees_from_working_parallel_shifts_together(shifts, employees, model, all_shifts)
+    new_employees_in_each_shifts, non_new_employees_in_each_shifts,non_new_emps_working_in_all_shift_permutations,any_perm_for_each_shift = add_prevent_new_employees_from_working_parallel_shifts_together_constraint(shifts, employees, model, all_shifts)
 
     solver = cp_model.CpSolver()
     vars = list(new_employees_in_each_shifts.values()) + list(non_new_employees_in_each_shifts.values()) + list(non_new_emps_working_in_all_shift_permutations.values()) + list(all_shifts.values()) + list(any_perm_for_each_shift.values())
@@ -141,10 +141,10 @@ def test_senior_employee_and_new_employee_in_parallel_shifts():
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
 
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
-    add_prevent_new_employees_from_working_parallel_shifts_together(shifts, employees, model, all_shifts)
+    add_prevent_new_employees_from_working_parallel_shifts_together_constraint(shifts, employees, model, all_shifts)
     add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, model, all_shifts)
 
-    new_employees_in_each_shifts, non_new_employees_in_each_shifts, non_new_emps_working_in_all_shift_permutations, any_perm_for_each_shift = add_prevent_new_employees_from_working_parallel_shifts_together(
+    new_employees_in_each_shifts, non_new_employees_in_each_shifts, non_new_emps_working_in_all_shift_permutations, any_perm_for_each_shift = add_prevent_new_employees_from_working_parallel_shifts_together_constraint(
         shifts, employees, model, all_shifts)
 
     solver = cp_model.CpSolver()
@@ -205,7 +205,7 @@ def test_solver_assignments_for_variables_in_the_model_are_as_expected():
 
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
     add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, model, all_shifts)
-    new_employees_in_each_shifts, non_new_employees_in_each_shifts, non_new_emps_working_in_all_shift_permutations, any_perm_for_each_shift = add_prevent_new_employees_from_working_parallel_shifts_together(
+    new_employees_in_each_shifts, non_new_employees_in_each_shifts, non_new_emps_working_in_all_shift_permutations, any_perm_for_each_shift = add_prevent_new_employees_from_working_parallel_shifts_together_constraint(
         shifts, employees, model, all_shifts)
 
     vars = list(new_employees_in_each_shifts.values()) + list(non_new_employees_in_each_shifts.values()) + list(

@@ -86,7 +86,7 @@ def add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts: lis
             constraint_model.Add(sum(forbidden_shifts) == 0).OnlyEnforceIf(worked_closing_shift_yesterday)
 
 
-def add_prevent_new_employees_from_working_parallel_shifts_together(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar])-> \
+def add_prevent_new_employees_from_working_parallel_shifts_together_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar])-> \
 tuple[dict[UUID, IntVar], dict[UUID, IntVar], dict[str, IntVar], dict[str, IntVar]]:
 
     new_emps_in_each_shifts: dict[uuid.UUID, IntVar] = {}
@@ -268,3 +268,11 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
             shift_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_prefer_not_to_work]
 
             constraint_model.Minimize(sum(shift_assignments))
+
+
+def add_aspire_to_minimize_employees_closing_shifts_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):
+    for employee in employees:
+        emp_closing_shifts = [shift_combinations[ShiftCombinationsKey(shift.shift_id, employee.employee_id)] for shift in shifts if shift.shift_type == ShiftTypesEnum.CLOSING]
+
+        constraint_model.Minimize(sum(emp_closing_shifts))
+
