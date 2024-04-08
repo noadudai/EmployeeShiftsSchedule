@@ -13,7 +13,7 @@ from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 
 
-def test_no_schedule_when_an_employee_cannot_work_because_he_is_not_trained_to_do_the_shift():
+def test_no_schedule_when_an_employee_cannot_work_a_shift_because_he_is_not_trained_to_do_that_shift():
     employee_who_cannot_close = Employee(name="employee_who_cannot_close", shifts_trained_to_do=[ShiftTypesEnum.MORNING])
 
     closing_shift = Shift(shift_id="closing_shift", shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
