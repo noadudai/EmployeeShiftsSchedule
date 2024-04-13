@@ -276,3 +276,11 @@ def add_aspire_to_minimize_employees_closing_shifts_constraint(shifts: list[Shif
 
         constraint_model.Minimize(sum(emp_closing_shifts))
 
+
+def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):
+    for emp in employees:
+        shifts_cannot_work = [shift for shift in shifts if shift.shift_type not in emp.shift_types_trained_to_do]
+
+        for shift in shifts_cannot_work:
+            key = ShiftCombinationsKey(emp.employee_id, shift.shift_id)
+            constraint_model.Add(shift_combinations[key] == 0)
