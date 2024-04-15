@@ -95,7 +95,7 @@ def test_all_the_employees_who_worked_in_the_afternoon_are_not_working_in_the_mo
     thursday_closing_shift_end_time = datetime.datetime(2024, 4, 12, 4)
 
     friday_morning_start_time = datetime.datetime(2024, 4, 12, 7, 30)
-    friday_morning_end_time = datetime.datetime(2024, 4, 12, 7, 30) + datetime.timedelta(minutes=random.random())
+    friday_morning_end_time = friday_morning_start_time + datetime.timedelta(minutes=random.random())
 
     thursday_evening_shift = Shift(shift_id="evening_shift", shift_type=ShiftTypesEnum.EVENING, start_time=thursday_evening_start_time, end_time=thursday_evening_end_time)
     thursday_evening_backup_shift = Shift(shift_id="evening_backup_shift", shift_type=ShiftTypesEnum.THURSDAY_BACKUP, start_time=thursday_evening_backup_shift_start_time, end_time=thursday_evening_backup_shift_end_time)
