@@ -272,7 +272,7 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
 
 def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):
     for emp in employees:
-        shifts_cannot_work = [shift for shift in shifts if shift.shift_type not in emp.shifts_trained_to_do]
+        shifts_cannot_work = [shift for shift in shifts if shift.shift_type not in emp.shift_types_trained_to_do]
 
         for shift in shifts_cannot_work:
             key = ShiftCombinationsKey(emp.employee_id, shift.shift_id)
