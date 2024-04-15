@@ -21,7 +21,7 @@ def create_schedule(employees: list[Employee], shifts: list[Shift]) -> list[tupl
     add_exactly_one_employee_per_shift_constraint(shifts, employees, constraint_model, all_shifts)
     add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, constraint_model, all_shifts)
     add_limit_employees_working_days_constraint(shifts, employees, constraint_model, all_shifts, max_working_days)
-    add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts, employees, constraint_model, all_shifts, datetime.timedelta(hours=9))
+    add_minimum_time_between_afternoon_shifts_and_next_shift_constraint(shifts, employees, constraint_model, all_shifts, datetime.timedelta(hours=9))
 
     solver = cp_model.CpSolver()
     status = solver.Solve(constraint_model)
