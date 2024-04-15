@@ -73,8 +73,21 @@ def test_every_employee_that_worked_closing_shift_does_not_work_the_next_shifts_
 
 
 def test_all_the_employees_who_worked_in_the_afternoon_are_not_working_in_the_morning_of_the_day_after():
+    """
+            THURSDAY
+                16:00 - 02:00
+                |      |
+                    19:30 - 03:00
+                    |       |
+                        21:30 - 04:00
+                        |       |
+            FRIDAY
+    07:30 - random
+    |       |
+    """
+
     thursday_evening_shift = Shift(shift_id="evening_shift", shift_type=ShiftTypesEnum.EVENING, start_time=datetime.datetime(2024, 4, 11, 16, 0), end_time=datetime.datetime(2024, 4, 12, 2))
-    thursday_evening_backup_shift = Shift(shift_id="evening_backup_shift", shift_type=ShiftTypesEnum.THURSDAY_BACKUP, start_time=datetime.datetime(2024, 4, 11, 1, 30), end_time=datetime.datetime(2024, 4, 12, 3))
+    thursday_evening_backup_shift = Shift(shift_id="evening_backup_shift", shift_type=ShiftTypesEnum.THURSDAY_BACKUP, start_time=datetime.datetime(2024, 4, 11, 19, 30), end_time=datetime.datetime(2024, 4, 12, 3))
     thursday_closing_shift = Shift(shift_id="closing_shift", shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2024, 4, 11, 21, 30), end_time=datetime.datetime(2024, 4, 12, 4))
     friday_morning = Shift(shift_id="morning_shift", shift_type=ShiftTypesEnum.WEEKEND_MORNING, start_time=datetime.datetime(2024, 4, 12, 7, 30), end_time=datetime.datetime(2024, 4, 12, 7, 30) + datetime.timedelta(minutes=random.random()))
 

@@ -67,7 +67,7 @@ def add_limit_employees_working_days_constraint(shifts: list[Shift], employees: 
 
 def add_minimum_time_between_afternoon_shifts_and_next_shift_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar], min_time_between_shifts: datetime.timedelta) -> None:
     afternoon_shifts = [shift for shift in shifts if
-                      shift.shift_type == ShiftTypesEnum.CLOSING or shift.shift_type == ShiftTypesEnum.EVENING or shift.shift_type == ShiftTypesEnum.THURSDAY_BACKUP or shift.shift_type == ShiftTypesEnum.WEEKEND_EVENING_BACKUP]
+                      (shift.shift_type == ShiftTypesEnum.CLOSING) or (shift.shift_type == ShiftTypesEnum.EVENING) or (shift.shift_type == ShiftTypesEnum.THURSDAY_BACKUP) or (shift.shift_type == ShiftTypesEnum.WEEKEND_EVENING_BACKUP)]
 
     for employee in employees:
 
