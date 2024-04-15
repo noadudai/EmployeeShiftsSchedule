@@ -2,6 +2,7 @@ import datetime
 import random
 from uuid import uuid4
 
+import pytest
 from ortools.sat.python import cp_model
 
 from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
@@ -72,57 +73,32 @@ def test_every_employee_that_worked_closing_shift_does_not_work_the_next_shifts_
     assert (status == cp_model.OPTIMAL)
 
 
-def test_all_the_employees_who_worked_in_the_afternoon_are_not_working_in_the_morning_of_the_day_after():
-    """
-        THURSDAY
-                16:00 - 02:00
-                |      |
-                    19:30 - 03:00
-                    |       |
-                        21:30 - 04:00
-                        |       |
-        FRIDAY
-    07:30 - random
-    |       |
-    """
-    thursday_evening_start_time = datetime.datetime(2024, 4, 11, 16, 0)
-    thursday_evening_end_time = datetime.datetime(2024, 4, 12, 2)
-
-    thursday_evening_backup_shift_start_time = datetime.datetime(2024, 4, 11, 19, 30)
-    thursday_evening_backup_shift_end_time = datetime.datetime(2024, 4, 12, 3)
-
-    thursday_closing_shift_start_time = datetime.datetime(2024, 4, 11, 21, 30)
-    thursday_closing_shift_end_time = datetime.datetime(2024, 4, 12, 4)
-
-    friday_morning_start_time = datetime.datetime(2024, 4, 12, 7, 30)
-    friday_morning_end_time = friday_morning_start_time + datetime.timedelta(minutes=random.random())
-
-    thursday_evening_shift = Shift(shift_id="evening_shift", shift_type=ShiftTypesEnum.EVENING, start_time=thursday_evening_start_time, end_time=thursday_evening_end_time)
-    thursday_evening_backup_shift = Shift(shift_id="evening_backup_shift", shift_type=ShiftTypesEnum.THURSDAY_BACKUP, start_time=thursday_evening_backup_shift_start_time, end_time=thursday_evening_backup_shift_end_time)
-    thursday_closing_shift = Shift(shift_id="closing_shift", shift_type=ShiftTypesEnum.CLOSING, start_time=thursday_closing_shift_start_time, end_time=thursday_closing_shift_end_time)
-    friday_morning = Shift(shift_id="morning_shift", shift_type=ShiftTypesEnum.WEEKEND_MORNING, start_time=friday_morning_start_time, end_time=friday_morning_end_time)
-
-    thursday_evening_employee = Employee(name="thursday_evening_employee", employee_id="thursday_evening_employee")
-    thursday_backup_employee = Employee(name="thursday_backup_employee", employee_id="thursday_backup_employee")
-    thursday_closing_employee = Employee(name="thursday_closing_employee", employee_id="thursday_closing_employee")
-    friday_morning_employee = Employee(name="friday_morning_employee", employee_id="friday_morning_employee")
-
-    shifts = [thursday_evening_shift, thursday_evening_backup_shift, thursday_closing_shift, friday_morning]
-    employees = [thursday_evening_employee, thursday_backup_employee, thursday_closing_employee, friday_morning_employee]
-
+@pytest.mark.parametrize("test_input,expected", [(ShiftTypesEnum.EVENING, True), (ShiftTypesEnum.THURSDAY_BACKUP, True), (ShiftTypesEnum.CLOSING, True),
+                                                 (ShiftTypesEnum.WEEKEND_EVENING_BACKUP, True), (ShiftTypesEnum.MORNING, False), (ShiftTypesEnum.MORNING_BACKUP, False),
+                                                 (ShiftTypesEnum.WEEKEND_MORNING, False), (ShiftTypesEnum.WEEKEND_MORNING_BACKUP, False)])
+def test_all_the_employees_who_worked_in_the_afternoon_are_not_working_in_the_morning_of_the_day_after(test_input, expected):
     minimum_time_between_shifts = datetime.timedelta(hours=9)
+    shift_duration = datetime.timedelta(minutes=random.random())
+    morning_shift_start_time = datetime.datetime.now()
+    afternoon_shift_end_time = morning_shift_start_time - (minimum_time_between_shifts/2)
+    afternoon_shift_start_time = afternoon_shift_end_time - shift_duration
+
+    afternoon_shift = Shift(shift_id="afternoon_shift", shift_type=test_input, start_time=afternoon_shift_start_time, end_time=afternoon_shift_end_time)
+    morning_shift = Shift(shift_id="morning_shift", shift_type=ShiftTypesEnum.MORNING, start_time=morning_shift_start_time, end_time=morning_shift_start_time + shift_duration)
+
+    afternoon_employee = Employee(name="afternoon_employee", employee_id="afternoon_employee")
+    morning_employee = Employee(name="morning_employee", employee_id="morning_employee")
+
+    shifts = [afternoon_shift, morning_shift]
+    employees = [afternoon_employee, morning_employee]
 
     model = cp_model.CpModel()
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
 
-    thursday_evening_employee_working_evening_key = ShiftCombinationsKey(thursday_evening_employee.employee_id, thursday_evening_shift.shift_id)
-    thursday_backup_employee_works_backup_key = ShiftCombinationsKey(thursday_backup_employee.employee_id, thursday_evening_backup_shift.shift_id)
-    thursday_closing_employee_works_backup_key = ShiftCombinationsKey(thursday_closing_employee.employee_id, thursday_closing_shift.shift_id)
-    friday_morning_employee_works_friday_morning_key = ShiftCombinationsKey(friday_morning_employee.employee_id, friday_morning.shift_id)
+    afternoon_employee_working_evening_key = ShiftCombinationsKey(afternoon_employee.employee_id, afternoon_shift.shift_id)
+    morning_employee_working_evening_key = ShiftCombinationsKey(morning_employee.employee_id, morning_shift.shift_id)
 
-    model.Add(all_shifts[thursday_evening_employee_working_evening_key] == 1)
-    model.Add(all_shifts[thursday_backup_employee_works_backup_key] == 1)
-    model.Add(all_shifts[thursday_closing_employee_works_backup_key] == 1)
+    model.Add(all_shifts[afternoon_employee_working_evening_key] == 1)
 
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
     add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, model, all_shifts)
@@ -132,4 +108,4 @@ def test_all_the_employees_who_worked_in_the_afternoon_are_not_working_in_the_mo
     status = solver.Solve(model)
     assert (status == cp_model.OPTIMAL)
 
-    assert solver.Value(all_shifts[friday_morning_employee_works_friday_morning_key]) == True
+    assert solver.Value(all_shifts[morning_employee_working_evening_key]) == expected
