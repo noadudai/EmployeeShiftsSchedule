@@ -14,7 +14,7 @@ from models.shifts.shifts_types_enum import ShiftTypesEnum
 
 
 def test_no_schedule_when_an_employee_cannot_work_a_shift_because_he_is_not_trained_to_do_that_shift():
-    employee_who_cannot_close = Employee(name="employee_who_cannot_close", shifts_trained_to_do=[ShiftTypesEnum.MORNING])
+    employee_who_cannot_close = Employee(name="employee_who_cannot_close", shift_types_trained_to_do=[ShiftTypesEnum.MORNING])
 
     closing_shift = Shift(shift_id="closing_shift", shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
 
@@ -34,8 +34,8 @@ def test_no_schedule_when_an_employee_cannot_work_a_shift_because_he_is_not_trai
 
 
 def test_an_employee_who_is_not_trained_to_work_a_shift_is_not_working_that_shift():
-    employee_who_cannot_work_morning = Employee(name="employee_who_cannot_work_morning", employee_id="employee_who_cannot_work_morning", shifts_trained_to_do=[ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING, ShiftTypesEnum.WEEKEND_EVENING_BACKUP])
-    employee_who_can_work_morning = Employee(name="employee_who_can_work_morning", employee_id="employee_who_can_work_morning", shifts_trained_to_do=[ShiftTypesEnum.MORNING])
+    employee_who_cannot_work_morning = Employee(name="employee_who_cannot_work_morning", employee_id="employee_who_cannot_work_morning", shift_types_trained_to_do=[ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING, ShiftTypesEnum.WEEKEND_EVENING_BACKUP])
+    employee_who_can_work_morning = Employee(name="employee_who_can_work_morning", employee_id="employee_who_can_work_morning", shift_types_trained_to_do=[ShiftTypesEnum.MORNING])
 
     morning_shift = Shift(shift_id="morning_shift", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
     morning_shift2 = Shift(shift_id="morning_shift2", shift_type=ShiftTypesEnum.MORNING, start_time=morning_shift.end_time, end_time=morning_shift.end_time + datetime.timedelta(minutes=random.random()))
@@ -65,8 +65,8 @@ def test_an_employee_who_is_not_trained_to_work_a_shift_is_not_working_that_shif
 
 
 def test_no_schedule_when_there_are_2_emps_and_one_of_them_is_not_trained_to_do_any_of_the_shifts():
-    employee_who_cannot_work_morning = Employee(name="employee_who_cannot_work_morning", employee_id="employee_who_cannot_work_morning", shifts_trained_to_do=[ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING, ShiftTypesEnum.WEEKEND_EVENING_BACKUP])
-    employee_who_can_work_morning = Employee(name="employee_who_can_work_morning", employee_id="employee_who_can_work_morning", shifts_trained_to_do=[ShiftTypesEnum.MORNING])
+    employee_who_cannot_work_morning = Employee(name="employee_who_cannot_work_morning", employee_id="employee_who_cannot_work_morning", shift_types_trained_to_do=[ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING, ShiftTypesEnum.WEEKEND_EVENING_BACKUP])
+    employee_who_can_work_morning = Employee(name="employee_who_can_work_morning", employee_id="employee_who_can_work_morning", shift_types_trained_to_do=[ShiftTypesEnum.MORNING])
 
     morning_shift = Shift(shift_id="morning_shift", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
     morning_shift2 = Shift(shift_id="morning_shift2", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))

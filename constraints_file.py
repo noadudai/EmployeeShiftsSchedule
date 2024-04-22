@@ -65,26 +65,20 @@ def add_limit_employees_working_days_constraint(shifts: list[Shift], employees: 
         constraint_model.Add(sum(shifts_employee_is_working) <= max_working_days)
 
 
-def add_minimum_time_between_afternoon_shifts_and_next_shift_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar], min_time_between_shifts: datetime.timedelta) -> None:
-    afternoon_shifts = [shift for shift in shifts if
-                      (shift.shift_type == ShiftTypesEnum.CLOSING) or (shift.shift_type == ShiftTypesEnum.EVENING) or (shift.shift_type == ShiftTypesEnum.THURSDAY_BACKUP) or (shift.shift_type == ShiftTypesEnum.WEEKEND_EVENING_BACKUP)]
+def add_minimum_time_between_a_morning_shift_and_the_shift_before_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar], min_time_between_shifts: datetime.timedelta, early_morning_start_time: datetime.time, afternoon_start_time: datetime.time) -> None:
+    morning_shifts = [shift for shift in shifts if early_morning_start_time <= shift.start_time.time() <= afternoon_start_time]
 
     for employee in employees:
+        for morning_shift in morning_shifts:
+            working_a_morning_shift = constraint_model.NewBoolVar(f"morning_{morning_shift.shift_id}_{employee.employee_id}")
+            afternoon_shift_key = ShiftCombinationsKey(employee.employee_id, morning_shift.shift_id)
 
-        for afternoon_shift in afternoon_shifts:
-            worked_an_afternoon_shift_yesterday = constraint_model.NewBoolVar(f"afternoon_{afternoon_shift.shift_id}_{employee.employee_id}")
+            employee_assignment_a_morning_shift = working_a_morning_shift == shift_combinations[afternoon_shift_key]
+            constraint_model.Add(employee_assignment_a_morning_shift)
 
-            afternoon_shift_key = ShiftCombinationsKey(employee.employee_id, afternoon_shift.shift_id)
-            # A variable for better visualization, this represents the assignment to
-            # worked_an_afternoon_shift_yesterday BoolVar and not equality. If the IntVar is true (meaning the employee worked),
-            # worked_an_afternoon_shift_yesterday will hold true, and vice versa.
-            employee_assignment_an_afternoon_shift = worked_an_afternoon_shift_yesterday == shift_combinations[afternoon_shift_key]
-            constraint_model.Add(employee_assignment_an_afternoon_shift)
+            shifts_cannot_work = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts if shift != morning_shift and (morning_shift.start_time - shift.end_time) <= min_time_between_shifts]
 
-            forbidden_shifts = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts if
-                                shift.start_time > afternoon_shift.start_time and (shift.start_time - afternoon_shift.end_time) <= min_time_between_shifts]
-
-            constraint_model.Add(sum(forbidden_shifts) == 0).OnlyEnforceIf(worked_an_afternoon_shift_yesterday)
+            constraint_model.Add(sum(shifts_cannot_work) == 0).OnlyEnforceIf(working_a_morning_shift)
 
 
 def add_prevent_new_employees_from_working_parallel_shifts_together(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar])-> \
