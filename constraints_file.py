@@ -249,3 +249,46 @@ def add_maximize_employees_shift_preferences(employees: list[Employee], constrai
             shift_preferences_and_assignments.append(shift_combinations[key] * (employee.priority.value + employee.employee_status.value))
 
     constraint_model.Maximize(sum(shift_preferences_and_assignments))
+
+
+def add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]) -> list[IntVar]:
+    deviations = []
+    for employee in employees:
+        emp_shifts = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts]
+        deviation = constraint_model.NewIntVar(0, len(emp_shifts), f'deviation_{employee.employee_id}')
+        multy_deviation = constraint_model.NewIntVar(0, pow(len(emp_shifts), 2), f'multy_deviation_{employee.employee_id}')
+
+        constraint_model.AddAbsEquality(deviation, sum(emp_shifts) - employee.position.value)
+        constraint_model.AddMultiplicationEquality(multy_deviation, deviation, deviation)
+        deviations.append(multy_deviation)
+    constraint_model.Minimize(sum(deviations))
+    return deviations
+
+
+def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):
+    for employee in employees:
+        for day_cannot_work in employee.preferences.days_cannot_work:
+            shifts_cannot_work = [shift for shift in shifts if shift.start_time.date() == day_cannot_work.day_date]
+            for shift_cannot_work in shifts_cannot_work:
+                constraint_model.Add(shift_combinations[ShiftCombinationsKey(employee.employee_id, shift_cannot_work.shift_id)] == 0)
+
+        for emp_shift_preference in employee.preferences.shifts_prefer_to_work_in_days:
+            shifts_prefer_to_work_in_day = [shift for shift in shifts if shift.shift_type in emp_shift_preference.shifts and shift.start_time.date() == emp_shift_preference.day_date]
+
+            employee_shift_preferences = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_prefer_to_work_in_day]
+            constraint_model.Maximize(sum(employee_shift_preferences))
+
+        for day_prefer_not_to_work in employee.preferences.days_prefer_not_to_work:
+            shifts_prefer_not_to_work = [shift for shift in shifts if shift.start_time.date() == day_prefer_not_to_work.day_date]
+            shift_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_prefer_not_to_work]
+
+            constraint_model.Minimize(sum(shift_assignments))
+
+
+def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):
+    for emp in employees:
+        shifts_cannot_work = [shift for shift in shifts if shift.shift_type not in emp.shift_types_trained_to_do]
+
+        for shift in shifts_cannot_work:
+            key = ShiftCombinationsKey(emp.employee_id, shift.shift_id)
+            constraint_model.Add(shift_combinations[key] == 0)
