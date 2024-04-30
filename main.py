@@ -35,7 +35,6 @@ def create_schedule(employees: list[Employee], shifts: list[Shift]) ->  dict[int
     previous_solution = set()
     count = 0
     while count <= 5:
-        print(count)
 
         status = solver.Solve(constraint_model)
 
