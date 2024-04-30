@@ -8,10 +8,10 @@ from constraints_file import *
 from models.employees.employee import Employee
 from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
-from models.employees.employees_file import this_weeks_employees
+from models.employees.employees_file import all_employees
 from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shift import Shift
-from models.shifts.shifts_file import week_21_to_27_to_april
+from models.shifts.shifts_file import all_shifts_in_the_week
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 from test.var_array_solution_printer import VarArraySolutionPrinter
 
@@ -64,25 +64,11 @@ def create_schedule(employees: list[Employee], shifts: list[Shift]) ->  dict[int
     print("done")
     return schedule
 
-    # if status == cp_model.OPTIMAL:
-    #     for employee in employees:
-    #         for shift in shifts:
-    #
-    #             if solver.Value(all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]):
-    #                 schedule.append((employee, shift))
-
-    # if schedule:
-    #     shift_index = 1
-    #     schedule.sort(key= lambda shift_employee_pair: shift_employee_pair[shift_index].start_time)
-    #     return schedule
-    # else:
-    #     raise Exception("Empty schedule. No Optimal solution found.")
-
 
 if __name__ == "__main__":
 
-    employees = this_weeks_employees
-    shifts = week_21_to_27_to_april
+    employees = all_employees
+    shifts = all_shifts_in_the_week
 
     try:
         schedule = create_schedule(employees, shifts)

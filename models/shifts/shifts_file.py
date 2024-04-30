@@ -41,4 +41,4 @@ saturday = [Shift(shift_id="2024, 5, 4,weekend_morning", shift_type=ShiftTypesEn
             Shift(shift_id="2024, 5, 4,weekend_evening_backup", shift_type=ShiftTypesEnum.WEEKEND_EVENING_BACKUP, start_time=datetime.datetime(2024, 5, 4, 21, 30), end_time=datetime.datetime(2024, 5, 5, 2)),
             Shift(shift_id="2024, 5, 4,closing", shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2024, 5, 4, 22), end_time=datetime.datetime(2024, 5, 5, 2))]
 
-week_21_to_27_to_april = sunday + monday + tuesday + wednesday + thursday + friday + saturday
+all_shifts_in_the_week = sunday + monday + tuesday + wednesday + thursday + friday + saturday
