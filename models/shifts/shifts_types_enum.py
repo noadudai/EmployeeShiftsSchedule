@@ -10,3 +10,4 @@ class ShiftTypesEnum(Enum):
     WEEKEND_MORNING = "weekend morning"
     WEEKEND_MORNING_BACKUP = "weekend morning backup"
     WEEKEND_EVENING_BACKUP = "weekend evening backup"
+    STAND_BY = "stand by"
