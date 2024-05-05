@@ -65,8 +65,8 @@ def add_limit_employees_working_days_constraint(shifts: list[Shift], employees: 
         constraint_model.Add(sum(shifts_employee_is_working) <= max_working_days)
 
 
-def add_minimum_time_between_a_morning_shift_and_the_shift_before_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar], min_time_between_shifts: datetime.timedelta, early_morning_start_time: datetime.time, afternoon_start_time: datetime.time):
-    afternoon_shifts = [shift for shift in shifts if datetime.time(16) <= shift.start_time.time()]
+def add_minimum_time_between_a_morning_shift_and_the_shift_before_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar], min_time_between_shifts: datetime.timedelta, afternoon_start_time: datetime.time):
+    afternoon_shifts = [shift for shift in shifts if afternoon_start_time <= shift.start_time.time()]
 
     for employee in employees:
         for afternoon_shift in afternoon_shifts:
@@ -76,10 +76,17 @@ def add_minimum_time_between_a_morning_shift_and_the_shift_before_constraint(shi
 
             constraint_model.Add(employee_assignment_an_afternoon_shift)
 
-            forbidden_shifts = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts if
-                                shift != afternoon_shift and (shift.start_time - afternoon_shift.end_time) <= min_time_between_shifts and shift not in afternoon_shifts]
+            forbidden_shifts = []
+
+            for shift in shifts:
+                if shift != afternoon_shift and shift not in forbidden_shifts:
+                    time_between_shift_and_afternoon_shift = shift.start_time - afternoon_shift.end_time
+
+                    if time_between_shift_and_afternoon_shift <= min_time_between_shifts:
+                        forbidden_shifts.append(shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)])
             
             constraint_model.Add(sum(forbidden_shifts) == 0).OnlyEnforceIf(worked_an_afternoon_shift_yesterday)
+            constraint_model.Add(sum(forbidden_shifts) > 0).OnlyEnforceIf(worked_an_afternoon_shift_yesterday.Not())
 
 
 def add_prevent_new_employees_from_working_parallel_shifts_together(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar])-> \
