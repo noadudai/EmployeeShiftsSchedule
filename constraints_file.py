@@ -66,10 +66,10 @@ def add_limit_employees_working_days_constraint(shifts: list[Shift], employees: 
 
 
 def add_minimum_time_between_a_morning_shift_and_the_shift_before_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar], min_time_between_shifts: datetime.timedelta, afternoon_start_time: datetime.time):
-    afternoon_shifts = [shift for shift in shifts if afternoon_start_time <= shift.start_time.time()]
+    all_afternoon_shifts = [shift for shift in shifts if afternoon_start_time <= shift.start_time.time()]
 
     for employee in employees:
-        for afternoon_shift in afternoon_shifts:
+        for afternoon_shift in all_afternoon_shifts:
             worked_an_afternoon_shift_yesterday = constraint_model.NewBoolVar(f"afternoon_{afternoon_shift.shift_id}_{employee.employee_id}")
             afternoon_shift_key = ShiftCombinationsKey(employee.employee_id, afternoon_shift.shift_id)
             employee_assignment_an_afternoon_shift = worked_an_afternoon_shift_yesterday == shift_combinations[afternoon_shift_key]
