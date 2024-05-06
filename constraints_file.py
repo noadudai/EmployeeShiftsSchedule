@@ -65,25 +65,28 @@ def add_limit_employees_working_days_constraint(shifts: list[Shift], employees: 
         constraint_model.Add(sum(shifts_employee_is_working) <= max_working_days)
 
 
-def add_minimum_time_between_closing_shift_and_next_shift_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar], min_time_between_shifts: datetime.timedelta) -> None:
-    closing_shifts = [shift for shift in shifts if shift.shift_type == ShiftTypesEnum.CLOSING]
+def add_minimum_time_between_a_morning_shift_and_the_shift_before_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar], min_time_between_shifts: datetime.timedelta, afternoon_start_time: datetime.time):
+    all_afternoon_shifts = [shift for shift in shifts if afternoon_start_time <= shift.start_time.time()]
 
     for employee in employees:
+        for afternoon_shift in all_afternoon_shifts:
+            worked_an_afternoon_shift_yesterday = constraint_model.NewBoolVar(f"afternoon_{afternoon_shift.shift_id}_{employee.employee_id}")
+            afternoon_shift_key = ShiftCombinationsKey(employee.employee_id, afternoon_shift.shift_id)
+            employee_assignment_an_afternoon_shift = worked_an_afternoon_shift_yesterday == shift_combinations[afternoon_shift_key]
 
-        for closing_shift in closing_shifts:
-            worked_closing_shift_yesterday = constraint_model.NewBoolVar(f"closing_{closing_shift.shift_id}_{employee.employee_id}")
+            constraint_model.Add(employee_assignment_an_afternoon_shift)
 
-            closing_shift_key = ShiftCombinationsKey(employee.employee_id, closing_shift.shift_id)
-            # A variable for better visualization, this represents the assignment to
-            # worked_closing_shift_yesterday BoolVar and not equality. If the IntVar is true (meaning the employee worked),
-            # worked_closing_shift_yesterday will hold true, and vice versa.
-            employee_assignment_closing_shift = worked_closing_shift_yesterday == shift_combinations[closing_shift_key]
-            constraint_model.Add(employee_assignment_closing_shift)
+            forbidden_shifts = []
 
-            forbidden_shifts = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts if
-                                shift.start_time > closing_shift.start_time and (shift.start_time - closing_shift.end_time) <= min_time_between_shifts]
+            for shift in shifts:
+                if shift != afternoon_shift and shift not in forbidden_shifts:
+                    time_between_shift_and_afternoon_shift = shift.start_time - afternoon_shift.end_time
 
-            constraint_model.Add(sum(forbidden_shifts) == 0).OnlyEnforceIf(worked_closing_shift_yesterday)
+                    if time_between_shift_and_afternoon_shift <= min_time_between_shifts:
+                        forbidden_shifts.append(shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)])
+            
+            constraint_model.Add(sum(forbidden_shifts) == 0).OnlyEnforceIf(worked_an_afternoon_shift_yesterday)
+            constraint_model.Add(sum(forbidden_shifts) > 0).OnlyEnforceIf(worked_an_afternoon_shift_yesterday.Not())
 
 
 def add_prevent_new_employees_from_working_parallel_shifts_together(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar])-> \
@@ -272,7 +275,7 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
 
 def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):
     for emp in employees:
-        shifts_cannot_work = [shift for shift in shifts if shift.shift_type not in emp.shifts_trained_to_do]
+        shifts_cannot_work = [shift for shift in shifts if shift.shift_type not in emp.shift_types_trained_to_do]
 
         for shift in shifts_cannot_work:
             key = ShiftCombinationsKey(emp.employee_id, shift.shift_id)
