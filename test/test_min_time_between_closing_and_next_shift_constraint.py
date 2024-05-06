@@ -102,8 +102,8 @@ def test_all_the_employees_who_worked_in_the_afternoon_are_not_working_in_the_mo
 
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
     add_at_most_one_shift_per_employee_in_the_same_day_constraint(shifts, employees, model, all_shifts)
-    afternoon_shifts_start_time = datetime.time(16)
-    add_minimum_time_between_a_morning_shift_and_the_shift_before_constraint(shifts, employees, model, all_shifts, minimum_time_between_shifts, afternoon_shifts_start_time)
+    evening_shifts_start_time = datetime.time(16)
+    add_minimum_time_between_a_morning_shift_and_the_shift_before_constraint(shifts, employees, model, all_shifts, minimum_time_between_shifts, evening_shifts_start_time)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
