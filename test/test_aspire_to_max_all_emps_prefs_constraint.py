@@ -140,3 +140,55 @@ def test_an_emp_who_does_not_have_preferences_is_working_so_other_employees_can_
     assert (status == cp_model.OPTIMAL)
     assert (solver.Value(all_shifts[ShiftCombinationsKey(emp_with_no_preferences.employee_id, shift1.shift_id)]) == True)
     assert (solver.Value(all_shifts[ShiftCombinationsKey(emp_with_no_preferences.employee_id, shift2.shift_id)]) == True)
+
+
+def test_no_schedule_when_there_is_only_one_shift_and_the_employee_cannot_work_it():
+    morning_shift = Shift(shift_id="morning_shift", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
+
+    emp_preferences = Preferences(shifts_cannot_work=[ShiftsPreference(datetime.date.today(), [ShiftTypesEnum.MORNING])])
+
+    emp_who_cannot_work_morning_shift_today = Employee(name="emp_with_day_off", employee_id="emp_with_day_off", preferences=emp_preferences)
+
+    employees = [emp_who_cannot_work_morning_shift_today]
+    shifts = [morning_shift]
+    model = cp_model.CpModel()
+
+    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
+    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
+    add_aspire_to_maximize_all_employees_preferences_constraint(shifts, employees, model, all_shifts)
+
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+
+    assert (status != cp_model.OPTIMAL)
+
+
+def test_an_employee_who_cannot_work_a_specific_shift_is_not_working_it():
+    morning_shift = Shift(shift_id="morning_shift", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
+    morning_backup_shift = Shift(shift_id="morning_backup_shift", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
+
+    emp_preferences = Preferences(shifts_cannot_work=[ShiftsPreference(datetime.date.today(), [ShiftTypesEnum.MORNING])])
+
+    emp_who_cannot_work_morning_shift_today = Employee(name="emp_with_day_off", employee_id="emp_with_day_off", preferences=emp_preferences)
+    emp = Employee(name="emp", employee_id="emp")
+
+    employees = [emp_who_cannot_work_morning_shift_today, emp]
+    shifts = [morning_shift, morning_backup_shift]
+    model = cp_model.CpModel()
+
+    all_shifts = generate_shift_employee_combinations(employees, shifts, model)
+    add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
+    add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, model, all_shifts)
+    add_aspire_to_maximize_all_employees_preferences_constraint(shifts, employees, model, all_shifts)
+
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+
+    assert (status == cp_model.OPTIMAL)
+
+    emp_who_cannot_work_morning_shift_not_working_morning_key = ShiftCombinationsKey(emp_who_cannot_work_morning_shift_today.employee_id, morning_shift.shift_id)
+    emp_who_cannot_work_morning_shift_is_working_morning_backup_key = ShiftCombinationsKey(emp_who_cannot_work_morning_shift_today.employee_id, morning_backup_shift.shift_id)
+    emp_is_working_morning_shift_key = ShiftCombinationsKey(emp.employee_id, morning_shift.shift_id)
+    assert (solver.Value(all_shifts[emp_who_cannot_work_morning_shift_not_working_morning_key]) == False)
+    assert (solver.Value(all_shifts[emp_is_working_morning_shift_key]) == True)
+    assert (solver.Value(all_shifts[emp_who_cannot_work_morning_shift_is_working_morning_backup_key]) == True)
