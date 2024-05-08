@@ -12,10 +12,6 @@ from ..shifts.shifts_types_enum import ShiftTypesEnum
 @dataclass
 class Employee:
     name: str
-    priority: EmployeePriorityEnum
-    employee_status: EmployeeStatusEnum
-    employee_id: uuid.UUID
-    preferences: list[Shift]
     priority: EmployeePriorityEnum = EmployeePriorityEnum.LOW
     employee_status: EmployeeStatusEnum = EmployeeStatusEnum.mid_level_employee
     employee_id: uuid.UUID = uuid.uuid4()
