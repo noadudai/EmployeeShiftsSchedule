@@ -5,7 +5,6 @@ from .employee_position_enum import EmployeePositionEnum
 from .employee_preferences.preferences import Preferences
 from .employee_priority_enum import EmployeePriorityEnum
 from .employee_status_enum import EmployeeStatusEnum
-from ..shifts.shift import Shift
 from ..shifts.shifts_types_enum import ShiftTypesEnum
 
 
