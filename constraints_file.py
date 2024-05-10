@@ -1,7 +1,7 @@
 import datetime
 import itertools
 import uuid
-from typing import Tuple, Dict
+from typing import Tuple
 from uuid import UUID
 
 from ortools.sat.python import cp_model
@@ -265,6 +265,12 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
 
             employee_shift_preferences = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_prefer_to_work_in_day]
             constraint_model.Maximize(sum(employee_shift_preferences))
+
+        for emp_shift_cannot_work_preference in employee.preferences.shifts_cannot_work:
+            shifts_cannot_work_in_day = [shift for shift in shifts if shift.shift_type in emp_shift_cannot_work_preference.shifts and shift.start_time.date() == emp_shift_cannot_work_preference.day_date]
+
+            employee_shift_preferences = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_cannot_work_in_day]
+            constraint_model.Add(sum(employee_shift_preferences) == 0)
 
         for day_prefer_not_to_work in employee.preferences.days_prefer_not_to_work:
             shifts_prefer_not_to_work = [shift for shift in shifts if shift.start_time.date() == day_prefer_not_to_work.day_date]
