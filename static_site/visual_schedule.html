@@ -1,0 +1,359 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 4px 6px;
+            background: lightgrey;
+        }
+        .lightblue {
+            background: linear-gradient(to bottom, lightblue 50%, white 50%)
+        }
+        .lightgreen {
+            background: linear-gradient(to bottom, lightgreen 50%, white 50%)
+        }
+        .peachpuff {
+            background: linear-gradient(to bottom, peachpuff 50%, white 50%)
+        }
+        .lightyellow {
+            background: linear-gradient(to bottom, lightyellow 50%, white 50%)
+        }
+        .lightcoral {
+            background: linear-gradient(to bottom, lightcoral 50%, white 50%)
+        }
+        .plum {
+            background: linear-gradient(to bottom, plum 50%, white 50%)
+        }
+        .white {
+            background: white
+        }
+    </style>
+</head>
+<body>
+  <div>
+solution 1
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>2024-04-28</th>
+      <th>2024-04-29</th>
+      <th>2024-04-30</th>
+      <th>2024-05-01</th>
+      <th>2024-05-02</th>
+      <th>2024-05-03</th>
+      <th>2024-05-04</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>morning</th>
+      <td>employee5<br> 09:30:00 - 16:00:00</td>
+      <td>employee4<br> 09:30:00 - 16:00:00</td>
+      <td>employee1<br> 09:30:00 - 16:00:00</td>
+      <td>employee1<br> 09:30:00 - 16:00:00</td>
+      <td>employee6<br> 09:30:00 - 16:00:00</td>
+      <td>employee5<br> 07:30:00 - 14:30:00</td>
+      <td>employee5<br> 07:30:00 - 14:30:00</td>
+    </tr>
+    <tr>
+      <th>morning backup</th>
+      <td>employee4<br> 10:30:00 - 16:00:00</td>
+      <td>employee1<br> 10:30:00 - 16:00:00</td>
+      <td>employee3<br> 10:30:00 - 16:00:00</td>
+      <td>employee3<br> 10:30:00 - 16:00:00</td>
+      <td>employee5<br> 10:30:00 - 16:00:00</td>
+      <td>employee3<br> 08:00:00 - 17:00:00</td>
+      <td>employee6<br> 08:00:00 - 17:00:00</td>
+    </tr>
+    <tr>
+      <th>weekend morning backup</th>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>employee6<br> 11:30:00 - 19:00:00</td>
+      <td>employee3<br> 11:30:00 - 19:00:00</td>
+    </tr>
+    <tr>
+      <th>evening</th>
+      <td>employee5<br> 16:00:00 - 00:00:00</td>
+      <td>employee4<br> 16:00:00 - 00:00:00</td>
+      <td>employee1<br> 16:00:00 - 00:00:00</td>
+      <td>employee4<br> 16:00:00 - 00:00:00</td>
+      <td>employee1<br> 16:00:00 - 00:00:00</td>
+      <td>employee1<br> 16:30:00 - 00:00:00</td>
+      <td>employee1<br> 16:30:00 - 00:00:00</td>
+    </tr>
+    <tr>
+      <th>thursday backup</th>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>employee3<br> 19:30:00 - 02:00:00</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>weekend evening backup</th>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>employee6<br> 21:30:00 - 02:00:00</td>
+      <td>employee5<br> 21:30:00 - 02:00:00</td>
+    </tr>
+    <tr>
+      <th>closing</th>
+      <td>employee4<br> 19:30:00 - 02:00:00</td>
+      <td>employee5<br> 19:30:00 - 02:00:00</td>
+      <td>employee3<br> 19:30:00 - 02:00:00</td>
+      <td>employee3<br> 19:30:00 - 02:00:00</td>
+      <td>employee6<br> 21:30:00 - 02:00:00</td>
+      <td>employee5<br> 22:00:00 - 02:00:00</td>
+      <td>employee3<br> 22:00:00 - 02:00:00</td>
+    </tr>
+    <tr>
+      <th>stand by</th>
+      <td>employee1<br> 20:00:00 - 02:00:00</td>
+      <td>employee1<br> 20:00:00 - 02:00:00</td>
+      <td>employee5<br> 20:00:00 - 02:00:00</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+  </tbody>
+</table><br><br>solution 2
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>2024-04-28</th>
+      <th>2024-04-29</th>
+      <th>2024-04-30</th>
+      <th>2024-05-01</th>
+      <th>2024-05-02</th>
+      <th>2024-05-03</th>
+      <th>2024-05-04</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>morning</th>
+      <td>employee5<br> 09:30:00 - 16:00:00</td>
+      <td>employee4<br> 09:30:00 - 16:00:00</td>
+      <td>employee1<br> 09:30:00 - 16:00:00</td>
+      <td>employee3<br> 09:30:00 - 16:00:00</td>
+      <td>employee3<br> 09:30:00 - 16:00:00</td>
+      <td>employee5<br> 07:30:00 - 14:30:00</td>
+      <td>employee5<br> 07:30:00 - 14:30:00</td>
+    </tr>
+    <tr>
+      <th>morning backup</th>
+      <td>employee4<br> 10:30:00 - 16:00:00</td>
+      <td>employee1<br> 10:30:00 - 16:00:00</td>
+      <td>employee3<br> 10:30:00 - 16:00:00</td>
+      <td>employee1<br> 10:30:00 - 16:00:00</td>
+      <td>employee6<br> 10:30:00 - 16:00:00</td>
+      <td>employee3<br> 08:00:00 - 17:00:00</td>
+      <td>employee6<br> 08:00:00 - 17:00:00</td>
+    </tr>
+    <tr>
+      <th>weekend morning backup</th>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>employee6<br> 11:30:00 - 19:00:00</td>
+      <td>employee3<br> 11:30:00 - 19:00:00</td>
+    </tr>
+    <tr>
+      <th>evening</th>
+      <td>employee5<br> 16:00:00 - 00:00:00</td>
+      <td>employee4<br> 16:00:00 - 00:00:00</td>
+      <td>employee1<br> 16:00:00 - 00:00:00</td>
+      <td>employee4<br> 16:00:00 - 00:00:00</td>
+      <td>employee1<br> 16:00:00 - 00:00:00</td>
+      <td>employee1<br> 16:30:00 - 00:00:00</td>
+      <td>employee1<br> 16:30:00 - 00:00:00</td>
+    </tr>
+    <tr>
+      <th>thursday backup</th>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>employee3<br> 19:30:00 - 02:00:00</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>weekend evening backup</th>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>employee6<br> 21:30:00 - 02:00:00</td>
+      <td>employee5<br> 21:30:00 - 02:00:00</td>
+    </tr>
+    <tr>
+      <th>closing</th>
+      <td>employee4<br> 19:30:00 - 02:00:00</td>
+      <td>employee5<br> 19:30:00 - 02:00:00</td>
+      <td>employee3<br> 19:30:00 - 02:00:00</td>
+      <td>employee3<br> 19:30:00 - 02:00:00</td>
+      <td>employee6<br> 21:30:00 - 02:00:00</td>
+      <td>employee5<br> 22:00:00 - 02:00:00</td>
+      <td>employee3<br> 22:00:00 - 02:00:00</td>
+    </tr>
+    <tr>
+      <th>stand by</th>
+      <td>employee1<br> 20:00:00 - 02:00:00</td>
+      <td>employee1<br> 20:00:00 - 02:00:00</td>
+      <td>employee5<br> 20:00:00 - 02:00:00</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+  </tbody>
+</table><br><br>solution 3
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>2024-04-28</th>
+      <th>2024-04-29</th>
+      <th>2024-04-30</th>
+      <th>2024-05-01</th>
+      <th>2024-05-02</th>
+      <th>2024-05-03</th>
+      <th>2024-05-04</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>morning</th>
+      <td>employee5<br> 09:30:00 - 16:00:00</td>
+      <td>employee4<br> 09:30:00 - 16:00:00</td>
+      <td>employee1<br> 09:30:00 - 16:00:00</td>
+      <td>employee1<br> 09:30:00 - 16:00:00</td>
+      <td>employee3<br> 09:30:00 - 16:00:00</td>
+      <td>employee5<br> 07:30:00 - 14:30:00</td>
+      <td>employee5<br> 07:30:00 - 14:30:00</td>
+    </tr>
+    <tr>
+      <th>morning backup</th>
+      <td>employee4<br> 10:30:00 - 16:00:00</td>
+      <td>employee1<br> 10:30:00 - 16:00:00</td>
+      <td>employee3<br> 10:30:00 - 16:00:00</td>
+      <td>employee3<br> 10:30:00 - 16:00:00</td>
+      <td>employee6<br> 10:30:00 - 16:00:00</td>
+      <td>employee3<br> 08:00:00 - 17:00:00</td>
+      <td>employee6<br> 08:00:00 - 17:00:00</td>
+    </tr>
+    <tr>
+      <th>weekend morning backup</th>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>employee6<br> 11:30:00 - 19:00:00</td>
+      <td>employee3<br> 11:30:00 - 19:00:00</td>
+    </tr>
+    <tr>
+      <th>evening</th>
+      <td>employee1<br> 16:00:00 - 00:00:00</td>
+      <td>employee4<br> 16:00:00 - 00:00:00</td>
+      <td>employee1<br> 16:00:00 - 00:00:00</td>
+      <td>employee4<br> 16:00:00 - 00:00:00</td>
+      <td>employee1<br> 16:00:00 - 00:00:00</td>
+      <td>employee1<br> 16:30:00 - 00:00:00</td>
+      <td>employee1<br> 16:30:00 - 00:00:00</td>
+    </tr>
+    <tr>
+      <th>thursday backup</th>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>employee3<br> 19:30:00 - 02:00:00</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>weekend evening backup</th>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>employee6<br> 21:30:00 - 02:00:00</td>
+      <td>employee5<br> 21:30:00 - 02:00:00</td>
+    </tr>
+    <tr>
+      <th>closing</th>
+      <td>employee5<br> 19:30:00 - 02:00:00</td>
+      <td>employee5<br> 19:30:00 - 02:00:00</td>
+      <td>employee4<br> 19:30:00 - 02:00:00</td>
+      <td>employee3<br> 19:30:00 - 02:00:00</td>
+      <td>employee6<br> 21:30:00 - 02:00:00</td>
+      <td>employee5<br> 22:00:00 - 02:00:00</td>
+      <td>employee3<br> 22:00:00 - 02:00:00</td>
+    </tr>
+    <tr>
+      <th>stand by</th>
+      <td>employee4<br> 20:00:00 - 02:00:00</td>
+      <td>employee1<br> 20:00:00 - 02:00:00</td>
+      <td>employee3<br> 20:00:00 - 02:00:00</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+  </tbody>
+</table><br><br>
+ </div>
+    <script>
+        var tables = document.getElementsByTagName('table');
+
+        for (var table = 0; table < tables.length; table++) {
+            var cells = tables[table].getElementsByTagName('td');
+
+            for (var i = 0; i < cells.length; i++) {
+                var cell = cells[i];
+                var cell_content = cell.textContent.trim();
+
+                if (cell_content.includes('employee1')) {
+                    cell.classList.add("lightblue");
+                } else if (cell_content.includes('employee2')) {
+                    cell.classList.add("lightyellow");
+                } else if (cell_content.includes('employee3')) {
+                    cell.classList.add("peachpuff");
+                } else if (cell_content.includes('employee4')) {
+                    cell.classList.add("lightgreen");
+                } else if (cell_content.includes('employee5')) {
+                    cell.classList.add("lightcoral");
+                } else if (cell_content.includes('employee6')) {
+                    cell.classList.add("plum");
+                }
+                else {
+                    cell.classList.add("white");
+                }
+            }
+        }
+    </script>
+</body>
+</html>
