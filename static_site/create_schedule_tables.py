@@ -85,9 +85,9 @@ def create_schedules(employees: list[Employee], shifts: list[Shift], number_of_s
             print("No optimal solution found !")
             break
 
-    print("done")
     schedule_solution = ScheduleSolutions(solutions)
 
+    print("done")
     return schedule_solution
 
 
@@ -99,7 +99,8 @@ def data_frame_schedule_to_html_table(schedule: dict[uuid.uuid4, uuid.uuid4], sh
         [emp_working] = [emp for emp in employees if emp.employee_id == emp_id]
         new_schedule_dict[shift_working] = emp_working
 
-    sorted_schedule = sorted(new_schedule_dict.items(), key=lambda shift_emp_pair: shift_emp_pair[0].start_time)
+    shift_index = 0
+    sorted_schedule = sorted(new_schedule_dict.items(), key=lambda shift_emp_pair: shift_emp_pair[shift_index].start_time)
 
     dates = [shift.start_time.date() for shift in shifts]
     unique_dates = sorted(set(str(date) for date in dates))
