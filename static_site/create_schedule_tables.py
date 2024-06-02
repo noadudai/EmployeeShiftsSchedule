@@ -19,7 +19,7 @@ from models.solution.one_schedule_solution import Solution
 from models.solution.schedule_solutions import ScheduleSolutions
 
 
-def create_schedules(employees: list[Employee], shifts: list[Shift]) -> ScheduleSolutions:
+def create_schedules(employees: list[Employee], shifts: list[Shift], number_of_solutions: int) -> ScheduleSolutions:
     max_working_days = 6
 
     constraint_model = cp_model.CpModel()
@@ -41,7 +41,7 @@ def create_schedules(employees: list[Employee], shifts: list[Shift]) -> Schedule
 
     print("Creating schedules")
     solutions = []
-    while count <= 2:
+    while count <= number_of_solutions:
 
         status = solver.Solve(constraint_model)
 
@@ -63,12 +63,12 @@ def create_schedules(employees: list[Employee], shifts: list[Shift]) -> Schedule
                     number_of_mornings_for_employees[employee.employee_id] = 0
                     number_of_shift_for_employees[employee.employee_id] = 0
 
-                schedule: dict[Shift, Employee] = {}
+                schedule: dict[uuid.uuid4(), uuid.uuid4()] = {}
 
                 for employee in employees:
                     for shift in shifts:
                         if solver.Value(all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]):
-                            schedule[shift] = employee
+                            schedule[shift.shift_id] = employee.employee_id
 
                             number_of_shift_for_employees[employee.employee_id] += 1
                             if shift.shift_type == ShiftTypesEnum.CLOSING:
@@ -91,8 +91,15 @@ def create_schedules(employees: list[Employee], shifts: list[Shift]) -> Schedule
     return schedule_solution
 
 
-def data_frame_schedule_to_html_table(schedule: dict[Shift, Employee], shifts: list[Shift]) -> str:
-    sorted_schedule = sorted(schedule.items(), key=lambda shift_emp_pair: shift_emp_pair[0].start_time)
+def data_frame_schedule_to_html_table(schedule: dict[uuid.uuid4, uuid.uuid4], shifts: list[Shift], employees: list[Employee]) -> str:
+    new_schedule_dict = {}
+
+    for shift_id, emp_id in schedule.items():
+        [shift_working] = [shift for shift in shifts if shift.shift_id == shift_id]
+        [emp_working] = [emp for emp in employees if emp.employee_id == emp_id]
+        new_schedule_dict[shift_working] = emp_working
+
+    sorted_schedule = sorted(new_schedule_dict.items(), key=lambda shift_emp_pair: shift_emp_pair[0].start_time)
 
     dates = [shift.start_time.date() for shift in shifts]
     unique_dates = sorted(set(str(date) for date in dates))
@@ -104,12 +111,12 @@ def data_frame_schedule_to_html_table(schedule: dict[Shift, Employee], shifts: l
 
     data_frame = pd.DataFrame(index=shift_types, columns=unique_dates)
 
-    for shift, emp in sorted_schedule:
+    for shift_working, emp_working in sorted_schedule:
 
-        frame = ShiftTypesEnum.MORNING.value if shift.shift_type == ShiftTypesEnum.WEEKEND_MORNING else shift.shift_type.value
+        frame = ShiftTypesEnum.MORNING.value if shift_working.shift_type == ShiftTypesEnum.WEEKEND_MORNING else shift_working.shift_type.value
 
-        shift_emp_times_str = f"{emp.name}<br> {str(shift.start_time.time())} - {str(shift.end_time.time())}"
-        data_frame.at[frame, str(shift.start_time.date())] = shift_emp_times_str
+        emp_and_shift_times_str = f"{emp_working.name}<br> {str(shift_working.start_time.time())} - {str(shift_working.end_time.time())}"
+        data_frame.at[frame, str(shift_working.start_time.date())] = emp_and_shift_times_str
 
     data_frame.fillna("", inplace=True)
     html_table = data_frame.to_html(escape=False)
@@ -137,13 +144,14 @@ def replace_html_tables_content_with_new_schedule_tables(all_schedules_string, n
 def schedule_testing():
     employees = all_employees
     shifts = all_shifts_in_the_week
+    number_of_solutions = 2
 
     try:
-        schedule = create_schedules(employees, shifts)
+        schedule = create_schedules(employees, shifts, number_of_solutions)
         all_schedules = ''
         for solution in range(len(schedule.solutions)):
             # starts from 0
-            all_schedules += f'solution {solution + 1}\n' + data_frame_schedule_to_html_table(schedule.solutions[solution].schedule, shifts) + '<br><br>'
+            all_schedules += f'solution {solution + 1}\n' + data_frame_schedule_to_html_table(schedule.solutions[solution].schedule, shifts, employees) + '<br><br>'
         replace_html_tables_content_with_new_schedule_tables(all_schedules, "visual_schedule.html")
     except Exception as e:
         print(e)
