@@ -132,7 +132,7 @@ def replace_html_tables_content_with_new_schedule_tables(all_schedules_string, n
     with open(file_path, 'r', encoding='utf-8') as html_file_reader:
         html_content = html_file_reader.read()
 
-    start_index_of_table = html_content.find('<div>') + len('<div>')
+    start_index_of_table = html_content.find("<div id='schedule_table'>") + len("<div id='schedule_table'>")
     # find, finds the first index of what i am searching for
     end_index_of_table = html_content.find('</div>', start_index_of_table) - 1
 
