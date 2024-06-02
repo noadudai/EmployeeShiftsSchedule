@@ -41,7 +41,7 @@ def create_schedules(employees: list[Employee], shifts: list[Shift], number_of_s
 
     print("Creating schedules")
     solutions = []
-    while count <= number_of_solutions:
+    while count <= (number_of_solutions - 1):
 
         status = solver.Solve(constraint_model)
 
@@ -145,7 +145,7 @@ def replace_html_tables_content_with_new_schedule_tables(all_schedules_string, n
 def schedule_testing():
     employees = all_employees
     shifts = all_shifts_in_the_week
-    number_of_solutions = 2
+    number_of_solutions = 3
 
     try:
         schedule = create_schedules(employees, shifts, number_of_solutions)
