@@ -29,13 +29,13 @@ thursday = [Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.MORNING, star
             Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.THURSDAY_BACKUP, start_time=datetime.datetime(2024, 5, 2, 19, 30), end_time=datetime.datetime(2024, 5, 3, 2)),
             Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2024, 5, 2, 21, 30), end_time=datetime.datetime(2024, 5, 3, 2))]
 friday = [Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.WEEKEND_MORNING, start_time=datetime.datetime(2024, 5, 3, 7, 30), end_time=datetime.datetime(2024, 5, 3, 14, 30)),
-          Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=datetime.datetime(2024, 5, 3, 8), end_time=datetime.datetime(2024, 5, 3, 17)),
+          Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.WEEKEND_MORNING_BACKUP, start_time=datetime.datetime(2024, 5, 3, 8), end_time=datetime.datetime(2024, 5, 3, 17)),
           Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.WEEKEND_MORNING_BACKUP, start_time=datetime.datetime(2024, 5, 3, 11, 30), end_time=datetime.datetime(2024, 5, 3, 19)),
           Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=datetime.datetime(2024, 5, 3, 16, 30), end_time=datetime.datetime(2024, 5, 4, 0)),
           Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.WEEKEND_EVENING_BACKUP, start_time=datetime.datetime(2024, 5, 3, 21, 30), end_time=datetime.datetime(2024, 5, 4, 2)),
           Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.CLOSING, start_time=datetime.datetime(2024, 5, 3, 22), end_time=datetime.datetime(2024, 5, 4, 2))]
 saturday = [Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.WEEKEND_MORNING, start_time=datetime.datetime(2024, 5, 4, 7, 30), end_time=datetime.datetime(2024, 5, 4, 14, 30)),
-            Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=datetime.datetime(2024, 5, 4, 8), end_time=datetime.datetime(2024, 5, 4, 17)),
+            Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.WEEKEND_MORNING_BACKUP, start_time=datetime.datetime(2024, 5, 4, 8), end_time=datetime.datetime(2024, 5, 4, 17)),
             Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.WEEKEND_MORNING_BACKUP, start_time=datetime.datetime(2024, 5, 4, 11, 30), end_time=datetime.datetime(2024, 5, 4, 19)),
             Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.EVENING, start_time=datetime.datetime(2024, 5, 4, 16, 30), end_time=datetime.datetime(2024, 5, 5, 0)),
             Shift(shift_id=uuid.uuid4(), shift_type=ShiftTypesEnum.WEEKEND_EVENING_BACKUP, start_time=datetime.datetime(2024, 5, 4, 21, 30), end_time=datetime.datetime(2024, 5, 5, 2)),
