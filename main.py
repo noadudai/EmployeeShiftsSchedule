@@ -74,9 +74,7 @@ def create_schedule_options(employees: list[Employee], shifts: list[Shift], numb
     # add_limit_employees_working_days_constraint(shifts, employees, constraint_model, all_shifts, max_working_days)
     # add_minimum_time_between_a_morning_shift_and_the_shift_before_constraint(shifts, employees, constraint_model, all_shifts, datetime.timedelta(hours=9), early_morning_start_time=datetime.time(6), afternoon_start_time=datetime.time(12, 30))
     add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, constraint_model, all_shifts)
-    add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint(shifts, employees,
-                                                                                                      constraint_model,
-                                                                                                      all_shifts)
+    add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint(shifts, employees, constraint_model, all_shifts)
     add_aspire_to_maximize_all_employees_preferences_constraint(shifts, employees, constraint_model, all_shifts)
     add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts, employees, constraint_model, all_shifts)
 
