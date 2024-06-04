@@ -53,7 +53,7 @@ def data_frame_schedule_to_html_table(schedule: dict[uuid.uuid4, uuid.uuid4], sh
     return html_table
 
 
-def replace_html_tables_content_with_new_schedule_tables(all_schedules_string, name_of_file):
+def replace_html_tables_content_with_new_schedule_tables(all_schedules_string: str, name_of_file: str):
     with open(name_of_file, 'r', encoding='utf-8') as html_file_reader:
         html_content = html_file_reader.read()
 

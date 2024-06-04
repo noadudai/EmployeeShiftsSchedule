@@ -20,7 +20,7 @@ from static_site.create_schedule_tables import data_frame_schedule_to_html_table
 from test.var_array_solution_printer import VarArraySolutionPrinter
 
 
-def create_a_schedule_and_check_if_schedule_already_exists(solver, constraint_model, all_shifts, previous_solutions, employees, shifts):
+def create_a_schedule_and_check_if_schedule_already_exists(solver: cp_model.CpSolver, constraint_model: cp_model.CpModel, all_shifts: dict[ShiftCombinationsKey, IntVar], previous_solutions: set, employees: list[Employee], shifts: list[Shift]):
     status = solver.Solve(constraint_model)
 
     if status == cp_model.OPTIMAL:
