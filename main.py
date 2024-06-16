@@ -92,10 +92,10 @@ def create_schedule_options(employees: list[Employee], shifts: list[Shift], numb
             schedules.append(schedule)
             count += 1
 
-    schedules_solution = ScheduleSolutions(schedules)
+    schedules_options = ScheduleSolutions(schedules)
 
     print("done")
-    return schedules_solution
+    return schedules_options
 
 
 if __name__ == "__main__":
