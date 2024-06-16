@@ -19,7 +19,7 @@ from models.solution.one_schedule_solution import Solution
 from models.solution.schedule_solutions import ScheduleSolutions
 
 
-def data_frame_schedule_to_html_table(schedule: dict[uuid.uuid4, uuid.uuid4], shifts: list[Shift], employees: list[Employee]) -> str:
+def data_frame_schedule_to_dictionary(schedule: dict[uuid.uuid4, uuid.uuid4], shifts: list[Shift], employees: list[Employee]) -> dict:
     new_schedule_dict = {}
 
     for shift_id, emp_id in schedule.items():
@@ -44,24 +44,11 @@ def data_frame_schedule_to_html_table(schedule: dict[uuid.uuid4, uuid.uuid4], sh
 
         frame = ShiftTypesEnum.MORNING.value if shift_working.shift_type == ShiftTypesEnum.WEEKEND_MORNING else shift_working.shift_type.value
 
+        # added <br> for new line inside the html schedule table
         emp_and_shift_times_str = f"{emp_working.name}<br> {str(shift_working.start_time.time())} - {str(shift_working.end_time.time())}"
         data_frame.at[frame, str(shift_working.start_time.date())] = emp_and_shift_times_str
 
     data_frame.fillna("", inplace=True)
-    html_table = data_frame.to_html(escape=False)
+    json_table = data_frame.to_dict()
 
-    return html_table
-
-
-def replace_html_tables_content_with_new_schedule_tables(all_schedules_string: str, name_of_file: str):
-    with open(name_of_file, 'r', encoding='utf-8') as html_file_reader:
-        html_content = html_file_reader.read()
-
-    start_index_of_table = html_content.find("<div id='schedule_table'>") + len("<div id='schedule_table'>")
-    # find, finds the first index of what i am searching for
-    end_index_of_table = html_content.find('</div>', start_index_of_table) - 1
-
-    new_file_content = html_content[:start_index_of_table] + '\n' + all_schedules_string + '\n'+ html_content[end_index_of_table:]
-
-    with open(name_of_file, 'w', encoding='utf-8') as html_new_file:
-        html_new_file.writelines(new_file_content)
+    return json_table

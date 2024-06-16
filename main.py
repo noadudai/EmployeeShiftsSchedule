@@ -1,4 +1,5 @@
 import datetime
+import json
 import uuid
 from uuid import uuid4
 from ortools.sat.python import cp_model
@@ -15,12 +16,11 @@ from models.shifts.shifts_file import all_shifts_in_the_week
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 from models.solution.one_schedule_solution import Solution
 from models.solution.schedule_solutions import ScheduleSolutions
-from static_site.create_schedule_tables import data_frame_schedule_to_html_table, \
-    replace_html_tables_content_with_new_schedule_tables
+from static_site.create_schedule_tables import data_frame_schedule_to_dictionary
 from test.var_array_solution_printer import VarArraySolutionPrinter
 
 
-def create_a_schedule_and_check_if_schedule_already_exists(solver: cp_model.CpSolver, constraint_model: cp_model.CpModel, all_shifts: dict[ShiftCombinationsKey, IntVar], previous_solutions: set, employees: list[Employee], shifts: list[Shift]):
+def create_a_new_schedule(solver: cp_model.CpSolver, constraint_model: cp_model.CpModel, all_shifts: dict[ShiftCombinationsKey, IntVar], previous_solutions: set, employees: list[Employee], shifts: list[Shift]):
     status = solver.Solve(constraint_model)
 
     if status == cp_model.OPTIMAL:
@@ -32,6 +32,7 @@ def create_a_schedule_and_check_if_schedule_already_exists(solver: cp_model.CpSo
         if solution_identifier not in previous_solutions:
             previous_solutions.add(solution_identifier)
 
+            # creating dictionaries for data. how many shifts each employee got, how many morning shifts ect.
             num_closings_for_employees: dict[uuid.uuid4, int] = {}
             num_mornings_for_employees: dict[uuid.uuid4, int] = {}
             num_shift_for_employees: dict[uuid.uuid4, int] = {}
@@ -83,15 +84,15 @@ def create_schedule_options(employees: list[Employee], shifts: list[Shift], numb
     count = 0
 
     print("Creating schedules")
-    solutions = []
+    schedules = []
     while count <= (number_of_solutions - 1):
 
-        solution = create_a_schedule_and_check_if_schedule_already_exists(solver, constraint_model, all_shifts, previous_solutions, employees, shifts)
-        if solution:
-            solutions.append(solution)
+        schedule = create_a_new_schedule(solver, constraint_model, all_shifts, previous_solutions, employees, shifts)
+        if schedule:
+            schedules.append(schedule)
             count += 1
 
-    schedules_solution = ScheduleSolutions(solutions)
+    schedules_solution = ScheduleSolutions(schedules)
 
     print("done")
     return schedules_solution
@@ -105,11 +106,11 @@ if __name__ == "__main__":
     try:
         schedules = create_schedule_options(employees, shifts, number_of_solutions)
         all_schedules = ''
-        for solution in range(len(schedules.solutions)):
-            # starts from 0
-            all_schedules += f'solution {solution + 1}\n' + data_frame_schedule_to_html_table(
-                schedules.solutions[solution].schedule, shifts, employees) + '<br><br>'
+        list_of_schedule_options = []
+        for solution in schedules.solutions:
+            list_of_schedule_options.append(data_frame_schedule_to_dictionary(solution.schedule, shifts, employees))
 
-            replace_html_tables_content_with_new_schedule_tables(all_schedules, "visual_schedule.html")
+        with open("static_site/schedule_data.json", "w") as json_data_file:
+            json.dump(list_of_schedule_options, json_data_file)
     except Exception as e:
         print(e)
