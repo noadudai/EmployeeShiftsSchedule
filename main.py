@@ -105,12 +105,12 @@ if __name__ == "__main__":
 
     try:
         schedules = create_schedule_options(employees, shifts, number_of_solutions)
-        all_schedules = ''
         list_of_schedule_options = []
         for solution in schedules.solutions:
             list_of_schedule_options.append(data_frame_schedule_to_dictionary(solution.schedule, shifts, employees))
 
         with open("static_site/schedule_data.json", "w") as json_data_file:
             json.dump(list_of_schedule_options, json_data_file)
+
     except Exception as e:
         print(e)
