@@ -42,18 +42,41 @@
                 .then(jsonData => {
                     if (Array.isArray(jsonData)) {
                         jsonData.forEach(scheduleOption => {
-                            processScheduleOption(scheduleOption);
+                            createScheduleOption(scheduleOption);
                         });
                     } else {
                         console.log("only one schedule")
-                        processScheduleOption(jsonData);
+                        createScheduleOption(jsonData);
                     }
+
+                    let schedules = document.getElementById("mySchedule");
+                    let cells = schedules.getElementsByTagName('td');
+                    Array.from(cells).forEach((cell) => {
+                        let cellContent = cell.innerText;
+
+                        if (cellContent.includes('employee1')) {
+                            cell.classList.add("lightblue");
+                        } else if (cellContent.includes('employee2')) {
+                            cell.classList.add("lightyellow");
+                        } else if (cellContent.includes('employee3')) {
+                            cell.classList.add("peachpuff");
+                        } else if (cellContent.includes('employee4')) {
+                            cell.classList.add("lightgreen");
+                        } else if (cellContent.includes('employee5')) {
+                            cell.classList.add("lightcoral");
+                        } else if (cellContent.includes('employee6')) {
+                            cell.classList.add("plum");
+                        } else {
+                            cell.classList.add("white");
+                        }
+                    });
+
                 })
                 .catch(error => {
                     console.error('Error fetching or parsing JSON data:', error);
                 });
 
-            function processScheduleOption(jsonData) {
+            function createScheduleOption(jsonData) {
                 let mySchedule = document.getElementById("mySchedule");
                 let table = document.createElement("table");
                 let columns = Object.keys(jsonData);
@@ -104,27 +127,6 @@
                 var br = document.createElement("br");
                 mySchedule.appendChild(br);
                 mySchedule.appendChild(br);
-
-                let cells = table.getElementsByTagName('td');
-                Array.from(cells).forEach((cell) => {
-                    let cellContent = cell.innerText;
-
-                    if (cellContent.includes('employee1')) {
-                        cell.classList.add("lightblue");
-                    } else if (cellContent.includes('employee2')) {
-                        cell.classList.add("lightyellow");
-                    } else if (cellContent.includes('employee3')) {
-                        cell.classList.add("peachpuff");
-                    } else if (cellContent.includes('employee4')) {
-                        cell.classList.add("lightgreen");
-                    } else if (cellContent.includes('employee5')) {
-                        cell.classList.add("lightcoral");
-                    } else if (cellContent.includes('employee6')) {
-                        cell.classList.add("plum");
-                    } else {
-                        cell.classList.add("white");
-                    }
-                });
             }      
         </script>
     </body>

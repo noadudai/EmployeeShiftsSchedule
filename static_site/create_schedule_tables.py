@@ -20,7 +20,7 @@ from models.solution.schedule_solutions import ScheduleSolutions
 
 
 def data_frame_schedule_to_dictionary(schedule: dict[uuid.uuid4, uuid.uuid4], shifts: list[Shift], employees: list[Employee]) -> dict:
-    new_schedule_dict = {}
+    new_schedule_dict: dict[Shift, Employee] = {}
 
     for shift_id, emp_id in schedule.items():
         [shift_working] = [shift for shift in shifts if shift.shift_id == shift_id]
