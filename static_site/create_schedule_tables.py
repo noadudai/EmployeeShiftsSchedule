@@ -15,7 +15,7 @@ from models.shifts.shift import Shift
 from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shifts_file import all_shifts_in_the_week
 from models.shifts.shifts_types_enum import ShiftTypesEnum
-from models.solution.one_schedule_solution import Solution
+from models.solution.one_schedule_solution import ScheduleSolution
 from models.solution.schedule_solutions import ScheduleSolutions
 
 
@@ -44,8 +44,7 @@ def data_frame_schedule_to_dictionary(schedule: dict[uuid.uuid4, uuid.uuid4], sh
 
         frame = ShiftTypesEnum.MORNING.value if shift_working.shift_type == ShiftTypesEnum.WEEKEND_MORNING else shift_working.shift_type.value
 
-        # added <br> for new line inside the html schedule table
-        emp_and_shift_times_str = f"{emp_working.name}<br> {str(shift_working.start_time.time())} - {str(shift_working.end_time.time())}"
+        emp_and_shift_times_str = f"{emp_working.name} {str(shift_working.start_time.time())} - {str(shift_working.end_time.time())}"
         data_frame.at[frame, str(shift_working.start_time.date())] = emp_and_shift_times_str
 
     data_frame.fillna("", inplace=True)

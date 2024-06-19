@@ -9,10 +9,12 @@
                 border: 1px solid black;
                 border-collapse: collapse;
                 padding: 4px 6px;
+            }
+            th{
                 background: lightgrey;
             }
             .lightblue {
-                background: lightblue 
+                background: lightblue
             }
             .lightgreen {
                 background: lightgreen 
@@ -40,41 +42,61 @@
             fetch('./schedule_data.json')
                 .then(response => response.json())
                 .then(jsonData => {
-                    if (Array.isArray(jsonData)) {
-                        jsonData.forEach(scheduleOption => {
-                            createScheduleOption(scheduleOption);
-                        });
-                    } else {
-                        console.log("only one schedule")
-                        createScheduleOption(jsonData);
+                    Object.entries(jsonData).forEach(([key, val]) => {
+                        if (key.includes("schedules")) {
+                            val.forEach(scheduleOption => {
+                                createScheduleOption(scheduleOption);
+                            });
+                        }
+                        if (key.includes("employees")) {
+                            employees = val
+                        }
+                        if (key.includes("shifts")) {
+                            shifts = val
+                        }
+                    })
+
+                    let colors = new Set();
+
+                    while (colors.size < Object.keys(employees).length) {
+                        colors.add(genRandomColor())
                     }
+                    let employeeColors = {}
+
+                    emp_count = 0;
+                    let colorArray = Array.from(colors);
+
+                    Object.entries(employees).forEach(([employee_id, _]) => {
+                        employeeColors[employee_id] = colorArray[emp_count];
+                        ++emp_count;
+                    })
+
 
                     let schedules = document.getElementById("mySchedule");
                     let cells = schedules.getElementsByTagName('td');
+
                     Array.from(cells).forEach((cell) => {
                         let cellContent = cell.innerText;
-
-                        if (cellContent.includes('employee1')) {
-                            cell.classList.add("lightblue");
-                        } else if (cellContent.includes('employee2')) {
-                            cell.classList.add("lightyellow");
-                        } else if (cellContent.includes('employee3')) {
-                            cell.classList.add("peachpuff");
-                        } else if (cellContent.includes('employee4')) {
-                            cell.classList.add("lightgreen");
-                        } else if (cellContent.includes('employee5')) {
-                            cell.classList.add("lightcoral");
-                        } else if (cellContent.includes('employee6')) {
-                            cell.classList.add("plum");
-                        } else {
-                            cell.classList.add("white");
-                        }
+                        Object.entries(employeeColors).forEach(([empId, color]) => {
+                            if (cellContent.includes(empId)) {
+                                cell.style.background = color;
+                            }
+                        });
                     });
-
                 })
-                .catch(error => {
+                .catch(error => { 
                     console.error('Error fetching or parsing JSON data:', error);
                 });
+
+            function genRandomColor() {
+                var hexLetters = '0123456789ABCDEF';
+                var color = '#';
+                for (var i = 0; i < 6; i++) {
+                    color += hexLetters[Math.floor(Math.random() * 16)];
+                }
+
+                return color;
+            }
 
             function createScheduleOption(jsonData) {
                 let mySchedule = document.getElementById("mySchedule");
@@ -127,7 +149,7 @@
                 var br = document.createElement("br");
                 mySchedule.appendChild(br);
                 mySchedule.appendChild(br);
-            }      
+            }
         </script>
     </body>
 </html>
