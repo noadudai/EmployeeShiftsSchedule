@@ -1,6 +1,7 @@
 import datetime
 import json
 import uuid
+from collections import defaultdict
 from uuid import uuid4
 from ortools.sat.python import cp_model
 
@@ -16,20 +17,15 @@ from models.shifts.shifts_file import all_shifts_in_the_week
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 from models.solution.one_schedule_solution import ScheduleSolution
 from models.solution.schedule_solutions import ScheduleSolutions
-from static_site.create_schedule_tables import data_frame_schedule_to_dictionary
+from static_site.create_schedule_tables import schedule_to_json
 from test.var_array_solution_printer import VarArraySolutionPrinter
 
 
 def create_a_new_schedule(solver: cp_model.CpSolver, all_shifts: dict[ShiftCombinationsKey, IntVar], employees: list[Employee], shifts: list[Shift]):
     # creating dictionaries for data. how many shifts each employee got, how many morning shifts ect.
-    num_closings_for_employees: dict[uuid.uuid4, int] = {}
-    num_mornings_for_employees: dict[uuid.uuid4, int] = {}
-    num_shift_for_employees: dict[uuid.uuid4, int] = {}
-
-    for employee in employees:
-        num_closings_for_employees[employee.employee_id] = 0
-        num_mornings_for_employees[employee.employee_id] = 0
-        num_shift_for_employees[employee.employee_id] = 0
+    num_closings_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
+    num_mornings_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
+    num_shift_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
 
     schedule: dict[uuid.uuid4(), uuid.uuid4()] = {}
 
@@ -68,11 +64,10 @@ def create_schedule_options(employees: list[Employee], shifts: list[Shift], numb
 
     solver = cp_model.CpSolver()
     previous_solutions = set()
-    count = 0
 
     print("Creating schedules")
     schedules = []
-    while count <= (number_of_solutions - 1):
+    while len(schedules) <= (number_of_solutions - 1):
 
         status = solver.Solve(constraint_model)
 
@@ -87,9 +82,6 @@ def create_schedule_options(employees: list[Employee], shifts: list[Shift], numb
 
                 schedule = create_a_new_schedule(solver, all_shifts, employees, shifts)
                 schedules.append(schedule)
-                count += 1
-        else:
-            pass
 
     schedules_options = ScheduleSolutions(schedules)
 
@@ -97,16 +89,16 @@ def create_schedule_options(employees: list[Employee], shifts: list[Shift], numb
     return schedules_options
 
 
-def create_shift_dictionary_for_html(shifts: list[Shift]) -> dict[uuid.uuid4, dict]:
-    shift_dict: dict[uuid.uuid4, dict] = {}
+def create_shift_dictionary_for_html(shifts: list[Shift]) -> dict[str, dict]:
+    shift_dict: dict[str, dict] = {}
 
     for shift in shifts:
         shift_dict[str(shift.shift_id)] = {"shift_id": str(shift.shift_id), "shift_type": shift.shift_type.value, "shift_start_time": str(shift.start_time), "shift_end_time": str(shift.end_time)}
     return shift_dict
 
 
-def create_employee_dictionary_for_html(employees: list[Employee]) -> dict[uuid.uuid4, dict]:
-    emp_dict: dict[uuid.uuid4, dict] = {}
+def create_employee_dictionary_for_html(employees: list[Employee]) -> dict[str, dict]:
+    emp_dict: dict[str, dict] = {}
 
     for emp in employees:
         emp_dict[str(emp.employee_id)] = {"employee_name": emp.name, "employee_priority": emp.priority.value, "employee_status": emp.employee_status.value, "employee_id": emp.employee_id, "employee_position": emp.position.value}
@@ -125,7 +117,7 @@ if __name__ == "__main__":
         list_of_schedule_options = []
 
         for solution in schedules.solutions:
-            list_of_schedule_options.append(data_frame_schedule_to_dictionary(solution.schedule, shifts, employees))
+            list_of_schedule_options.append(schedule_to_json(solution.schedule, shifts, employees))
 
         json_data = {"schedules": list_of_schedule_options, "employees": emp_dict, "shifts": shift_dict}
         with open("static_site/schedule_data.json", "w") as json_data_file:
