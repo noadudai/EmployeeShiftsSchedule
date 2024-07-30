@@ -115,13 +115,21 @@ if __name__ == "__main__":
     try:
         schedules = create_schedule_options(employees, shifts, number_of_solutions)
         list_of_schedule_options = []
+        additional_data: list[dict[str, defaultdict[uuid.UUID, int]]] = []
 
         for solution in schedules.solutions:
             list_of_schedule_options.append(schedule_to_json(solution.schedule, shifts, employees))
+            metadata_for_schedule = {"number_of_shifts": solution.number_of_shift_for_each_emp, "number_morning_shifts": solution.number_of_mornings_for_each_emp, "number_closing_shifts":solution.number_of_closings_for_each_emp}
+            additional_data.append(metadata_for_schedule)
 
         json_data = {"schedules": list_of_schedule_options, "employees": emp_dict, "shifts": shift_dict}
         with open("static_site/schedule_data.json", "w") as json_data_file:
             json.dump(json_data, json_data_file)
+
+        # add data for how many shifts each employee gets,
+        # how many closing shifts each employee gets and how many morning shifts each employee gets, to a json file.
+        with open("static_site/employees_schedules_additional_data.json", "w") as additional_data_file:
+            json.dump(additional_data, additional_data_file)
 
     except Exception as e:
         print(e)
