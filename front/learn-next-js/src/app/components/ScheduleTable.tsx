@@ -3,12 +3,13 @@ import { promises as fs } from 'fs';
 
 async function CreateTable(schedule: []) {
     const scheduleEnries = Object.entries(schedule)
-    const firstSchedule = scheduleEnries[0]
-    const scheduleDates = scheduleEnries.map((entrie) => entrie[0])
+    const firstDayInSchedule = scheduleEnries[0]
+    const scheduleDates = scheduleEnries.map((day) => day[0])
   
     const tHeaders = scheduleDates.map((header) => <th className="p-1 text-black">{header}</th>)
-  
-    const shiftsTypes = Object.keys(firstSchedule[1])
+    // the firstDayInDictionary is a list containing a stringify date and a dictionary, the dictionary containe a "shift type" as a key (string) and a string representing the employee and the shift's period of time
+    const dayInfoIndex = 1
+    const shiftsTypes = Object.keys(firstDayInSchedule[dayInfoIndex])
   
     const rowHeaders = shiftsTypes.map((header) => <th className="p-1 text-black">{header}</th>)
   
@@ -19,7 +20,7 @@ async function CreateTable(schedule: []) {
         <tr className="divide-x-2 divide-slate-600">
           {rowHeaders[i]}
           {/* day[1][shiftTypes[i]] represents the information on thet "cell" in the schedule*/}
-          {scheduleEnries.map((day) => <td className="p-1 text-black">{day[1][shiftsTypes[i]]}</td>)}
+          {scheduleEnries.map((day) => <td className="p-1 text-black">{day[dayInfoIndex][shiftsTypes[i]]}</td>)}
         </tr>
       )
     }
