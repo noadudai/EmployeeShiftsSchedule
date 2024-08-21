@@ -33,7 +33,7 @@ async def index():
     return {"Hey There"}
 
 
-@app.get("/create-schedules")
+@app.get("/create-and-get-schedule-options")
 async def create_schedules():
     employees = all_employees
     shifts = all_shifts_in_the_week
@@ -55,22 +55,8 @@ async def create_schedules():
 
         json_data = {"schedules": list_of_schedule_options, "employees": emp_dict, "shifts": shift_dict}
 
-        with open("static_site/schedules_info.json", "w") as f:
-            json.dump({"schedules_info": json_data, "additional_data": additional_data}, f)
+        return {"schedules_info": json_data, "additional_data": additional_data}
 
     except Exception as e:
         logging.error(f"Error occurred: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/get-schedules-solutions")
-async def get_schedules():
-    try:
-        print("getting schedules")
-        with open("static_site/schedules_info.json", "r") as schedules_data:
-            data = json.load(schedules_data)
-            return data
-
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=e.args)

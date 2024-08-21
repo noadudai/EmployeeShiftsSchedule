@@ -6,15 +6,9 @@ import { useState } from 'react';
 
 
 const ScheduleOptionsNavbar = () => {
+
+    // isModalVisible is connected to "Create schedule options", that will be implamented in a future feature.
     const [isModalVisible, setIsModalVisible] = useState(false);
-    
-    const onClickHandler = async () => {
-        setIsModalVisible(true)
-        console.log("getting new schedules")
-        await createSchedules();
-        setIsModalVisible(false);
-        window.location.reload();
-    };
 
     return (
         <div>
@@ -26,7 +20,7 @@ const ScheduleOptionsNavbar = () => {
                     <div className="flex space-x-3 pr-8">
                         <Link className="text-slate-500 font-bold px-3 py-2 bg-slate-200 rounded-lg hover:bg-slate-400 hover:underline hover:text-slate-700" href="/">Home Page</Link>
                         <div>  
-                            <button data-modal-target="cretae-new-schedules" data-modal-toggle="cretae-new-schedules" className="text-slate-500 font-bold px-3 py-2 bg-slate-200 rounded-lg hover:bg-slate-200 hover:underline hover:text-slate-700" onClick={onClickHandler}>Create Schedule</button>
+                            <button data-modal-target="cretae-new-schedules" data-modal-toggle="cretae-new-schedules" className="text-slate-500 font-bold px-3 py-2 bg-slate-200 rounded-lg hover:bg-slate-200 hover:underline hover:text-slate-700">Create Schedule</button>
                         </div>
                         <button className="text-slate-500 font-bold px-3 py-2 bg-slate-200 rounded-lg hover:bg-slate-400 hover:underline hover:text-slate-700">Employees</button>
                     </div>

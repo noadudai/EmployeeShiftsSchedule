@@ -10,7 +10,7 @@ setup(name='employee shift schedule',
             'ortools==9.7.2996',
             'pandas==2.0.3',
             'more-itertools==10.1.0',
-            'fastapi'
+            'fastapi==0.111.0'
       ],
       packages=["employee_shift_schedule"]
       )

@@ -162,4 +162,19 @@ cython_debug/
 static_site/schedules_info.json
 /front/employees_schedule_gen/.next/
 /front/employees_schedule_gen/node_modules/
-/front/node_modules/
+
+# unimportant files
+front/learn-next-js/tailwind.config.ts
+front/learn-next-js/tsconfig.json
+front/learn-next-js/src/app/schedule_data.json
+front/learn-next-js/next.config.mjs
+front/learn-next-js/package-lock.json
+front/learn-next-js/package.json
+front/learn-next-js/postcss.config.mjs
+front/learn-next-js/README.md
+front/learn-next-js/.eslintrc.json
+front/learn-next-js/src/app/employees_schedules_additional_data.json
+front/learn-next-js/src/app/favicon.ico
+front/learn-next-js/src/app/globals.css
+front/learn-next-js/public/next.svg
+front/learn-next-js/public/vercel.svg

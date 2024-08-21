@@ -1,20 +1,18 @@
 import CreateTable from "./ScheduleTable"
 
 
-async function CardWithScheduleInfo(employees: object, scheduleData: object, schedule: object){
-    const numberOfShiftsForEmployees = scheduleData.number_of_shifts
-    const numberOfClosingShifts = scheduleData.number_closing_shifts
-    const numberOfMorningShifts = scheduleData.number_morning_shifts
+async function CardWithScheduleInfo(employees: object, scheduleData: object, schedule: {[date: string]: {[shift: string]: string}}){
+    const numberOfShiftsForEmployees: {string : number} = scheduleData.number_of_shifts
+    const numberOfClosingShifts: {string : number} = scheduleData.number_closing_shifts
+    const numberOfMorningShifts: {string : number} = scheduleData.number_morning_shifts
     
-    const numShiftsEntries = Object.entries(numberOfShiftsForEmployees)
-    const numClosingsEntries = Object.entries(numberOfClosingShifts)
-    const numMorningsEntries = Object.entries(numberOfMorningShifts)
+    const numShiftsEntries: [employeeId: string, numberOfShifts: number][] = Object.entries(numberOfShiftsForEmployees)
+    const numClosingsEntries: [employeeId: string, numberOfShifts: number][] = Object.entries(numberOfClosingShifts)
+    const numMorningsEntries: [employeeId: string, numberOfShifts: number][] = Object.entries(numberOfMorningShifts)
 
-    const employeeIdIndex = 0
-    const numShiftsIndex = 1
-    const numberOfShifts = numShiftsEntries.map((entrie) => <p className="text-xs">{employees[entrie[employeeIdIndex]].employee_name} works {entrie[numShiftsIndex]} shifts.</p>)
-    const numClosings = numClosingsEntries.map((entrie) => <p className="text-xs">{employees[entrie[employeeIdIndex]].employee_name} works {entrie[numShiftsIndex]} closing shifts.</p>)
-    const numMornings = numMorningsEntries.map((entrie) => <p className="text-xs">{employees[entrie[employeeIdIndex]].employee_name} works {entrie[numShiftsIndex]} morning shifts.</p>)
+    const numberOfShiftsJSX = numShiftsEntries.map(([employeeId, numShifts]) => <p className="text-xs">{employees[employeeId].employee_name} works {numShifts} shifts.</p>)
+    const numClosingShiftsJSX = numClosingsEntries.map(([employeeId, numShifts]) => <p className="text-xs">{employees[employeeId].employee_name} works {numShifts} closing shifts.</p>)
+    const numMorningShiftsJSX = numMorningsEntries.map(([employeeId, numShifts]) => <p className="text-xs">{employees[employeeId].employee_name} works {numShifts} morning shifts.</p>)
 
     return (
         <div className="flex bg-white border shadow-sm rounded-xl">
@@ -23,15 +21,15 @@ async function CardWithScheduleInfo(employees: object, scheduleData: object, sch
             <div className="space-y-4 p-4">
                 <div>
                     <h3>Number of shifts for each employee:</h3>
-                    {numberOfShifts}
+                    {numberOfShiftsJSX}
                 </div>
                 <div>
                     <h3>Number of closing shifts for each employee:</h3>
-                    {numClosings}
+                    {numClosingShiftsJSX}
                 </div>
                 <div>
                     <h3>Number of morning shifts for each employee:</h3>
-                    {numMornings}
+                    {numMorningShiftsJSX}
                 </div>
             </div>
             <div className='flex columns-2 justify-evenly '>

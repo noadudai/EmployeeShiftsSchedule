@@ -1,15 +1,14 @@
 import { promises as fs } from 'fs';
 
 
-async function CreateTable(schedule: []) {
-    const scheduleEnries = Object.entries(schedule)
-    const firstDayInSchedule = scheduleEnries[0]
-    const scheduleDates = scheduleEnries.map((day) => day[0])
+async function CreateTable(schedule: {[date: string]: {[shift: string]: string}}) {
+    const scheduleDaysAndShiftsTuples: [date: string, shifts: {[shift: string]: string; }][] = Object.entries(schedule)
+    const firstDayInSchedule: [date: string, shifts: {[shift: string]: string; }] = scheduleDaysAndShiftsTuples[0]
+    const scheduleDates: string[] = scheduleDaysAndShiftsTuples.map(([date]) => date)
   
-    const tHeaders = scheduleDates.map((header) => <th className="p-1 text-black">{header}</th>)
-    // the firstDayInDictionary is a list containing a stringify date and a dictionary, the dictionary containe a "shift type" as a key (string) and a string representing the employee and the shift's period of time
+    const tHeaders = scheduleDates.map((dateHeader) => <th className="p-1 text-black">{dateHeader}</th>)
     const dayInfoIndex = 1
-    const shiftsTypes = Object.keys(firstDayInSchedule[dayInfoIndex])
+    const shiftsTypes: string[] = Object.keys(firstDayInSchedule[dayInfoIndex])
   
     const rowHeaders = shiftsTypes.map((header) => <th className="p-1 text-black">{header}</th>)
   
@@ -19,8 +18,8 @@ async function CreateTable(schedule: []) {
       tBody.push(
         <tr className="divide-x-2 divide-slate-600">
           {rowHeaders[i]}
-          {/* day[1][shiftTypes[i]] represents the information on thet "cell" in the schedule*/}
-          {scheduleEnries.map((day) => <td className="p-1 text-black">{day[dayInfoIndex][shiftsTypes[i]]}</td>)}
+          {/* represents the information on thet "cell" in the schedule*/}
+          {scheduleDaysAndShiftsTuples.map(([date, shifts]) => <td className="p-1 text-black">{shifts[shiftsTypes[i]]}</td>)}
         </tr>
       )
     }
