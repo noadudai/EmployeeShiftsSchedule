@@ -1,5 +1,6 @@
 import ScheduleOptionsNavbar from '../components/ScheduleOptionsNavbar';
 import CardWithScheduleInfo from '../components/CardWithScheduleInfo';
+import { AdditionalDataInterface } from '@/interfaces/additionalDataInterface';
 
 async function ScheduleOptions() {
 
