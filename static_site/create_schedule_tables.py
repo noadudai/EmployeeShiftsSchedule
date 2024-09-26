@@ -35,8 +35,9 @@ def schedule_to_json(schedule: dict[uuid.uuid4, uuid.uuid4], shifts: list[Shift]
 
     shift_types = [ShiftTypesEnum.MORNING.value, ShiftTypesEnum.MORNING_BACKUP.value,
                    ShiftTypesEnum.WEEKEND_MORNING_BACKUP.value, ShiftTypesEnum.EVENING.value,
-                   ShiftTypesEnum.THURSDAY_BACKUP.value,
-                   ShiftTypesEnum.WEEKEND_EVENING_BACKUP.value, ShiftTypesEnum.CLOSING.value]
+                   ShiftTypesEnum.EVENING_BACKUP.value, ShiftTypesEnum.THURSDAY_BACKUP.value,
+                   ShiftTypesEnum.WEEKEND_EVENING_BACKUP.value, ShiftTypesEnum.CLOSING.value,
+                   ShiftTypesEnum.CLOSING_BACKUP.value]
 
     data_frame = pd.DataFrame(index=shift_types, columns=unique_dates)
 

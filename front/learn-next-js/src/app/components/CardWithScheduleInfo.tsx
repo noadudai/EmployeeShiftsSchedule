@@ -1,18 +1,22 @@
+import { EmployeesInterface } from "@/interfaces/employeesInterface"
 import CreateTable from "./ScheduleTable"
+import { ScheduleInterface } from "@/interfaces/scheduleInterface"
+import { AdditionalDataInterface } from "@/interfaces/additionalDataInterface";
 
 
-async function CardWithScheduleInfo(employees: object, scheduleData: object, schedule: {[date: string]: {[shift: string]: string}}){
-    const numberOfShiftsForEmployees: {string : number} = scheduleData.number_of_shifts
-    const numberOfClosingShifts: {string : number} = scheduleData.number_closing_shifts
-    const numberOfMorningShifts: {string : number} = scheduleData.number_morning_shifts
+async function CardWithScheduleInfo(employees: EmployeesInterface, scheduleData: AdditionalDataInterface, schedule: ScheduleInterface){
     
-    const numShiftsEntries: [employeeId: string, numberOfShifts: number][] = Object.entries(numberOfShiftsForEmployees)
-    const numClosingsEntries: [employeeId: string, numberOfShifts: number][] = Object.entries(numberOfClosingShifts)
-    const numMorningsEntries: [employeeId: string, numberOfShifts: number][] = Object.entries(numberOfMorningShifts)
+    const numberOfShiftsForEmployees: {[key:string] : number} = scheduleData.number_of_shifts;
+    const numberOfClosingShifts: {[key:string] : number} = scheduleData.number_closing_shifts;
+    const numberOfMorningShifts: {[key:string] : number} = scheduleData.number_morning_shifts;
+    
+    const numShiftsEntries: [employeeId: string, numberOfShifts: number][] = Object.entries(numberOfShiftsForEmployees);
+    const numClosingsEntries: [employeeId: string, numberOfShifts: number][] = Object.entries(numberOfClosingShifts);
+    const numMorningsEntries: [employeeId: string, numberOfShifts: number][] = Object.entries(numberOfMorningShifts);
 
-    const numberOfShiftsJSX = numShiftsEntries.map(([employeeId, numShifts]) => <p className="text-xs">{employees[employeeId].employee_name} works {numShifts} shifts.</p>)
-    const numClosingShiftsJSX = numClosingsEntries.map(([employeeId, numShifts]) => <p className="text-xs">{employees[employeeId].employee_name} works {numShifts} closing shifts.</p>)
-    const numMorningShiftsJSX = numMorningsEntries.map(([employeeId, numShifts]) => <p className="text-xs">{employees[employeeId].employee_name} works {numShifts} morning shifts.</p>)
+    const numberOfShiftsJSX = numShiftsEntries.map(([employeeId, numShifts]) => <p className="text-xs">{employees[employeeId].employee_name} works {numShifts} shifts.</p>);
+    const numClosingShiftsJSX = numClosingsEntries.map(([employeeId, numShifts]) => <p className="text-xs">{employees[employeeId].employee_name} works {numShifts} closing shifts.</p>);
+    const numMorningShiftsJSX = numMorningsEntries.map(([employeeId, numShifts]) => <p className="text-xs">{employees[employeeId].employee_name} works {numShifts} morning shifts.</p>);
 
     return (
         <div className="flex bg-white border shadow-sm rounded-xl">

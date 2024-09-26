@@ -10,10 +10,10 @@ from constraints_file import *
 from models.employees.employee import Employee
 from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
-from models.employees.employees_file import all_employees
+from models.employees.pe_employees_file import all_employees
 from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shift import Shift
-from models.shifts.shifts_file import all_shifts_in_the_week
+from models.shifts.pe_shifts_file import all_shifts_in_the_week
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 from models.solution.one_schedule_solution import ScheduleSolution
 from models.solution.schedule_solutions import ScheduleSolutions
@@ -68,9 +68,7 @@ def create_schedule_options(employees: list[Employee], shifts: list[Shift], numb
     print("Creating schedules")
     schedules = []
     while len(schedules) <= (number_of_solutions - 1):
-
         status = solver.Solve(constraint_model)
-
         if status == cp_model.OPTIMAL:
             possible_solution = frozenset(
                 ShiftCombinationsKey(employee.employee_id, shift.shift_id) for employee in employees for shift in shifts
@@ -113,6 +111,7 @@ if __name__ == "__main__":
     emp_dict = create_employee_dictionary_for_html(employees)
 
     try:
+        print("getting schedules")
         schedules = create_schedule_options(employees, shifts, number_of_solutions)
         list_of_schedule_options = []
         additional_data: list[dict[str, defaultdict[uuid.UUID, int]]] = []

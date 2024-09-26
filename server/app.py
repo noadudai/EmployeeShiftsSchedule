@@ -8,8 +8,8 @@ from collections import defaultdict
 
 
 from main import create_shift_dictionary_for_html, create_employee_dictionary_for_html, create_schedule_options
-from models.employees.employees_file import all_employees
-from models.shifts.shifts_file import all_shifts_in_the_week
+from models.employees.pe_employees_file import all_employees
+from models.shifts.pe_shifts_file import all_shifts_in_the_week
 from static_site.create_schedule_tables import schedule_to_json
 
 app = FastAPI()
@@ -37,7 +37,7 @@ async def index():
 async def create_schedules():
     employees = all_employees
     shifts = all_shifts_in_the_week
-    number_of_solutions = 3
+    number_of_solutions = 5
     shift_dict = create_shift_dictionary_for_html(shifts)
     emp_dict = create_employee_dictionary_for_html(employees)
 
@@ -54,8 +54,8 @@ async def create_schedules():
             additional_data.append(metadata_for_schedule)
 
         json_data = {"schedules": list_of_schedule_options, "employees": emp_dict, "shifts": shift_dict}
-
         return {"schedules_info": json_data, "additional_data": additional_data}
+
 
     except Exception as e:
         logging.error(f"Error occurred: {e}")
