@@ -10,10 +10,10 @@ from constraints_file import *
 from models.employees.employee import Employee
 from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
-from models.employees.employees_file import all_employees
+from models.employees.pe_employees_file import all_employees
 from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shift import Shift
-from models.shifts.shifts_file import all_shifts_in_the_week
+from models.shifts.pe_shifts_file import all_shifts_in_the_week
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 from models.solution.one_schedule_solution import ScheduleSolution
 from models.solution.schedule_solutions import ScheduleSolutions
@@ -55,7 +55,7 @@ def create_schedule_options(employees: list[Employee], shifts: list[Shift], numb
 
     all_shifts = generate_shift_employee_combinations(employees, shifts, constraint_model)
     add_exactly_one_employee_per_shift_constraint(shifts, employees, constraint_model, all_shifts)
-    # add_limit_employees_working_days_constraint(shifts, employees, constraint_model, all_shifts, max_working_days)
+    add_limit_employees_working_days_constraint(shifts, employees, constraint_model, all_shifts, max_working_days)
     # add_minimum_time_between_a_morning_shift_and_the_shift_before_constraint(shifts, employees, constraint_model, all_shifts, datetime.timedelta(hours=9), early_morning_start_time=datetime.time(6), afternoon_start_time=datetime.time(12, 30))
     add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, constraint_model, all_shifts)
     add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint(shifts, employees, constraint_model, all_shifts)
@@ -68,9 +68,7 @@ def create_schedule_options(employees: list[Employee], shifts: list[Shift], numb
     print("Creating schedules")
     schedules = []
     while len(schedules) <= (number_of_solutions - 1):
-
         status = solver.Solve(constraint_model)
-
         if status == cp_model.OPTIMAL:
             possible_solution = frozenset(
                 ShiftCombinationsKey(employee.employee_id, shift.shift_id) for employee in employees for shift in shifts
@@ -113,15 +111,24 @@ if __name__ == "__main__":
     emp_dict = create_employee_dictionary_for_html(employees)
 
     try:
+        print("getting schedules")
         schedules = create_schedule_options(employees, shifts, number_of_solutions)
         list_of_schedule_options = []
+        additional_data: list[dict[str, defaultdict[uuid.UUID, int]]] = []
 
         for solution in schedules.solutions:
             list_of_schedule_options.append(schedule_to_json(solution.schedule, shifts, employees))
+            metadata_for_schedule = {"number_of_shifts": solution.number_of_shift_for_each_emp, "number_morning_shifts": solution.number_of_mornings_for_each_emp, "number_closing_shifts":solution.number_of_closings_for_each_emp}
+            additional_data.append(metadata_for_schedule)
 
         json_data = {"schedules": list_of_schedule_options, "employees": emp_dict, "shifts": shift_dict}
         with open("static_site/schedule_data.json", "w") as json_data_file:
             json.dump(json_data, json_data_file)
+
+        # add data for how many shifts each employee gets,
+        # how many closing shifts each employee gets and how many morning shifts each employee gets, to a json file.
+        with open("static_site/employees_schedules_additional_data.json", "w") as additional_data_file:
+            json.dump(additional_data, additional_data_file)
 
     except Exception as e:
         print(e)

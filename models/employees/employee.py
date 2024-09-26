@@ -17,3 +17,4 @@ class Employee:
     position: EmployeePositionEnum = EmployeePositionEnum.full_timer
     preferences: Preferences = field(default_factory=Preferences)
     shift_types_trained_to_do: list[ShiftTypesEnum] = field(default_factory=list)
+3
