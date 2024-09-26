@@ -172,7 +172,5 @@ front/learn-next-js/README.md
 front/learn-next-js/.eslintrc.json
 front/learn-next-js/src/app/*.ico
 front/learn-next-js/src/app/*.css
-/front/learn-next-js/src/app/employees_schedules_additional_data.json
-/front/learn-next-js/src/app/schedule_data.json
 /models/employees/pe_employees_file.py
 /models/shifts/pe_shifts_file.py
