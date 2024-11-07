@@ -293,14 +293,9 @@ def add_highest_position_emp_gets_hes_preferred_shifts(shifts: list[Shift], empl
     [highest_emp] = [emp for emp in employees if emp.priority == EmployeePriorityEnum.HIGHEST]
 
     highest_emp_preferences = highest_emp.preferences.shifts_prefer_to_work_in_days
-    highest_emp_shifts = []
 
     for preferred_shift in highest_emp_preferences:
         for shift in shifts:
             if shift.start_time.date() == preferred_shift.day_date and shift.shift_type in preferred_shift.shifts:
-                highest_emp_shifts.append(shift)
-
-    for shift in highest_emp_shifts:
-        key = ShiftCombinationsKey(highest_emp.employee_id, shift.shift_id)
-        constraint_model.Add(shift_combinations[key] == 1)
-
+                key = ShiftCombinationsKey(highest_emp.employee_id, shift.shift_id)
+                constraint_model.Add(shift_combinations[key] == 1)
