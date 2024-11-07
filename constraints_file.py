@@ -7,6 +7,7 @@ from uuid import UUID
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 from models.employees.employee import Employee
+from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
 from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shift import Shift
@@ -286,3 +287,20 @@ def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: 
         for shift in shifts_cannot_work:
             key = ShiftCombinationsKey(emp.employee_id, shift.shift_id)
             constraint_model.Add(shift_combinations[key] == 0)
+
+
+def add_highest_position_emp_gets_hes_preferred_shifts(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):
+    [highest_emp] = [emp for emp in employees if emp.priority == EmployeePriorityEnum.HIGHEST]
+
+    highest_emp_preferences = highest_emp.preferences.shifts_prefer_to_work_in_days
+    highest_emp_shifts = []
+
+    for preferred_shift in highest_emp_preferences:
+        for shift in shifts:
+            if shift.start_time.date() == preferred_shift.day_date and shift.shift_type in preferred_shift.shifts:
+                highest_emp_shifts.append(shift)
+
+    for shift in highest_emp_shifts:
+        key = ShiftCombinationsKey(highest_emp.employee_id, shift.shift_id)
+        constraint_model.Add(shift_combinations[key] == 1)
+

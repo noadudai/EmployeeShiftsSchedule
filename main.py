@@ -61,6 +61,7 @@ def create_schedule_options(employees: list[Employee], shifts: list[Shift], numb
     add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint(shifts, employees, constraint_model, all_shifts)
     add_aspire_to_maximize_all_employees_preferences_constraint(shifts, employees, constraint_model, all_shifts)
     add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts, employees, constraint_model, all_shifts)
+    add_highest_position_emp_gets_hes_preferred_shifts(shifts, employees, constraint_model, all_shifts)
 
     solver = cp_model.CpSolver()
     previous_solutions = set()
