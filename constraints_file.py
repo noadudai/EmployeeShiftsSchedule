@@ -286,3 +286,22 @@ def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: 
         for shift in shifts_cannot_work:
             key = ShiftCombinationsKey(emp.employee_id, shift.shift_id)
             constraint_model.Add(shift_combinations[key] == 0)
+
+
+def add_minimize_given_sb_shifts_for_employees_constraint(employees: list[Employee], shifts: list[Shift], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):
+    multy_num_sb_shifts = []
+
+    for employee in employees:
+        emp_sb_shifts = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts if shift.shift_type == ShiftTypesEnum.STAND_BY]
+
+        num_sb_shift_of_emp = constraint_model.NewIntVar(0, len(emp_sb_shifts), f'num_sb_shift_of_emp{employee.employee_id}')
+        multy_sb_shift_of_emp = constraint_model.NewIntVar(0, pow(len(emp_sb_shifts), 2), f'multy_sb_shift_of_emp{employee.employee_id}')
+
+        constraint_model.AddAbsEquality(num_sb_shift_of_emp, sum(emp_sb_shifts))
+        constraint_model.AddMultiplicationEquality(multy_sb_shift_of_emp, num_sb_shift_of_emp, num_sb_shift_of_emp)
+
+        multy_num_sb_shifts.append(multy_sb_shift_of_emp)
+
+    constraint_model.Minimize(sum(multy_num_sb_shifts))
+
+    return multy_num_sb_shifts
