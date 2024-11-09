@@ -279,8 +279,8 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
 
             constraint_model.Minimize(sum(shift_assignments))
 
-        for shift_emp_has_to_work in employee.preferences.shifts_has_to_work_in_days:
-            shifts_has_to_work = [shift for shift in shifts if shift.shift_type in shift_emp_has_to_work.shifts and shift.start_time.date() == shift_emp_has_to_work.day_date]
+        for shift_emp_has_to_work in employee.preferences.shifts_has_to_work_by_id:
+            shifts_has_to_work = [shift for shift in shifts if shift.shift_id == shift_emp_has_to_work.shift_id]
             for shift in shifts_has_to_work:
                 key = ShiftCombinationsKey(employee.employee_id, shift.shift_id)
                 constraint_model.Add(shift_combinations[key] == 1)
