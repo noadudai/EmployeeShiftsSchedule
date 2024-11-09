@@ -263,7 +263,6 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
 
         for emp_shift_preference in employee.preferences.shifts_prefer_to_work_in_days:
             shifts_prefer_to_work_in_day = [shift for shift in shifts if shift.shift_type in emp_shift_preference.shifts and shift.start_time.date() == emp_shift_preference.day_date]
-
             employee_shift_preferences = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_prefer_to_work_in_day]
             constraint_model.Maximize(sum(employee_shift_preferences))
 
@@ -279,6 +278,12 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
 
             constraint_model.Minimize(sum(shift_assignments))
 
+        for shift_emp_has_to_work in employee.preferences.shifts_has_to_work_in_days:
+            shifts_has_to_work = [shift for shift in shifts if shift.shift_type in shift_emp_has_to_work.shifts and shift.start_time.date() == shift_emp_has_to_work.day_date]
+            for shift in shifts_has_to_work:
+                key = ShiftCombinationsKey(employee.employee_id, shift.shift_id)
+                constraint_model.Add(shift_combinations[key] == 1)
+
 
 def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):
     for emp in employees:
@@ -287,15 +292,3 @@ def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: 
         for shift in shifts_cannot_work:
             key = ShiftCombinationsKey(emp.employee_id, shift.shift_id)
             constraint_model.Add(shift_combinations[key] == 0)
-
-
-def add_highest_position_emp_gets_hes_preferred_shifts(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):
-    [highest_emp] = [emp for emp in employees if emp.priority == EmployeePriorityEnum.HIGHEST]
-
-    highest_emp_preferences = highest_emp.preferences.shifts_prefer_to_work_in_days
-
-    for preferred_shift in highest_emp_preferences:
-        for shift in shifts:
-            if shift.start_time.date() == preferred_shift.day_date and shift.shift_type in preferred_shift.shifts:
-                key = ShiftCombinationsKey(highest_emp.employee_id, shift.shift_id)
-                constraint_model.Add(shift_combinations[key] == 1)

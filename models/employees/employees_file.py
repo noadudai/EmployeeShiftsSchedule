@@ -9,7 +9,7 @@ from models.employees.employee_priority_enum import EmployeePriorityEnum
 from models.employees.employee_status_enum import EmployeeStatusEnum
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 
-employee1s_preferences = Preferences(shifts_prefer_to_work_in_days=[ShiftsPreference(datetime.date(2024, 4, 28), [ShiftTypesEnum.MORNING, ShiftTypesEnum.STAND_BY]),
+employee1s_preferences = Preferences(shifts_has_to_work_in_days=[ShiftsPreference(datetime.date(2024, 4, 28), [ShiftTypesEnum.MORNING, ShiftTypesEnum.STAND_BY]),
                                                               ShiftsPreference(datetime.date(2024, 4, 29), [ShiftTypesEnum.MORNING]),
                                                               ShiftsPreference(datetime.date(2024, 4, 30), [ShiftTypesEnum.STAND_BY]),
                                                               ShiftsPreference(datetime.date(2024, 5, 1), [ShiftTypesEnum.MORNING_BACKUP]),
