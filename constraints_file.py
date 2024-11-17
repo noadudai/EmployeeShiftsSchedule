@@ -277,8 +277,8 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
             shift_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_prefer_not_to_work]
             emps_days_pref_not_to_work.append(sum(shift_assignments) * (1 / employee.priority.value))
 
-    constraint_model.Maximize(sum(emps_shifts_prefs))
     constraint_model.Minimize(sum(emps_days_pref_not_to_work))
+    constraint_model.Maximize(sum(emps_shifts_prefs))
 
 
 def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):

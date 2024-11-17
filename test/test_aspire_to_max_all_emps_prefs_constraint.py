@@ -47,13 +47,17 @@ def test_an_employee_is_not_working_in_a_day_he_prefers_not_to_work():
     emp_with_a_day_off_request = Employee(name="emp_with_a_day_off_request", employee_id="emp_with_a_day_off_request", preferences=emp_preferences)
     emp_with_no_preferences = Employee(name="emp_with_no_preferences", employee_id="test_employee")
 
-    employees = [emp_with_a_day_off_request, emp_with_no_preferences]
+    employees = [emp_with_no_preferences, emp_with_a_day_off_request]
     shifts = [shift1, shift2]
     model = cp_model.CpModel()
 
     all_shifts = generate_shift_employee_combinations(employees, shifts, model)
     add_aspire_to_maximize_all_employees_preferences_constraint(shifts, employees, model, all_shifts)
     add_exactly_one_employee_per_shift_constraint(shifts, employees, model, all_shifts)
+
+    model.AddHint(all_shifts[ShiftCombinationsKey(emp_with_a_day_off_request.employee_id, shift1.shift_id)], 0)
+    model.AddHint(all_shifts[ShiftCombinationsKey(emp_with_no_preferences.employee_id, shift1.shift_id)], 1)
+    model.AddHint(all_shifts[ShiftCombinationsKey(emp_with_no_preferences.employee_id, shift2.shift_id)], 1)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
@@ -71,7 +75,7 @@ def test_an_employee_gets_his_preferred_shifts():
     emp = Employee(name="emp", employee_id="test_employee", priority=EmployeePriorityEnum.MEDIUM)
     emp_wants_shift1 = Employee(name="emp_wants_shift1", employee_id="emp_wants_shift1", preferences=emp_preferences, priority=EmployeePriorityEnum.HIGHEST)
 
-    employees = [emp, emp_wants_shift1]
+    employees = [emp_wants_shift1, emp]
     shifts = [morning_shift, closing_shift]
     model = cp_model.CpModel()
 
@@ -80,7 +84,10 @@ def test_an_employee_gets_his_preferred_shifts():
     add_prevent_overlapping_shifts_for_employees_constraint(shifts, employees, model, all_shifts)
     add_aspire_to_maximize_all_employees_preferences_constraint(shifts, employees, model, all_shifts)
 
+    model.AddHint(all_shifts[ShiftCombinationsKey(emp.employee_id, closing_shift.shift_id)], 1)
+
     solver = cp_model.CpSolver()
+    solver.parameters.fix_variables_to_their_hinted_value = True
     status = solver.Solve(model)
 
     assert (status == cp_model.OPTIMAL)
@@ -136,7 +143,11 @@ def test_an_emp_who_does_not_have_preferences_is_working_so_other_employees_can_
 
     add_aspire_to_maximize_all_employees_preferences_constraint(shifts, employees, model, all_shifts)
 
+    model.AddHint(all_shifts[ShiftCombinationsKey(emp_with_no_preferences.employee_id, shift1.shift_id)], 1)
+    model.AddHint(all_shifts[ShiftCombinationsKey(emp_with_no_preferences.employee_id, shift2.shift_id)], 1)
+
     solver = cp_model.CpSolver()
+    solver.parameters.fix_variables_to_their_hinted_value = True
     status = solver.Solve(model)
 
     assert (status == cp_model.OPTIMAL)
