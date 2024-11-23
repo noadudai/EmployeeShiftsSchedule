@@ -2,7 +2,7 @@ import datetime
 import random
 
 from ortools.sat.python import cp_model
-from .var_array_solution_printer import VarArraySolutionPrinter
+from .schedule_solution_collector import ScheduleSolutionCollector
 
 from constraints_file import generate_shift_employee_combinations, \
     add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint, \
@@ -68,7 +68,7 @@ def test_the_2_extra_shifts_aside_from_the_positions_shifts_amount_are_divided_e
     vars = add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint(shifts, employees, model, all_shifts)
 
     solver = cp_model.CpSolver()
-    solution_printer = VarArraySolutionPrinter(vars)
+    solution_printer = ScheduleSolutionCollector(vars)
     solver.parameters.enumerate_all_solutions = True
     status = solver.Solve(model, solution_printer)
 
@@ -103,7 +103,7 @@ def test_the_shifts_are_divided_between_the_employees_and_no_employee_works_more
     vars = add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint(shifts, employees, model, all_shifts)
 
     solver = cp_model.CpSolver()
-    solution_printer = VarArraySolutionPrinter(vars)
+    solution_printer = ScheduleSolutionCollector(vars)
     solver.parameters.enumerate_all_solutions = True
     status = solver.Solve(model, solution_printer)
 

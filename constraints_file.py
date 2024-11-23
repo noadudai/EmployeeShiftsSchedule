@@ -259,7 +259,7 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
 
     for employee in employees:
 
-        employee_pref_shifts_by_id = employee.preferences.shifts_prefer_to_work_in_days.shift_prefs_by_id
+        employee_pref_shifts_by_id = employee.preferences.shifts_prefer_by_id.shift_prefs_by_id
         emp_shift_pref_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift_id)] for shift_id in employee_pref_shifts_by_id]
         emps_shifts_prefs.append(sum(emp_shift_pref_assignments) * employee.priority.value)
 
