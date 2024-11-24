@@ -254,29 +254,31 @@ def add_aspire_for_minimal_deviation_between_employees_position_and_number_of_sh
 
 
 def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):
+    emps_shifts_prefs = []
+    emps_days_pref_not_to_work = []
+
     for employee in employees:
+
+        employee_pref_shifts_by_id = employee.preferences.shifts_prefer_by_id.shift_prefs_by_id
+        emp_shift_pref_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift_id)] for shift_id in employee_pref_shifts_by_id]
+        emps_shifts_prefs.append(sum(emp_shift_pref_assignments) * employee.priority.value)
+
+        employee_shifts_cannot_work_by_id = employee.preferences.shifts_cannot_work.shift_prefs_by_id
+        employee_shifts_cannot_work_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift_id)] for shift_id in employee_shifts_cannot_work_by_id]
+        constraint_model.Add(sum(employee_shifts_cannot_work_assignments) == 0)
+
         for day_cannot_work in employee.preferences.days_cannot_work:
-            shifts_cannot_work = [shift for shift in shifts if shift.start_time.date() == day_cannot_work.day_date]
-            for shift_cannot_work in shifts_cannot_work:
-                constraint_model.Add(shift_combinations[ShiftCombinationsKey(employee.employee_id, shift_cannot_work.shift_id)] == 0)
-
-        for emp_shift_preference in employee.preferences.shifts_prefer_to_work_in_days:
-            shifts_prefer_to_work_in_day = [shift for shift in shifts if shift.shift_type in emp_shift_preference.shifts and shift.start_time.date() == emp_shift_preference.day_date]
-
-            employee_shift_preferences = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_prefer_to_work_in_day]
-            constraint_model.Maximize(sum(employee_shift_preferences))
-
-        for emp_shift_cannot_work_preference in employee.preferences.shifts_cannot_work:
-            shifts_cannot_work_in_day = [shift for shift in shifts if shift.shift_type in emp_shift_cannot_work_preference.shifts and shift.start_time.date() == emp_shift_cannot_work_preference.day_date]
-
-            employee_shift_preferences = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_cannot_work_in_day]
-            constraint_model.Add(sum(employee_shift_preferences) == 0)
+            shifts_in_day_cannot_work = [shift for shift in shifts if shift.start_time.date() == day_cannot_work.day_date]
+            employee_shifts_in_day_cannot_work_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_in_day_cannot_work]
+            constraint_model.Add(sum(employee_shifts_in_day_cannot_work_assignments) == 0)
 
         for day_prefer_not_to_work in employee.preferences.days_prefer_not_to_work:
-            shifts_prefer_not_to_work = [shift for shift in shifts if shift.start_time.date() == day_prefer_not_to_work.day_date]
-            shift_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_prefer_not_to_work]
+            shifts_in_day_prefer_not_to_work = [shift for shift in shifts if shift.start_time.date() == day_prefer_not_to_work.day_date]
+            employee_shifts_in_day_prefer_not_to_work_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_in_day_prefer_not_to_work]
+            emps_days_pref_not_to_work.append(sum(employee_shifts_in_day_prefer_not_to_work_assignments) * (1 / employee.priority.value))
 
-            constraint_model.Minimize(sum(shift_assignments))
+    constraint_model.Minimize(sum(emps_days_pref_not_to_work))
+    constraint_model.Maximize(sum(emps_shifts_prefs))
 
 
 def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: list[Shift], employees: list[Employee], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):

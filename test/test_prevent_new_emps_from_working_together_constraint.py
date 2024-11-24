@@ -2,7 +2,7 @@ import datetime
 from uuid import uuid4
 
 from ortools.sat.python import cp_model
-from .var_array_solution_printer import VarArraySolutionPrinter
+from .schedule_solution_collector import ScheduleSolutionCollector
 
 from constraints_file import generate_shift_employee_combinations, \
     add_prevent_overlapping_shifts_for_employees_constraint, \
@@ -101,7 +101,7 @@ def test_new_employees_cannot_work_parallel_shift_without_at_least_one_employee_
 
     solver = cp_model.CpSolver()
     vars = list(new_employees_in_each_shifts.values()) + list(non_new_employees_in_each_shifts.values()) + list(non_new_emps_working_in_all_shift_permutations.values()) + list(all_shifts.values()) + list(any_perm_for_each_shift.values())
-    solution_printer = VarArraySolutionPrinter(vars)
+    solution_printer = ScheduleSolutionCollector(vars)
     solver.parameters.enumerate_all_solutions = True
     status = solver.Solve(model, solution_printer)
     assert (status != cp_model.OPTIMAL)
@@ -151,7 +151,7 @@ def test_senior_employee_and_new_employee_in_parallel_shifts():
     vars = list(new_employees_in_each_shifts.values()) + list(non_new_employees_in_each_shifts.values()) + list(
         non_new_emps_working_in_all_shift_permutations.values()) + list(all_shifts.values()) + list(
         any_perm_for_each_shift.values())
-    solution_printer = VarArraySolutionPrinter(vars)
+    solution_printer = ScheduleSolutionCollector(vars)
     solver.parameters.enumerate_all_solutions = True
     status = solver.Solve(model, solution_printer)
 
@@ -214,7 +214,7 @@ def test_solver_assignments_for_variables_in_the_model_are_as_expected():
 
     solver = cp_model.CpSolver()
 
-    solution_printer = VarArraySolutionPrinter(vars)
+    solution_printer = ScheduleSolutionCollector(vars)
     solver.parameters.enumerate_all_solutions = True
     status = solver.Solve(model, solution_printer)
 
