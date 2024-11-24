@@ -1,3 +1,4 @@
+from dataclasses import field
 from typing import List
 
 from ortools.sat.python import cp_model
@@ -7,9 +8,8 @@ from test.solution_data_class import Solution
 
 
 class ScheduleSolutionCollector(cp_model.CpSolverSolutionCallback):
-    """Print intermediate solutions."""
 
-    def __init__(self, variables: List[IntVar], emp_shift_assignments: List[IntVar]):
+    def __init__(self, emp_shift_assignments: List[IntVar], variables: List[IntVar] = []):
         cp_model.CpSolverSolutionCallback.__init__(self)
         self.__variables = variables
         self.__solution_count = 0
