@@ -66,8 +66,6 @@ def test_an_employee_is_not_working_in_a_day_he_prefers_not_to_work():
     all_assignments = [all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for employee in employees for shift in shifts]
 
     solution_collection = ScheduleSolutionCollector(emp_shift_assignments=all_assignments)
-    solver.parameters.enumerate_all_solutions = True
-
     status = solver.Solve(model, solution_collection)
 
     assert (status == cp_model.OPTIMAL)
@@ -100,8 +98,6 @@ def test_a_high_priority_employee_gets_the_shift_instead_of_a_less_priority_empl
     all_assignments = [all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for employee in employees for shift in shifts]
 
     solution_collection = ScheduleSolutionCollector(emp_shift_assignments=all_assignments)
-    solver.parameters.enumerate_all_solutions = True
-
     status = solver.Solve(model, solution_collection)
 
     assert (status == cp_model.OPTIMAL)
