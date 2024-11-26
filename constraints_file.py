@@ -6,11 +6,15 @@ from uuid import UUID
 
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
+
+from main import create_a_new_schedule
 from models.employees.employee import Employee
+from models.employees.employee_preferences.emps_shifts_switch import EmployeesShiftsSwitch
 from models.employees.employee_status_enum import EmployeeStatusEnum
 from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shift import Shift
 from models.shifts.shifts_types_enum import ShiftTypesEnum
+from models.solution.one_schedule_solution_metadata import ScheduleSolutionMetadata
 
 
 # Returns a dictionary that contains all the combinations of shifts and employees as: FrozenShiftCombinationsKey
@@ -288,3 +292,16 @@ def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: 
         for shift in shifts_cannot_work:
             key = ShiftCombinationsKey(emp.employee_id, shift.shift_id)
             constraint_model.Add(shift_combinations[key] == 0)
+
+
+def add_an_employees_switch_shifts_after_schedule_created_constraint(constraint_model: cp_model.CpModel, emps_who_wnats_to_switch: EmployeesShiftsSwitch, solver: cp_model.CpSolver, shift_combinations: dict[ShiftCombinationsKey, IntVar], employees: list[Employee], shifts: list[Shift]) -> ScheduleSolutionMetadata | bool:
+
+    constraint_model.Add(shift_combinations[ShiftCombinationsKey(emps_who_wnats_to_switch.emp_to_switch_with_id, emps_who_wnats_to_switch.emp_to_switch_with_wants_shift)] == 1)
+    constraint_model.Add(shift_combinations[ShiftCombinationsKey(emps_who_wnats_to_switch.emp_who_wnats_to_switch_id, emps_who_wnats_to_switch.emp_to_switch_with_has_shift)] == 1)
+
+    status = solver.Solve(constraint_model)
+
+    if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+        return create_a_new_schedule(solver, shift_combinations, employees, shifts)
+
+    return False
