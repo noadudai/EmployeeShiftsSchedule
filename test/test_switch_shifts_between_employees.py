@@ -1,24 +1,15 @@
-import datetime
-
 from ortools.sat.python import cp_model
 
 from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
     add_prevent_overlapping_shifts_for_employees_constraint, \
     add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint, \
-    add_limit_employees_working_days_constraint, \
-    add_minimum_time_between_a_morning_shift_and_the_shift_before_constraint, \
     add_aspire_to_maximize_all_employees_preferences_constraint, \
     add_employees_can_work_only_shifts_that_they_trained_for_constraint, \
     add_an_employees_switch_shifts_after_schedule_created_constraint
 from main import create_a_new_schedule
 from models.employees.employee_preferences.emps_shifts_switch import EmployeesShiftsSwitch
 from models.employees.employees_file import all_employees
-from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shifts_file import all_shifts_in_the_week
-from models.solution.schedule_solutions import ScheduleSolutions
-
-
-# from models.solution.schedule_solutions import ScheduleSolutions
 
 
 def test_2_employees_can_switch_shifts():
