@@ -11,7 +11,7 @@ from models.shifts.shifts_types_enum import ShiftTypesEnum
 from models.solution.one_schedule_solution_metadata import ScheduleSolution
 
 
-class Solutions:
+class ScheduleSolutions:
 
     def __init__(self, solver: cp_model.CpSolver):
         self.solver = solver

@@ -7,7 +7,7 @@ from constraints_file import generate_shift_employee_combinations, add_exactly_o
     add_aspire_to_maximize_all_employees_preferences_constraint
 from models.employees.employee import Employee
 from models.shifts.shift import Shift
-from models.solution.schedule_solutions import Solutions
+from models.solution.schedule_solutions import ScheduleSolutions
 
 
 def create_schedule_options(employees: list[Employee], shifts: list[Shift], number_of_solutions: int) -> list:
@@ -26,7 +26,7 @@ def create_schedule_options(employees: list[Employee], shifts: list[Shift], numb
 
     solver = cp_model.CpSolver()
 
-    my_solution = Solutions(solver)
+    my_solution = ScheduleSolutions(solver)
     print("Creating schedules")
     schedules = my_solution.yield_schedules(number_of_solutions, all_shifts, employees, shifts, constraint_model)
 
