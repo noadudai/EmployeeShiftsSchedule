@@ -15,13 +15,13 @@ from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shift import Shift
 from models.shifts.shifts_file import all_shifts_in_the_week
 from models.shifts.shifts_types_enum import ShiftTypesEnum
-from models.solution.one_schedule_solution import ScheduleSolution
+from models.solution.one_schedule_solution_metadata import ScheduleSolutionMetadata
 from models.solution.schedule_solutions import ScheduleSolutions
 from static_site.create_schedule_tables import schedule_to_json
 from test.schedule_solution_collector import ScheduleSolutionCollector
 
 
-def create_a_new_schedule(solver: cp_model.CpSolver, all_shifts: dict[ShiftCombinationsKey, IntVar], employees: list[Employee], shifts: list[Shift]):
+def create_a_new_schedule(solver: cp_model.CpSolver, all_shifts: dict[ShiftCombinationsKey, IntVar], employees: list[Employee], shifts: list[Shift]) -> ScheduleSolutionMetadata:
     # creating dictionaries for data. how many shifts each employee got, how many morning shifts ect.
     num_closings_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
     num_mornings_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
@@ -43,7 +43,7 @@ def create_a_new_schedule(solver: cp_model.CpSolver, all_shifts: dict[ShiftCombi
                                         ShiftTypesEnum.WEEKEND_MORNING, ShiftTypesEnum.WEEKEND_MORNING_BACKUP]:
                     num_mornings_for_employees[employee.employee_id] += 1
 
-    solution = ScheduleSolution(num_closings_for_employees, num_mornings_for_employees, num_shift_for_employees, schedule)
+    solution = ScheduleSolutionMetadata(num_closings_for_employees, num_mornings_for_employees, num_shift_for_employees, schedule)
 
     return solution
 
