@@ -18,7 +18,7 @@ from models.shifts.shifts_types_enum import ShiftTypesEnum
 from models.solution.one_schedule_solution import ScheduleSolution
 from models.solution.schedule_solutions import ScheduleSolutions
 from static_site.create_schedule_tables import schedule_to_json
-from test.var_array_solution_printer import VarArraySolutionPrinter
+from test.schedule_solution_collector import ScheduleSolutionCollector
 
 
 def create_a_new_schedule(solver: cp_model.CpSolver, all_shifts: dict[ShiftCombinationsKey, IntVar], employees: list[Employee], shifts: list[Shift]):

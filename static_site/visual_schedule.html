@@ -89,11 +89,11 @@
                 });
 
             function genRandomColor() {
-                var hexLetters = '0123456789ABCDEF';
-                var color = '#';
-                for (var i = 0; i < 6; i++) {
-                    color += hexLetters[Math.floor(Math.random() * 16)];
-                }
+                var saturation = "80%";
+                var lightness = "85%";
+                var hue = Math.floor(Math.random() * 358);
+
+                var color = `hsl(${hue}, ${saturation}, ${lightness})`
 
                 return color;
             }
