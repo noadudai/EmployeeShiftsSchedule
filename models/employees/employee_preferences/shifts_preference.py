@@ -9,4 +9,4 @@ class ShiftsPreferences:
 
     @abstractmethod
     def get_shifts_preferences(self, shifts: list[Shift]) -> list[Shift]:
-        pass
+        raise NotImplementedError

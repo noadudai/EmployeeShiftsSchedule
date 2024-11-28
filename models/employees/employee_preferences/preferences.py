@@ -6,7 +6,7 @@ from .shift_preferences_by_id import ShiftPreferencesById
 
 @dataclass
 class Preferences:
-    days_cannot_work: list[DayOffPreference] = field(default_factory=list)
-    days_prefer_not_to_work: list[DayOffPreference] = field(default_factory=list)
+    days_cannot_work: DayOffPreference = field(default_factory=DayOffPreference)
+    days_prefer_not_to_work: DayOffPreference = field(default_factory=DayOffPreference)
     shifts_prefer_by_id: ShiftPreferencesById = field(default_factory=ShiftPreferencesById)
     shifts_cannot_work: ShiftPreferencesById = field(default_factory=ShiftPreferencesById)

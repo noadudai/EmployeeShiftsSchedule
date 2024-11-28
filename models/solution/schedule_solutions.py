@@ -16,52 +16,52 @@ class ScheduleSolutions:
     def __init__(self, solver: cp_model.CpSolver):
         self.solver = solver
 
-    def yield_schedules(self, num_solutions: int, all_shifts: dict[ShiftCombinationsKey, IntVar], employees: list[Employee], shifts: list[Shift], constraint_model: cp_model.CpModel):
-        counter = 0
+    def yield_schedules(self, all_shifts: dict[ShiftCombinationsKey, IntVar], employees: list[Employee], shifts: list[Shift], constraint_model: cp_model.CpModel):
+        status = self.solver.Solve(constraint_model)
 
-        while counter <= (num_solutions - 1):
+        if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
 
-            status = self.solver.Solve(constraint_model)
+            num_closings_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
+            num_mornings_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
+            num_shift_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
 
-            if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-                counter += 1
+            schedule: dict[uuid.uuid4(), uuid.uuid4()] = {}
 
-                num_closings_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
-                num_mornings_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
-                num_shift_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
+            for employee in employees:
+                for shift in shifts:
+                    if self.solver.Value(all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]):
+                        schedule[shift.shift_id] = employee.employee_id
 
-                schedule: dict[uuid.uuid4(), uuid.uuid4()] = {}
+                        num_shift_for_employees[employee.employee_id] += 1
 
-                for employee in employees:
-                    for shift in shifts:
-                        if self.solver.Value(all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]):
-                            schedule[shift.shift_id] = employee.employee_id
+                        if shift.shift_type == ShiftTypesEnum.CLOSING:
+                            num_closings_for_employees[employee.employee_id] += 1
 
-                            num_shift_for_employees[employee.employee_id] += 1
+                        if shift.shift_type in [ShiftTypesEnum.MORNING, ShiftTypesEnum.MORNING_BACKUP,
+                                                ShiftTypesEnum.WEEKEND_MORNING,
+                                                ShiftTypesEnum.WEEKEND_MORNING_BACKUP]:
+                            num_mornings_for_employees[employee.employee_id] += 1
 
-                            if shift.shift_type == ShiftTypesEnum.CLOSING:
-                                num_closings_for_employees[employee.employee_id] += 1
+            solution = ScheduleSolution(num_closings_for_employees, num_mornings_for_employees,
+                                        num_shift_for_employees, schedule)
 
-                            if shift.shift_type in [ShiftTypesEnum.MORNING, ShiftTypesEnum.MORNING_BACKUP,
-                                                    ShiftTypesEnum.WEEKEND_MORNING,
-                                                    ShiftTypesEnum.WEEKEND_MORNING_BACKUP]:
-                                num_mornings_for_employees[employee.employee_id] += 1
+            yield solution
 
-                solution = ScheduleSolution(num_closings_for_employees, num_mornings_for_employees,
-                                            num_shift_for_employees, schedule)
+            # After a schedule was created, forbid the model to assign one of the assignments again
+            # (make a new schedule entirely)
+            all_schedule_assignments = [all_shifts[ShiftCombinationsKey(employee_id, shift_id)] for
+                                        shift_id, employee_id in solution.schedule.items()]
+            all_schedule_un_assignments = []
 
-                yield solution
+            for assignment in all_schedule_assignments:
+                all_schedule_un_assignments.append(constraint_model.NewBoolVar(f"unassign_{assignment}"))
 
-                # After a schedule was created, forbid the model to assign one of the assignments again
-                # (make a new schedule entirely)
-                all_schedule_assignments = [all_shifts[ShiftCombinationsKey(employee_id, shift_id)] for shift_id, employee_id in solution.schedule.items()]
-                all_schedule_un_assignments = []
+            for i in range(len(all_schedule_assignments)):
+                constraint_model.Add(
+                    all_schedule_assignments[i] != self.solver.Value(all_schedule_assignments[i])).OnlyEnforceIf(
+                    all_schedule_un_assignments[i])
+                constraint_model.Add(
+                    all_schedule_assignments[i] == self.solver.Value(all_schedule_assignments[i])).OnlyEnforceIf(
+                    all_schedule_un_assignments[i].Not())
 
-                for assignment in all_schedule_assignments:
-                    all_schedule_un_assignments.append(constraint_model.NewBoolVar(f"unassign_{assignment}"))
-
-                for i in range(len(all_schedule_assignments)):
-                    constraint_model.Add(all_schedule_assignments[i] != self.solver.Value(all_schedule_assignments[i])).OnlyEnforceIf(all_schedule_un_assignments[i])
-                    constraint_model.Add(all_schedule_assignments[i] == self.solver.Value(all_schedule_assignments[i])).OnlyEnforceIf(all_schedule_un_assignments[i].Not())
-
-                constraint_model.AddBoolOr(all_schedule_un_assignments)
+            constraint_model.AddBoolOr(all_schedule_un_assignments)

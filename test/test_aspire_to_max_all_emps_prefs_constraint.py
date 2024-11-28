@@ -24,7 +24,7 @@ def test_an_employee_is_not_working_in_a_day_he_can_not_work():
     shift_duration = datetime.timedelta(minutes=random.random())
     shift_emp_with_day_off_cannot_work = Shift(shift_id="shift_emp_with_day_off_cannot_work", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + shift_duration)
 
-    emp_preferences = Preferences(days_cannot_work=[DayOffPreference(datetime.date.today())])
+    emp_preferences = Preferences(days_cannot_work=DayOffPreference([datetime.date.today()]))
 
     emp_with_day_off = Employee(name="emp_with_day_off", employee_id="emp_with_day_off", preferences=emp_preferences)
     test_employee = Employee(name="test_employee", employee_id="test_employee")
@@ -49,7 +49,7 @@ def test_an_employee_is_not_working_in_a_day_he_prefers_not_to_work():
     shift1 = Shift(shift_id="shift1", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=30))
     shift2 = Shift(shift_id="shift2", shift_type=ShiftTypesEnum.MORNING, start_time=shift1.end_time, end_time=shift1.end_time + datetime.timedelta(minutes=30))
 
-    emp_with_a_day_off_request_preferences = Preferences(days_prefer_not_to_work=[DayOffPreference(datetime.date.today())])
+    emp_with_a_day_off_request_preferences = Preferences(days_prefer_not_to_work=DayOffPreference([datetime.date.today()]))
 
     emp_with_a_day_off_request = Employee(name="emp_with_a_day_off_request", employee_id="emp_with_a_day_off_request", preferences=emp_with_a_day_off_request_preferences)
     emp_with_no_preferences = Employee(name="emp_with_no_preferences", employee_id="emp_with_no_preferences")
@@ -112,8 +112,8 @@ def test_a_high_priority_employee_gets_the_shift_instead_of_a_less_priority_empl
 def test_an_emp_who_prefers_not_to_work_is_working_so_a_different_emp_with_a_day_off_will_not_work():
     shift1 = Shift(shift_id="shift1", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
 
-    emp_with_day_off_preferences = Preferences(days_cannot_work=[DayOffPreference(datetime.datetime.today().date())])
-    emp_wants_day_off_preferences = Preferences(days_prefer_not_to_work=[DayOffPreference(datetime.datetime.today().date())])
+    emp_with_day_off_preferences = Preferences(days_cannot_work=DayOffPreference([datetime.datetime.today().date()]))
+    emp_wants_day_off_preferences = Preferences(days_prefer_not_to_work=DayOffPreference([datetime.datetime.today().date()]))
 
     emp_with_day_off = Employee(name="emp_with_day_off", employee_id="emp_with_day_off", position=EmployeePositionEnum.full_timer, preferences=emp_with_day_off_preferences)
     emp_wants_day_off = Employee(name="emp_wants_day_off", employee_id="test_employee", position=EmployeePositionEnum.full_timer, preferences=emp_wants_day_off_preferences)
@@ -138,8 +138,8 @@ def test_an_emp_who_does_not_have_preferences_is_working_so_other_employees_can_
     shift1 = Shift(shift_id="shift1", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
     shift2 = Shift(shift_id="shift2", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime.now(), end_time=datetime.datetime.now() + datetime.timedelta(minutes=random.random()))
 
-    emp_with_day_off_preferences = Preferences(days_cannot_work=[DayOffPreference(datetime.datetime.today().date())])
-    emp_wants_day_off_preferences = Preferences(days_prefer_not_to_work=[DayOffPreference(datetime.datetime.today().date())])
+    emp_with_day_off_preferences = Preferences(days_cannot_work=DayOffPreference([datetime.datetime.today().date()]))
+    emp_wants_day_off_preferences = Preferences(days_prefer_not_to_work=DayOffPreference([datetime.datetime.today().date()]))
 
     emp_with_day_off = Employee(name="emp_with_day_off", employee_id="emp_with_day_off", preferences=emp_with_day_off_preferences)
     emp_wants_day_off = Employee(name="emp_wants_day_off", employee_id="emp_wants_day_off", preferences=emp_wants_day_off_preferences)

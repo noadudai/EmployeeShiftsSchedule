@@ -17,7 +17,6 @@ from models.shifts.shifts_file import all_shifts_in_the_week
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 from models.solution.create_schedule_options import create_schedule_options
 from models.solution.one_schedule_solution_metadata import ScheduleSolution
-# from models.solution.schedule_solutions import ScheduleSolutions
 from static_site.create_schedule_tables import schedule_to_json
 from test.schedule_solution_collector import ScheduleSolutionCollector
 
