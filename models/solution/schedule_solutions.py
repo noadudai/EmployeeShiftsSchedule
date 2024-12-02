@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from models.solution.one_schedule_solution import ScheduleSolution
+from models.solution.one_schedule_solution_metadata import ScheduleSolutionMetadata
 
 
 @dataclass
 class ScheduleSolutions:
-    solutions: list[ScheduleSolution]
+    solutions: list[ScheduleSolutionMetadata]
