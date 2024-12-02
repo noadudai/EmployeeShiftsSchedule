@@ -2,7 +2,7 @@ import datetime
 
 from models.employees.employee import Employee
 from models.employees.employee_position_enum import EmployeePositionEnum
-from models.employees.employee_preferences.day_preference import DayOffPreference
+from models.employees.employee_preferences.days_preference import DaysRangePreference, DaysPreference
 from models.employees.employee_preferences.preferences import Preferences
 from models.employees.employee_preferences.shift_preferences_by_id import ShiftPreferencesById
 from models.employees.employee_preferences.shifts_preference import ShiftsPreferences
@@ -13,18 +13,21 @@ from models.shifts.shifts_types_enum import ShiftTypesEnum
 employee1s_preferences = Preferences(shifts_prefer_by_id=ShiftPreferencesById(["sunday_morning", "sunday_sb", "monday_morning", "tuesday_sb", "wednesday_morning_backup",
                                                                                "thursday_evening","friday_weekend_morning", "friday_evening", "saturday_weekend_morning", "saturday_evening"]))
 
-employee2s_preferences = Preferences(days_cannot_work=DayOffPreference([datetime.date(2024, 4, 28), datetime.date(2024, 5, 3)]))
-
-employee3s_preferences = Preferences(days_cannot_work=DayOffPreference([datetime.date(2024, 4, 28)]),
+employee2s_preferences = Preferences(days_cannot_work=DaysPreference([DaysRangePreference(datetime.datetime(2024, 4, 28, 6), datetime.datetime(2024, 4, 28, 23, 59)),
+                                                                      DaysRangePreference(datetime.datetime(2024, 5, 3, 6), datetime.datetime(2024, 5, 3, 23, 59))]))
+"""
+DaysPreference([datetime.date(2024, 4, 28), datetime.date(2024, 5, 3)])
+"""
+employee3s_preferences = Preferences(days_cannot_work=DaysPreference([DaysRangePreference(datetime.datetime(2024, 4, 28, 6), datetime.datetime(2024, 4, 28, 23, 59))]),
                                      shifts_prefer_by_id=ShiftPreferencesById(["thursday_morning", "thursday_morning_backup", "friday_evening", "friday_weekend_evening_backup", "friday_closing"]))
 
-employee4s_preferences = Preferences(days_cannot_work=DayOffPreference([datetime.date(2024, 5, 2), datetime.date(2024, 5, 3), datetime.date(2024, 5, 4)]))
+employee4s_preferences = Preferences(days_cannot_work=DaysPreference([DaysRangePreference(datetime.datetime(2024, 5, 2, 00), datetime.datetime(2024, 5, 4, 23, 59))]))
 
-employee5s_preferences = Preferences(days_cannot_work=DayOffPreference([datetime.date(2024, 5, 1)]),
+employee5s_preferences = Preferences(days_cannot_work=DaysPreference([DaysRangePreference(datetime.datetime(2024, 5, 1, 6), datetime.datetime(2024, 5, 2, 23, 59))]),
                                      shifts_prefer_by_id=ShiftPreferencesById(["thursday_evening", "thursday_backup", "thursday_closing",  "saturday_weekend_morning", "saturday_weekend_morning_backup"]))
 
-employee6s_preferences = Preferences(days_prefer_not_to_work=DayOffPreference([datetime.date(2024, 4, 30)]),
-                                  days_cannot_work=DayOffPreference([datetime.date(2024, 4, 28), datetime.date(2024, 4, 29)]))
+employee6s_preferences = Preferences(days_prefer_not_to_work=DaysPreference([DaysRangePreference(datetime.datetime(2024, 4, 30, 6), datetime.datetime(2024, 4, 30, 23, 59))]),
+                                     days_cannot_work=DaysPreference([DaysRangePreference(datetime.datetime(2024, 4, 28, 00), datetime.datetime(2024, 4, 29, 23, 59))]))
 
 employee1s_trained_shifts = [ShiftTypesEnum.EVENING, ShiftTypesEnum.MORNING, ShiftTypesEnum.MORNING_BACKUP, ShiftTypesEnum.STAND_BY]
 employee2s_trained_shifts = [ShiftTypesEnum.EVENING, ShiftTypesEnum.CLOSING, ShiftTypesEnum.THURSDAY_BACKUP, ShiftTypesEnum.WEEKEND_EVENING_BACKUP, ShiftTypesEnum.STAND_BY]
