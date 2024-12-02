@@ -159,4 +159,18 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/*
 
-static_site/schedule_data.json
+static_site/schedules_info.json
+/front/employees_schedule_gen/.next/
+/front/employees_schedule_gen/node_modules/
+
+# unimportant files
+front/learn-next-js/next.config.mjs
+front/learn-next-js/package-lock.json
+front/learn-next-js/package.json
+front/learn-next-js/postcss.config.mjs
+front/learn-next-js/README.md
+front/learn-next-js/.eslintrc.json
+front/learn-next-js/src/app/*.ico
+front/learn-next-js/src/app/*.css
+/models/employees/pe_employees_file.py
+/models/shifts/pe_shifts_file.py
