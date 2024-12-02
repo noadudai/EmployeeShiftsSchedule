@@ -1,6 +1,5 @@
 import datetime
 import itertools
-import math
 import uuid
 from typing import Tuple
 from uuid import UUID
@@ -289,13 +288,3 @@ def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: 
         for shift in shifts_cannot_work:
             key = ShiftCombinationsKey(emp.employee_id, shift.shift_id)
             constraint_model.Add(shift_combinations[key] == 0)
-
-
-def add_minimize_given_closing_shifts_for_employees_constraint(employees: list[Employee], shifts: list[Shift], constraint_model: cp_model.CpModel, shift_combinations: dict[ShiftCombinationsKey, IntVar]):
-    num_sb_shifts_for_each_emp = math.ceil(len(shifts)/len(employees))
-    for employee in employees:
-        emp_sb_shifts = [shift for shift in shifts if shift.shift_type == ShiftTypesEnum.CLOSING]
-
-        sb_shifts_assignment = [shift_combinations[ShiftCombinationsKey(employee.employee_id, sb_shift.shift_id)] for sb_shift in emp_sb_shifts]
-
-        constraint_model.Add(sum(sb_shifts_assignment) <= num_sb_shifts_for_each_emp)
