@@ -7,7 +7,7 @@ from constraints_file import generate_shift_employee_combinations, add_exactly_o
     add_employees_can_work_only_shifts_that_they_trained_for_constraint, \
     add_an_employees_switch_shifts_after_schedule_created_constraint
 from main import create_a_new_schedule
-from models.employees.employee_preferences.emps_shifts_switch import EmployeesShiftsSwitch
+from models.employees.employee_preferences.emps_shifts_switch import EmployeesShiftSwitchData
 from models.employees.employees_file import all_employees
 from models.shifts.shifts_file import all_shifts_in_the_week
 
@@ -27,7 +27,6 @@ def test_2_employees_can_switch_shifts():
 
     solver = cp_model.CpSolver()
 
-    print("Creating schedules")
     status = solver.Solve(constraint_model)
     assert (status == cp_model.OPTIMAL)
 
@@ -36,8 +35,7 @@ def test_2_employees_can_switch_shifts():
     assert (solution.schedule["monday_evening"] == "employee5")
     assert (solution.schedule["monday_closing"] == "employee4")
 
-    # taken hard coded from the schedule output when solved.
-    emps_who_wants_to_switch = EmployeesShiftsSwitch(emp_who_wnats_to_switch_id="employee5", emp_who_wnats_to_switch_has_shift="monday_evening", emp_who_wnats_to_switch_wants_shift="monday_closing", emp_to_switch_with_id="employee4", emp_to_switch_with_has_shift="monday_closing", emp_to_switch_with_wants_shift="monday_evening")
+    emps_who_wants_to_switch = EmployeesShiftSwitchData(emp_1_id="employee5", emp_1_has_shift="monday_evening", emp_2_id="employee4", emp_2_has_shift="monday_closing")
 
     result = add_an_employees_switch_shifts_after_schedule_created_constraint(constraint_model, emps_who_wants_to_switch, solver, all_shifts, employees, shifts)
 
@@ -46,7 +44,6 @@ def test_2_employees_can_switch_shifts():
     assert (result.schedule["monday_evening"] == "employee4")
     assert (result.schedule["monday_closing"] == "employee5")
 
-    print("done")
 
 
 def test_2_employees_cannot_switch_shifts_because_one_of_the_employees_is_not_trained_to_do_the_switched_shift():
@@ -66,7 +63,6 @@ def test_2_employees_cannot_switch_shifts_because_one_of_the_employees_is_not_tr
 
     solver = cp_model.CpSolver()
 
-    print("Creating schedules")
     status = solver.Solve(constraint_model)
     assert (status == cp_model.OPTIMAL)
 
@@ -75,19 +71,16 @@ def test_2_employees_cannot_switch_shifts_because_one_of_the_employees_is_not_tr
     # should be in the schedule, since employee1 is the highest employee and wants to work the evening
     # taken hard coded from the schedule output when solved.
     if solution.schedule["thursday_evening"] == "employee1" and solution.schedule["thursday_backup"] == "employee3":
-        emps_who_wants_to_switch = EmployeesShiftsSwitch(emp_who_wnats_to_switch_id="employee3",
-                                                         emp_who_wnats_to_switch_has_shift="thursday_backup",
-                                                         emp_who_wnats_to_switch_wants_shift="thursday_evening",
-                                                         emp_to_switch_with_id="employee1",
-                                                         emp_to_switch_with_has_shift="thursday_evening",
-                                                         emp_to_switch_with_wants_shift="thursday_backup")
+        emps_who_wants_to_switch = EmployeesShiftSwitchData(emp_1_id="employee3",
+                                                            emp_1_has_shift="thursday_backup",
+                                                            emp_2_id="employee1",
+                                                            emp_2_has_shift="thursday_evening")
 
     result = add_an_employees_switch_shifts_after_schedule_created_constraint(constraint_model,
                                                                               emps_who_wants_to_switch, solver,
                                                                               all_shifts, employees, shifts)
 
     assert (result == False)
-    print("done")
 
 
 def test_2_employees_switch_shifts_even_when_its_a_shift_the_employee_wanted():
@@ -107,7 +100,6 @@ def test_2_employees_switch_shifts_even_when_its_a_shift_the_employee_wanted():
 
     solver = cp_model.CpSolver()
 
-    print("Creating schedules")
     status = solver.Solve(constraint_model)
     assert (status == cp_model.OPTIMAL)
 
@@ -116,12 +108,10 @@ def test_2_employees_switch_shifts_even_when_its_a_shift_the_employee_wanted():
     # employee5 wanted to work evening/backup/closing on thursday, received a closing shift. employee3 wants to close instead
     # taken hard coded from the schedule output when solved.
     if solution.schedule["thursday_closing"] == "employee5" and solution.schedule["thursday_backup"] == "employee3":
-        emps_who_wants_to_switch = EmployeesShiftsSwitch(emp_who_wnats_to_switch_id="employee5",
-                                                         emp_who_wnats_to_switch_has_shift="thursday_closing",
-                                                         emp_who_wnats_to_switch_wants_shift="thursday_backup",
-                                                         emp_to_switch_with_id="employee3",
-                                                         emp_to_switch_with_has_shift="thursday_backup",
-                                                         emp_to_switch_with_wants_shift="thursday_closing")
+        emps_who_wants_to_switch = EmployeesShiftSwitchData(emp_1_id="employee5",
+                                                            emp_1_has_shift="thursday_closing",
+                                                            emp_2_id="employee3",
+                                                            emp_2_has_shift="thursday_backup")
 
     result = add_an_employees_switch_shifts_after_schedule_created_constraint(constraint_model,
                                                                               emps_who_wants_to_switch, solver,
@@ -129,4 +119,3 @@ def test_2_employees_switch_shifts_even_when_its_a_shift_the_employee_wanted():
 
     assert (result.schedule["thursday_closing"] == "employee3")
     assert (result.schedule["thursday_backup"] == "employee5")
-    print("done")

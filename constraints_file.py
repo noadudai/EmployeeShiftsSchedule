@@ -9,7 +9,7 @@ from ortools.sat.python.cp_model import IntVar
 
 from main import create_a_new_schedule
 from models.employees.employee import Employee
-from models.employees.employee_preferences.emps_shifts_switch import EmployeesShiftsSwitch
+from models.employees.employee_preferences.emps_shifts_switch import EmployeesShiftSwitchData
 from models.employees.employee_status_enum import EmployeeStatusEnum
 from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shift import Shift
@@ -294,10 +294,10 @@ def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: 
             constraint_model.Add(shift_combinations[key] == 0)
 
 
-def add_an_employees_switch_shifts_after_schedule_created_constraint(constraint_model: cp_model.CpModel, emps_who_wnats_to_switch: EmployeesShiftsSwitch, solver: cp_model.CpSolver, shift_combinations: dict[ShiftCombinationsKey, IntVar], employees: list[Employee], shifts: list[Shift]) -> ScheduleSolutionMetadata | bool:
+def add_an_employees_switch_shifts_after_schedule_created_constraint(constraint_model: cp_model.CpModel, emps_switching: EmployeesShiftSwitchData, solver: cp_model.CpSolver, shift_combinations: dict[ShiftCombinationsKey, IntVar], employees: list[Employee], shifts: list[Shift]) -> ScheduleSolutionMetadata | bool:
 
-    constraint_model.Add(shift_combinations[ShiftCombinationsKey(emps_who_wnats_to_switch.emp_to_switch_with_id, emps_who_wnats_to_switch.emp_to_switch_with_wants_shift)] == 1)
-    constraint_model.Add(shift_combinations[ShiftCombinationsKey(emps_who_wnats_to_switch.emp_who_wnats_to_switch_id, emps_who_wnats_to_switch.emp_to_switch_with_has_shift)] == 1)
+    constraint_model.Add(shift_combinations[ShiftCombinationsKey(emps_switching.emp_2_id, emps_switching.emp_1_has_shift)] == 1)
+    constraint_model.Add(shift_combinations[ShiftCombinationsKey(emps_switching.emp_1_id, emps_switching.emp_2_has_shift)] == 1)
 
     status = solver.Solve(constraint_model)
 
