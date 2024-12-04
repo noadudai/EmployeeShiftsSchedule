@@ -45,8 +45,6 @@ class ScheduleSolutions:
             solution = ScheduleSolution(num_closings_for_employees, num_mornings_for_employees,
                                         num_shift_for_employees, schedule)
 
-            yield solution
-
             # After a schedule was created, forbid the model to assign one of the assignments again
             # (make a new schedule entirely)
             all_schedule_assignments = [all_shifts[ShiftCombinationsKey(employee_id, shift_id)] for
@@ -65,3 +63,5 @@ class ScheduleSolutions:
                     all_schedule_un_assignments[i].Not())
 
             constraint_model.AddBoolOr(all_schedule_un_assignments)
+
+            yield solution
