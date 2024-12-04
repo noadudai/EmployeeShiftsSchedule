@@ -10,7 +10,7 @@ from models.shifts.shift import Shift
 from models.solution.schedule_solutions import ScheduleSolutions
 
 
-def create_solution_object(employees: list[Employee], shifts: list[Shift]) -> ScheduleSolutions:
+def create_solutions(employees: list[Employee], shifts: list[Shift]) -> ScheduleSolutions:
 
     constraint_model = cp_model.CpModel()
 

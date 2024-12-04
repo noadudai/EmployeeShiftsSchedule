@@ -1,25 +1,13 @@
-import datetime
 import json
-import uuid
-from collections import defaultdict
-from uuid import uuid4
-from ortools.sat.python import cp_model
-
 
 from constraints_file import *
 from models.employees.employee import Employee
-from models.employees.employee_priority_enum import EmployeePriorityEnum
-from models.employees.employee_status_enum import EmployeeStatusEnum
 from models.employees.employees_file import all_employees
-from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shift import Shift
 from models.shifts.shifts_file import all_shifts_in_the_week
-from models.shifts.shifts_types_enum import ShiftTypesEnum
-from models.solution.create_solution_object import create_solution_object
-from models.solution.one_schedule_solution_metadata import ScheduleSolution
+from models.solution.create_solutions import create_solutions
 from models.solution.schedule_solutions import ScheduleSolutions
 from static_site.create_schedule_tables import schedule_to_json
-from test.schedule_solution_collector import ScheduleSolutionCollector
 
 
 def create_shift_dictionary_for_html(shifts: list[Shift]) -> dict[str, dict]:
@@ -46,12 +34,12 @@ if __name__ == "__main__":
     emp_dict = create_employee_dictionary_for_html(employees)
 
     try:
-        schedule_solution: ScheduleSolutions = create_solution_object(employees, shifts)
+        schedule_solution: ScheduleSolutions = create_solutions(employees, shifts)
         json_schedule_options = []
 
         schedules_options = []
-        for i in range(5):
-            schedules_options.append(next(schedule_solution.yield_schedules()))
+        for i in itertools.islice(schedule_solution.yield_schedules(), 5):
+            schedules_options.append(i)
 
         for solution in schedules_options:
             json_schedule_options.append(schedule_to_json(solution.schedule, shifts, employees))
