@@ -23,28 +23,10 @@ def create_schedule_options(employees: list[Employee], shifts: list[Shift], numb
 
     solver = cp_model.CpSolver()
 
-    my_solution = ScheduleSolutions(solver)
+    my_solution = ScheduleSolutions(solver, all_shifts, employees, shifts, constraint_model)
 
     schedules_options = []
-    print("Creating schedules")
     for i in range(5):
-        schedules_options.append(next(my_solution.yield_schedules(all_shifts, employees, shifts, constraint_model)))
+        schedules_options.append(next(my_solution.yield_schedules()))
 
-    print("Done")
     return schedules_options
-
-
-def create_shift_dictionary_for_html(shifts: list[Shift]) -> dict[str, dict]:
-    shift_dict: dict[str, dict] = {}
-
-    for shift in shifts:
-        shift_dict[str(shift.shift_id)] = {"shift_id": str(shift.shift_id), "shift_type": shift.shift_type.value, "shift_start_time": str(shift.start_time), "shift_end_time": str(shift.end_time)}
-    return shift_dict
-
-
-def create_employee_dictionary_for_html(employees: list[Employee]) -> dict[str, dict]:
-    emp_dict: dict[str, dict] = {}
-
-    for emp in employees:
-        emp_dict[str(emp.employee_id)] = {"employee_name": emp.name, "employee_priority": emp.priority.value, "employee_status": emp.employee_status.value, "employee_id": emp.employee_id, "employee_position": emp.position.value}
-    return emp_dict

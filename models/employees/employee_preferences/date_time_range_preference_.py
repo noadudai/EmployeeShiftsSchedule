@@ -1,16 +1,16 @@
 import datetime
 from dataclasses import dataclass
 
-from models.employees.employee_preferences.shifts_preferences import ShiftsPreferences
+from models.employees.employee_preferences.shifts_preference import ShiftsPreference
 from models.shifts.shift import Shift
 
 
 @dataclass
-class DateTimeRangePreference(ShiftsPreferences):
+class DateTimeRangePreference(ShiftsPreference):
     range_start: datetime.datetime
     range_end: datetime.datetime
 
-    def get_shifts_preferences(self, shifts: list[Shift]) -> list[Shift]:
+    def get_shifts_preference(self, shifts: list[Shift]) -> list[Shift]:
         shifts_inside_range_day_preference = []
 
         for shift in shifts:

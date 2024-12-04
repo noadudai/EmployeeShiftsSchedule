@@ -5,8 +5,8 @@ from dataclasses import dataclass, field
 from models.shifts.shift import Shift
 
 
-class ShiftsPreferences:
+class ShiftsPreference:
 
     @abstractmethod
-    def get_shifts_preferences(self, shifts: list[Shift]) -> list[Shift]:
+    def get_shifts_preference(self, shifts: list[Shift]) -> list[Shift]:
         raise NotImplementedError

@@ -1,17 +1,17 @@
 from dataclasses import dataclass, field
 
-from models.employees.employee_preferences.shifts_preferences import ShiftsPreferences
+from models.employees.employee_preferences.shifts_preference import ShiftsPreference
 from models.shifts.shift import Shift
 
 
 @dataclass
-class CombinePreferences(ShiftsPreferences):
-    preferences: list[ShiftsPreferences] = field(default_factory=list)
+class CombinePreference(ShiftsPreference):
+    preferences: list[ShiftsPreference] = field(default_factory=list)
 
-    def get_shifts_preferences(self, shifts: list[Shift]) -> list[Shift]:
+    def get_shifts_preference(self, shifts: list[Shift]) -> list[Shift]:
         all_shifts_in_preferences = []
 
         for preference in self.preferences:
-            all_shifts_in_preferences.extend(preference.get_shifts_preferences(shifts))
+            all_shifts_in_preferences.extend(preference.get_shifts_preference(shifts))
 
         return all_shifts_in_preferences

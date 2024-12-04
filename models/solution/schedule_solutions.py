@@ -13,11 +13,15 @@ from models.solution.one_schedule_solution_metadata import ScheduleSolution
 
 class ScheduleSolutions:
 
-    def __init__(self, solver: cp_model.CpSolver):
+    def __init__(self, solver: cp_model.CpSolver, all_shifts: dict[ShiftCombinationsKey, IntVar], employees: list[Employee], shifts: list[Shift], constraint_model: cp_model.CpModel):
         self.solver = solver
+        self.all_shifts = all_shifts
+        self.employees = employees
+        self.shifts = shifts
+        self.constraint_model = constraint_model
 
-    def yield_schedules(self, all_shifts: dict[ShiftCombinationsKey, IntVar], employees: list[Employee], shifts: list[Shift], constraint_model: cp_model.CpModel):
-        status = self.solver.Solve(constraint_model)
+    def yield_schedules(self):
+        status = self.solver.Solve(self.constraint_model)
 
         if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
 
@@ -27,9 +31,9 @@ class ScheduleSolutions:
 
             schedule: dict[uuid.uuid4(), uuid.uuid4()] = {}
 
-            for employee in employees:
-                for shift in shifts:
-                    if self.solver.Value(all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]):
+            for employee in self.employees:
+                for shift in self.shifts:
+                    if self.solver.Value(self.all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]):
                         schedule[shift.shift_id] = employee.employee_id
 
                         num_shift_for_employees[employee.employee_id] += 1
@@ -47,21 +51,21 @@ class ScheduleSolutions:
 
             # After a schedule was created, forbid the model to assign one of the assignments again
             # (make a new schedule entirely)
-            all_schedule_assignments = [all_shifts[ShiftCombinationsKey(employee_id, shift_id)] for
+            all_schedule_assignments = [self.all_shifts[ShiftCombinationsKey(employee_id, shift_id)] for
                                         shift_id, employee_id in solution.schedule.items()]
             all_schedule_un_assignments = []
 
             for assignment in all_schedule_assignments:
-                all_schedule_un_assignments.append(constraint_model.NewBoolVar(f"unassign_{assignment}"))
+                all_schedule_un_assignments.append(self.constraint_model.NewBoolVar(f"unassign_{assignment}"))
 
             for i in range(len(all_schedule_assignments)):
-                constraint_model.Add(
+                self.constraint_model.Add(
                     all_schedule_assignments[i] != self.solver.Value(all_schedule_assignments[i])).OnlyEnforceIf(
                     all_schedule_un_assignments[i])
-                constraint_model.Add(
+                self.constraint_model.Add(
                     all_schedule_assignments[i] == self.solver.Value(all_schedule_assignments[i])).OnlyEnforceIf(
                     all_schedule_un_assignments[i].Not())
 
-            constraint_model.AddBoolOr(all_schedule_un_assignments)
+            self.constraint_model.AddBoolOr(all_schedule_un_assignments)
 
             yield solution
