@@ -10,7 +10,7 @@ from models.shifts.shift import Shift
 from models.solution.schedule_solutions import ScheduleSolutions
 
 
-def create_schedule_options(employees: list[Employee], shifts: list[Shift], number_of_solutions: int) -> list:
+def create_solution_object(employees: list[Employee], shifts: list[Shift]) -> ScheduleSolutions:
 
     constraint_model = cp_model.CpModel()
 
@@ -25,8 +25,4 @@ def create_schedule_options(employees: list[Employee], shifts: list[Shift], numb
 
     my_solution = ScheduleSolutions(solver, all_shifts, employees, shifts, constraint_model)
 
-    schedules_options = []
-    for i in range(5):
-        schedules_options.append(next(my_solution.yield_schedules()))
-
-    return schedules_options
+    return my_solution

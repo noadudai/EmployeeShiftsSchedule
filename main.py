@@ -15,8 +15,9 @@ from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shift import Shift
 from models.shifts.shifts_file import all_shifts_in_the_week
 from models.shifts.shifts_types_enum import ShiftTypesEnum
-from models.solution.create_schedule_options import create_schedule_options
+from models.solution.create_solution_object import create_solution_object
 from models.solution.one_schedule_solution_metadata import ScheduleSolution
+from models.solution.schedule_solutions import ScheduleSolutions
 from static_site.create_schedule_tables import schedule_to_json
 from test.schedule_solution_collector import ScheduleSolutionCollector
 
@@ -45,13 +46,17 @@ if __name__ == "__main__":
     emp_dict = create_employee_dictionary_for_html(employees)
 
     try:
-        schedules = create_schedule_options(employees, shifts, number_of_solutions)
-        list_of_schedule_options = []
+        schedule_solution: ScheduleSolutions = create_solution_object(employees, shifts)
+        json_schedule_options = []
 
-        for solution in schedules:
-            list_of_schedule_options.append(schedule_to_json(solution.schedule, shifts, employees))
+        schedules_options = []
+        for i in range(5):
+            schedules_options.append(next(schedule_solution.yield_schedules()))
 
-        json_data = {"schedules": list_of_schedule_options, "employees": emp_dict, "shifts": shift_dict}
+        for solution in schedules_options:
+            json_schedule_options.append(schedule_to_json(solution.schedule, shifts, employees))
+
+        json_data = {"schedules": json_schedule_options, "employees": emp_dict, "shifts": shift_dict}
         with open("static_site/schedule_data.json", "w") as json_data_file:
             json.dump(json_data, json_data_file)
 
