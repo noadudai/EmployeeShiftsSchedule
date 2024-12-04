@@ -15,8 +15,7 @@ from models.shifts.shift import Shift
 from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shifts_file import all_shifts_in_the_week
 from models.shifts.shifts_types_enum import ShiftTypesEnum
-from models.solution.one_schedule_solution import ScheduleSolution
-from models.solution.schedule_solutions import ScheduleSolutions
+from models.solution.one_schedule_solution_metadata import ScheduleSolution
 
 
 def schedule_to_json(schedule: dict[uuid.uuid4, uuid.uuid4], shifts: list[Shift], employees: list[Employee]) -> dict:

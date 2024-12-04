@@ -1,5 +1,6 @@
 import datetime
 import itertools
+import math
 import uuid
 from typing import Tuple
 from uuid import UUID
@@ -259,23 +260,17 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
 
     for employee in employees:
 
-        employee_pref_shifts_by_id = employee.preferences.shifts_prefer_by_id.shift_prefs_by_id
-        emp_shift_pref_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift_id)] for shift_id in employee_pref_shifts_by_id]
+        employee_pref_shifts_by_id = employee.shifts_preferences.shifts_wants_to_work.get_shifts_preference(shifts)
+        emp_shift_pref_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in employee_pref_shifts_by_id]
         emps_shifts_prefs.append(sum(emp_shift_pref_assignments) * employee.priority.value)
 
-        employee_shifts_cannot_work_by_id = employee.preferences.shifts_cannot_work.shift_prefs_by_id
-        employee_shifts_cannot_work_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift_id)] for shift_id in employee_shifts_cannot_work_by_id]
+        employee_shifts_cannot_work_by_id = employee.shifts_preferences.shifts_cannot_work.get_shifts_preference(shifts)
+        employee_shifts_cannot_work_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in employee_shifts_cannot_work_by_id]
         constraint_model.Add(sum(employee_shifts_cannot_work_assignments) == 0)
 
-        for day_cannot_work in employee.preferences.days_cannot_work:
-            shifts_in_day_cannot_work = [shift for shift in shifts if shift.start_time.date() == day_cannot_work.day_date]
-            employee_shifts_in_day_cannot_work_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_in_day_cannot_work]
-            constraint_model.Add(sum(employee_shifts_in_day_cannot_work_assignments) == 0)
-
-        for day_prefer_not_to_work in employee.preferences.days_prefer_not_to_work:
-            shifts_in_day_prefer_not_to_work = [shift for shift in shifts if shift.start_time.date() == day_prefer_not_to_work.day_date]
-            employee_shifts_in_day_prefer_not_to_work_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in shifts_in_day_prefer_not_to_work]
-            emps_days_pref_not_to_work.append(sum(employee_shifts_in_day_prefer_not_to_work_assignments) * (1 / employee.priority.value))
+        employee_shifts_in_days_prefer_not_to_work = employee.shifts_preferences.shifts_prefer_not_to_work.get_shifts_preference(shifts)
+        employee_shifts_in_days_prefer_not_to_work_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in employee_shifts_in_days_prefer_not_to_work]
+        emps_days_pref_not_to_work.append(sum(employee_shifts_in_days_prefer_not_to_work_assignments) * (math.ceil(1 / employee.priority.value)))
 
     constraint_model.Minimize(sum(emps_days_pref_not_to_work))
     constraint_model.Maximize(sum(emps_shifts_prefs))
