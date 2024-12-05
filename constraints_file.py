@@ -2,6 +2,7 @@ import datetime
 import itertools
 import math
 import uuid
+from collections import defaultdict
 from typing import Tuple
 from uuid import UUID
 
@@ -289,12 +290,35 @@ def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: 
             constraint_model.Add(shift_combinations[key] == 0)
 
 
-def add_an_employees_switch_shifts_after_schedule_created_constraint(schedule_solution: ScheduleSolutions, emps_switching: EmployeesShiftSwitchRequest) -> ScheduleSolutionMetadata | bool:
-    schedule_solution.constraint_model.Add(schedule_solution.all_shifts[ShiftCombinationsKey(emps_switching.emp_2_id, emps_switching.emp_1_has_shift)] == 1)
-    schedule_solution.constraint_model.Add(schedule_solution.all_shifts[ShiftCombinationsKey(emps_switching.emp_1_id, emps_switching.emp_2_has_shift)] == 1)
+def add_an_employees_switch_shifts_after_schedule_created_constraint(emps_switching: EmployeesShiftSwitchRequest, constraint_model: cp_model.CpModel, all_shifts: dict[ShiftCombinationsKey, IntVar], solver, employees: list[Employee], shifts: list[Shift]) -> ScheduleSolutionMetadata | bool:
+    constraint_model.Add(all_shifts[ShiftCombinationsKey(emps_switching.emp_2_id, emps_switching.emp_1_has_shift)] == 1)
+    constraint_model.Add(all_shifts[ShiftCombinationsKey(emps_switching.emp_1_id, emps_switching.emp_2_has_shift)] == 1)
 
-    status = schedule_solution.solver.Solve(schedule_solution.constraint_model)
+    status = solver.Solve(constraint_model)
 
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-        return next(itertools.islice(schedule_solution.yield_schedules(), 1))
+
+        num_closings_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
+        num_mornings_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
+        num_shift_for_employees: defaultdict[uuid.UUID, int] = defaultdict(int)
+
+        schedule: dict[uuid.uuid4(), uuid.uuid4()] = {}
+
+        for employee in employees:
+            for shift in shifts:
+                if solver.Value(all_shifts[ShiftCombinationsKey(employee.employee_id, shift.shift_id)]):
+                    schedule[shift.shift_id] = employee.employee_id
+
+                    num_shift_for_employees[employee.employee_id] += 1
+
+                    if shift.shift_type == ShiftTypesEnum.CLOSING:
+                        num_closings_for_employees[employee.employee_id] += 1
+
+                    if shift.shift_type in [ShiftTypesEnum.MORNING, ShiftTypesEnum.MORNING_BACKUP,
+                                            ShiftTypesEnum.WEEKEND_MORNING,
+                                            ShiftTypesEnum.WEEKEND_MORNING_BACKUP]:
+                        num_mornings_for_employees[employee.employee_id] += 1
+
+        return (ScheduleSolutionMetadata(num_closings_for_employees, num_mornings_for_employees,
+                                            num_shift_for_employees, schedule))
     return False
