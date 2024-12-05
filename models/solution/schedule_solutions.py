@@ -8,7 +8,7 @@ from models.employees.employee import Employee
 from models.shifts.shift import Shift
 from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shifts_types_enum import ShiftTypesEnum
-from models.solution.one_schedule_solution_metadata import ScheduleSolution
+from models.solution.one_schedule_solution_metadata import ScheduleSolutionMetadata
 
 
 class ScheduleSolutions:
@@ -46,7 +46,7 @@ class ScheduleSolutions:
                                                     ShiftTypesEnum.WEEKEND_MORNING_BACKUP]:
                                 num_mornings_for_employees[employee.employee_id] += 1
 
-                solution = ScheduleSolution(num_closings_for_employees, num_mornings_for_employees,
+                solution = ScheduleSolutionMetadata(num_closings_for_employees, num_mornings_for_employees,
                                             num_shift_for_employees, schedule)
 
                 # After a schedule was created, forbid the model to assign one of the assignments again
