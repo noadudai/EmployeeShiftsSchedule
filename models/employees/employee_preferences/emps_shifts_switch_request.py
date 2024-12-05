@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class EmployeesShiftSwitchData:
+class EmployeesShiftSwitchRequest:
     emp_1_id: uuid
     emp_1_has_shift: uuid
     emp_2_id: uuid

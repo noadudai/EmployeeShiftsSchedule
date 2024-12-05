@@ -8,14 +8,14 @@ from uuid import UUID
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 
-from main import create_a_new_schedule
 from models.employees.employee import Employee
-from models.employees.employee_preferences.emps_shifts_switch import EmployeesShiftSwitchData
+from models.employees.employee_preferences.emps_shifts_switch_request import EmployeesShiftSwitchRequest
 from models.employees.employee_status_enum import EmployeeStatusEnum
 from models.shifts.shift_combinations_key import ShiftCombinationsKey
 from models.shifts.shift import Shift
 from models.shifts.shifts_types_enum import ShiftTypesEnum
 from models.solution.one_schedule_solution_metadata import ScheduleSolutionMetadata
+from models.solution.schedule_solutions import ScheduleSolutions
 
 
 # Returns a dictionary that contains all the combinations of shifts and employees as: FrozenShiftCombinationsKey
@@ -289,14 +289,12 @@ def add_employees_can_work_only_shifts_that_they_trained_for_constraint(shifts: 
             constraint_model.Add(shift_combinations[key] == 0)
 
 
-def add_an_employees_switch_shifts_after_schedule_created_constraint(constraint_model: cp_model.CpModel, emps_switching: EmployeesShiftSwitchData, solver: cp_model.CpSolver, shift_combinations: dict[ShiftCombinationsKey, IntVar], employees: list[Employee], shifts: list[Shift]) -> ScheduleSolutionMetadata | bool:
+def add_an_employees_switch_shifts_after_schedule_created_constraint(schedule_solution: ScheduleSolutions, emps_switching: EmployeesShiftSwitchRequest) -> ScheduleSolutionMetadata | bool:
+    schedule_solution.constraint_model.Add(schedule_solution.all_shifts[ShiftCombinationsKey(emps_switching.emp_2_id, emps_switching.emp_1_has_shift)] == 1)
+    schedule_solution.constraint_model.Add(schedule_solution.all_shifts[ShiftCombinationsKey(emps_switching.emp_1_id, emps_switching.emp_2_has_shift)] == 1)
 
-    constraint_model.Add(shift_combinations[ShiftCombinationsKey(emps_switching.emp_2_id, emps_switching.emp_1_has_shift)] == 1)
-    constraint_model.Add(shift_combinations[ShiftCombinationsKey(emps_switching.emp_1_id, emps_switching.emp_2_has_shift)] == 1)
-
-    status = solver.Solve(constraint_model)
+    status = schedule_solution.solver.Solve(schedule_solution.constraint_model)
 
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-        return create_a_new_schedule(solver, shift_combinations, employees, shifts)
-
+        return next(itertools.islice(schedule_solution.yield_schedules(), 1))
     return False
