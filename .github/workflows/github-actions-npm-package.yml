@@ -39,7 +39,7 @@ jobs:
 
       - name: Build and publish npm package
         run: |
-          cd server/api-npm
+          cd api-npm/
           npm install 
           npm run build
           npm install . --save
