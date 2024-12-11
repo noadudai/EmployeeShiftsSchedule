@@ -38,5 +38,5 @@ jobs:
         uses: benc-uk/workflow-dispatch@v1
         with:
           repo: noadudai/KeepOnTimeShifts
-          workflow: link-package.yml
           ref: feature/github_workflow
+          workflow: link-package.yml
