@@ -39,3 +39,4 @@ jobs:
         with:
           repository: noadudai/KeepOnTimeShifts
           workflow: link-package.yml
+          ref: feature/github_workflow
