@@ -20,6 +20,7 @@ jobs:
 
       - name: Generate npm package
         run: |
+          echo ls
           npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
           -g typescript-axios --additional-properties=npmName=@noadudai/noaservice \
           --additional-properties=npmVersion=${{github.sha}} \
