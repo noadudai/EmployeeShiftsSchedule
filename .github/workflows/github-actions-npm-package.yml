@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - feature/create_fastapi_server
 
 jobs:
   generate-npm-package:
