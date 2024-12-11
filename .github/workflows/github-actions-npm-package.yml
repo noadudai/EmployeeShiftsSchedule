@@ -24,6 +24,7 @@ jobs:
           -g typescript-axios --additional-properties=npmName=@noadudai/noaservice \
           --additional-properties=npmVersion=${{github.sha}} \
           --additional-properties=useSingleRequestParameter=true -o ./api-npm
+          ls -la
 
   build-and-publish-npm-package:
     runs-on: ubuntu-latest
