@@ -28,7 +28,7 @@ jobs:
           npm install 
           npm run build
           npm install . --save
-          nmp link
+          npm link
 
   triger-front-workflow:
     runs-on: ubuntu-latest
