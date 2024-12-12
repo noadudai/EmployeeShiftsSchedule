@@ -15,5 +15,5 @@ setup(name='employee shift schedule',
           'pandas==2.0.3',
           'numpy==2.2.0'
       ],
-      tests_require=['pytest'],
+      # tests_require=['pytest'],
       )
