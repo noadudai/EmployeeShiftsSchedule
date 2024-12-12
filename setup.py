@@ -12,5 +12,4 @@ setup(name='employee shift schedule',
             'more-itertools==10.1.0',
             'fastapi==0.111.0'
       ],
-      packages=["employee_shift_schedule"]
       )
