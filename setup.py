@@ -7,9 +7,9 @@ setup(name='employee shift schedule',
       author_email='dudai.noa@gmail.com',
       url='https://github.com/noadudai/EmployeeShiftsSchedule',
       install_requires=[
-            'ortools==9.7.2996',
-            'pandas==2.0.3',
-            'more-itertools==10.1.0',
-            'fastapi==0.111.0'
+          'ortools==9.7.2996',
+          'more-itertools==10.1.0',
+          'fastapi==0.111.0'
       ],
+      tests_require=['pytest', 'pandas==2.0.3'],
       )
