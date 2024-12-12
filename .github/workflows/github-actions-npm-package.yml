@@ -25,6 +25,7 @@ jobs:
 
       - name: Generate npm package
         run: |
+          python -m pip install --upgrade pip
           pip install setuptools==75.6.0
           python setup.py install
           python generate_openapi.py > openapi.json
