@@ -9,7 +9,8 @@ setup(name='employee shift schedule',
       install_requires=[
           'ortools==9.7.2996',
           'more-itertools==10.1.0',
-          'fastapi==0.111.0'
+          'fastapi==0.111.0',
+          'anyio==3.7.1'
       ],
       tests_require=['pytest', 'pandas==2.0.3'],
       )
