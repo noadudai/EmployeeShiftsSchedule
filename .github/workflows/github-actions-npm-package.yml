@@ -18,25 +18,27 @@ jobs:
         with:
           node-version: 16
 
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
       - name: Generate npm package
         run: |
+          python generate_openapi.py > openapi.json
+
           npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
-          -g typescript-axios --additional-properties=npmName=@noadudai/noaservice \
+          -g typescript-axios --additional-properties=npmName=@noadudai/EmployeesScheduleClient \
           --additional-properties=npmVersion=${{github.sha}} \
           --additional-properties=useSingleRequestParameter=true -o ./api-npm
           cd api-npm/
+          
+          apt get jq -y
+          
+          jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
+          
           npm install 
           npm run build
-          npm install . --save
-          npm link
-
-  triger-front-workflow:
-    runs-on: ubuntu-latest
-    needs: generate-npm-package
-    steps:
-      - name: Trigger the Front-end workflow
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          repo: noadudai/KeepOnTimeShifts
-          ref: feature/github_workflow
-          workflow: link-package.yml
+          
+          npm set "//npm.pkg.github.com/:_authToken=$GITHUB_TOKEN"
+          npm publish
