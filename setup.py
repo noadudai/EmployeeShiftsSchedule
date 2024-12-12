@@ -11,7 +11,9 @@ setup(name='employee shift schedule',
           'more-itertools==10.1.0',
           'fastapi==0.111.0',
           'anyio==3.7.1',
-          'h11==0.12.0'
+          'h11==0.12.0',
+          'pandas==2.0.3',
+          'numpy==2.0.0'
       ],
-      tests_require=['pytest', 'pandas==2.0.3'],
+      tests_require=['pytest'],
       )
