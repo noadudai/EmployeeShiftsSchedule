@@ -13,7 +13,7 @@ setup(name='employee shift schedule',
           'anyio==3.7.1',
           'h11==0.12.0',
           'pandas==2.0.3',
-          'numpy==2.0.0'
+          'numpy==2.2.0'
       ],
       tests_require=['pytest'],
       )
