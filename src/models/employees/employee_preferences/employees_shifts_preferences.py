@@ -1,11 +1,10 @@
-from dataclasses import dataclass, field
+from dataclasses import field
 
 import pydantic
 
-from models.employees.employee_preferences.combine_preference import CombinePreference
-from models.employees.employee_preferences.no_preferences import NoPreference
-from models.employees.employee_preferences.shifts_preference import ShiftsPreference
-from models.solution.pydantic_config import ConfigPydanticDataclass
+from src.models.employees.employee_preferences.no_preferences import NoPreference
+from src.models.employees.employee_preferences.shifts_preference import ShiftsPreference
+from src.models.solution.pydantic_config import ConfigPydanticDataclass
 
 
 @pydantic.dataclasses.dataclass(config=ConfigPydanticDataclass)

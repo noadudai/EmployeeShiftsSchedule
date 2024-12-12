@@ -4,21 +4,21 @@ import uuid
 
 from ortools.sat.python import cp_model
 
-from models.employees.employee_preferences.combine_preference import CombinePreference
-from models.employees.employee_preferences.employees_shifts_preferences import EmployeesShiftsPreferences
-from models.employees.employee_preferences.date_time_range_preference_ import DateTimeRangePreference
-from models.employees.employee_preferences.shifts_preference_by_id import ShiftIdPreference
+from src.models.employees.employee_preferences.combine_preference import CombinePreference
+from src.models.employees.employee_preferences import EmployeesShiftsPreferences
+from src.models.employees.employee_preferences.date_time_range_preference_ import DateTimeRangePreference
+from src.models.employees.employee_preferences.shifts_preference_by_id import ShiftIdPreference
 from .schedule_solution_collector import ScheduleSolutionCollector
 
-from constraints_file import generate_shift_employee_combinations, \
+from src.constraints_file import generate_shift_employee_combinations, \
     add_aspire_to_maximize_all_employees_preferences_constraint, add_exactly_one_employee_per_shift_constraint, \
     add_prevent_overlapping_shifts_for_employees_constraint
-from models.employees.employee import Employee
-from models.employees.employee_position_enum import EmployeePositionEnum
-from models.employees.employee_priority_enum import EmployeePriorityEnum
-from models.shifts.shift import Shift
-from models.shifts.shift_combinations_key import ShiftCombinationsKey
-from models.shifts.shifts_types_enum import ShiftTypesEnum
+from src.models.employees.employee import Employee
+from src.models.employees.employee_position_enum import EmployeePositionEnum
+from src.models.employees.employee_priority_enum import EmployeePriorityEnum
+from src.models.shifts.shift import Shift
+from src.models.shifts import ShiftCombinationsKey
+from src.models.shifts import ShiftTypesEnum
 
 
 def test_an_employee_is_not_working_in_a_day_he_can_not_work():

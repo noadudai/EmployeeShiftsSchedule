@@ -1,6 +1,6 @@
 import json
 
-from server import app
+from src.server import app
 
 
 def custom_openapi():

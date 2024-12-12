@@ -2,7 +2,7 @@ import uuid
 
 import pydantic
 
-from models.solution.pydantic_config import ConfigPydanticDataclass
+from src.models.solution.pydantic_config import ConfigPydanticDataclass
 
 
 @pydantic.dataclasses.dataclass(config=ConfigPydanticDataclass)

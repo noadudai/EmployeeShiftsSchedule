@@ -1,11 +1,9 @@
-import uuid
 from abc import abstractmethod
-from dataclasses import dataclass, field
 
 import pydantic
 
-from models.shifts.shift import Shift
-from models.solution.pydantic_config import ConfigPydanticDataclass
+from src.models.shifts.shift import Shift
+from src.models.solution.pydantic_config import ConfigPydanticDataclass
 
 
 @pydantic.dataclasses.dataclass(config=ConfigPydanticDataclass)

@@ -1,16 +1,15 @@
 import datetime
 import random
 
-import pytest
 from ortools.sat.python import cp_model
 
-from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
+from src.constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
     add_employees_can_work_only_shifts_that_they_trained_for_constraint, \
     add_prevent_overlapping_shifts_for_employees_constraint
-from models.employees.employee import Employee
-from models.shifts.shift import Shift
-from models.shifts.shift_combinations_key import ShiftCombinationsKey
-from models.shifts.shifts_types_enum import ShiftTypesEnum
+from src.models.employees.employee import Employee
+from src.models.shifts.shift import Shift
+from src.models.shifts import ShiftCombinationsKey
+from src.models.shifts import ShiftTypesEnum
 
 
 def test_no_schedule_when_an_employee_cannot_work_a_shift_because_he_is_not_trained_to_do_that_shift():

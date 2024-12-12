@@ -4,11 +4,11 @@ from collections import defaultdict
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 
-from models.employees.employee import Employee
-from models.shifts.shift import Shift
-from models.shifts.shift_combinations_key import ShiftCombinationsKey
-from models.shifts.shifts_types_enum import ShiftTypesEnum
-from models.solution.one_schedule_solution_metadata import ScheduleSolutionMetadata
+from src.models.employees.employee import Employee
+from src.models.shifts.shift import Shift
+from src.models.shifts.shift_combinations_key import ShiftCombinationsKey
+from src.models.shifts.shifts_types_enum import ShiftTypesEnum
+from src.models.solution.one_schedule_solution_metadata import ScheduleSolutionMetadata
 
 
 class ScheduleSolutions:

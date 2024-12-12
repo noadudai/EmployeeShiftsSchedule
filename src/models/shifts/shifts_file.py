@@ -1,8 +1,7 @@
 import datetime
-import uuid
 
-from models.shifts.shift import Shift
-from models.shifts.shifts_types_enum import ShiftTypesEnum
+from src.models.shifts.shift import Shift
+from src.models.shifts.shifts_types_enum import ShiftTypesEnum
 
 sunday = [Shift(shift_id="sunday_morning", shift_type=ShiftTypesEnum.MORNING, start_time=datetime.datetime(2024, 4, 28, 9, 30), end_time=datetime.datetime(2024, 4, 28, 16)),
           Shift(shift_id="sunday_morning_backup", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=datetime.datetime(2024, 4, 28, 10, 30), end_time=datetime.datetime(2024, 4, 28, 16)),

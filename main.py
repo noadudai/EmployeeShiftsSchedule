@@ -1,13 +1,13 @@
 import json
 
-from constraints_file import *
-from models.employees.employee import Employee
-from models.employees.employees_file import all_employees
-from models.shifts.shift import Shift
-from models.shifts.shifts_file import all_shifts_in_the_week
-from models.solution.create_solutions import create_solutions
-from models.solution.schedule_solutions import ScheduleSolutions
-from static_site.create_schedule_tables import schedule_to_json
+from src.constraints_file import *
+from src.models.employees.employee import Employee
+from src.models.employees.employees_file import all_employees
+from src.models.shifts.shift import Shift
+from src.models.shifts.shifts_file import all_shifts_in_the_week
+from src.models.solution.create_solutions import create_solutions
+from src.models.solution.schedule_solutions import ScheduleSolutions
+from src.static_site.create_schedule_tables import schedule_to_json
 
 
 def create_shift_dictionary_for_html(shifts: list[Shift]) -> dict[str, dict]:
@@ -45,7 +45,7 @@ if __name__ == "__main__":
             json_schedule_options.append(schedule_to_json(solution.schedule, shifts, employees))
 
         json_data = {"schedules": json_schedule_options, "employees": emp_dict, "shifts": shift_dict}
-        with open("static_site/schedule_data.json", "w") as json_data_file:
+        with open("src/static_site/schedule_data.json", "w") as json_data_file:
             json.dump(json_data, json_data_file)
 
     except Exception as e:

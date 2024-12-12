@@ -1,14 +1,14 @@
 import datetime
 
-from models.employees.employee import Employee
-from models.employees.employee_position_enum import EmployeePositionEnum
-from models.employees.employee_preferences.combine_preference import CombinePreference
-from models.employees.employee_preferences.employees_shifts_preferences import EmployeesShiftsPreferences
-from models.employees.employee_preferences.date_time_range_preference_ import DateTimeRangePreference
-from models.employees.employee_preferences.shifts_preference_by_id import ShiftIdPreference
-from models.employees.employee_priority_enum import EmployeePriorityEnum
-from models.employees.employee_status_enum import EmployeeStatusEnum
-from models.shifts.shifts_types_enum import ShiftTypesEnum
+from src.models.employees.employee import Employee
+from src.models.employees.employee_position_enum import EmployeePositionEnum
+from src.models.employees.employee_preferences.combine_preference import CombinePreference
+from src.models.employees.employee_preferences.employees_shifts_preferences import EmployeesShiftsPreferences
+from src.models.employees.employee_preferences.date_time_range_preference_ import DateTimeRangePreference
+from src.models.employees.employee_preferences.shifts_preference_by_id import ShiftIdPreference
+from src.models.employees.employee_priority_enum import EmployeePriorityEnum
+from src.models.employees.employee_status_enum import EmployeeStatusEnum
+from src.models.shifts.shifts_types_enum import ShiftTypesEnum
 
 employee1s_preferences = EmployeesShiftsPreferences(shifts_wants_to_work=ShiftIdPreference(["sunday_morning", "sunday_sb", "monday_morning", "tuesday_sb", "wednesday_morning_backup",
                                                                                "thursday_evening","friday_weekend_morning", "friday_evening", "saturday_weekend_morning", "saturday_evening"]))
