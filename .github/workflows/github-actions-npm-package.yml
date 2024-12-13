@@ -54,14 +54,18 @@ jobs:
 
       - name: Generate build and publish npm package
         run: |
-          
+        
           docker run --rm ${{ steps.meta.outputs.tags }} python ./generate_openapi.py > openapi.json
-
+          
+          cat openapi.json
+          
           npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
           -g typescript-axios --additional-properties=npmName=@noadudai/EmployeesScheduleClient \
           --additional-properties=npmVersion=${{github.sha}} \
           --additional-properties=useSingleRequestParameter=true -o ./api-npm
           cd api-npm/
+          
+          ls -la
           
           apt install jq -y
           
