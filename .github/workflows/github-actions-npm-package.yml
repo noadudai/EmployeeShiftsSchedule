@@ -64,7 +64,7 @@ jobs:
           
           npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
           -g typescript-axios --additional-properties=npmName=@noadudai/EmployeesScheduleClient \
-          --additional-properties=npmVersion=${{github.sha}} \
+          --additional-properties=npmVersion=${{github.sha::5}} \
           --additional-properties=useSingleRequestParameter=true -o ./api-npm
           cd api-npm/
           
