@@ -56,20 +56,19 @@ jobs:
         run: |
           
           SHORTSHA=${{github.sha}}
+          REG_SHA=$(echo $(SHORTSHA::5) | sed -E 's/(.)(..)(.*)/\1.\2.\3/')
+          echo REG_SHA
           sudo apt-get update
           sudo apt-get install jq -y
           
           docker run --rm ${{ steps.meta.outputs.tags }} python ./generate_openapi.py > openapi.json
-          
-          cat openapi.json
+
           
           npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
           -g typescript-axios --additional-properties=npmName=@noadudai/EmployeesScheduleClient \
           --additional-properties=npmVersion=${SHORTSHA::5} \
           --additional-properties=useSingleRequestParameter=true -o ./api-npm
           cd api-npm/
-          
-          ls -la
 
           jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
           cat package.json 
