@@ -67,7 +67,7 @@ jobs:
           docker run --rm ${{ steps.meta.outputs.tags }} python ./generate_openapi.py > openapi.json
 
           npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
-          -g typescript-axios --additional-properties=npmName=@noadudai/EmployeesScheduleClient \
+          -g typescript-axios --additional-properties=npmName=@noadudai/employeesscheduleclient \
           --additional-properties=npmVersion=${REG_SHA} \
           --additional-properties=useSingleRequestParameter=true -o ./api-npm
           cd api-npm/
