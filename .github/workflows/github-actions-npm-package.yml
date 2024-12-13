@@ -42,7 +42,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: | 
-          echo $GITHUB_ACTOR
           echo $GH_TOKEN | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
       - name: Build and push
@@ -53,6 +52,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Generate build and publish npm package
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           
           SHORTSHA=${{github.sha}}
@@ -74,7 +75,6 @@ jobs:
           
           npm install 
           npm run build
-        
+          
+          npm set "//npm.pkg.github.com/:_authToken=$GH_TOKEN"
           npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
