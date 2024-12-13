@@ -32,7 +32,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: employee_schedule_server:latest
+          tags: ghcr.io/noadudai/EmployeeShiftsSchedule/employee_schedule_server:latest
 
       - name: Generate build and publish npm package
         run: |
