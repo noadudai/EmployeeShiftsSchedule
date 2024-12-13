@@ -54,6 +54,8 @@ jobs:
 
       - name: Generate build and publish npm package
         run: |
+          
+          apt update
         
           docker run --rm ${{ steps.meta.outputs.tags }} python ./generate_openapi.py > openapi.json
           
