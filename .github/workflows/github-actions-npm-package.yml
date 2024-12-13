@@ -28,10 +28,15 @@ jobs:
           echo $GITHUB_ACTOR
           echo $GH_TOKEN | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: employee_schedule_server:latest
+
       - name: Generate build and publish npm package
         run: |
           
-          docker build . -t employee_schedule_server:latest
           docker run -it --rm employee_schedule_server:latest python ./generate_openapi.py > openapi.json
 
           npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
