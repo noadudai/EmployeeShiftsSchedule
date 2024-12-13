@@ -55,6 +55,7 @@ jobs:
       - name: Generate build and publish npm package
         run: |
           
+          SHORTSHA=${{github.sha}}
           sudo apt-get update
           sudo apt-get install jq -y
           
@@ -62,9 +63,11 @@ jobs:
           
           cat openapi.json
           
+          
+          
           npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
           -g typescript-axios --additional-properties=npmName=@noadudai/EmployeesScheduleClient \
-          --additional-properties=npmVersion=${{github.sha::5}} \
+          --additional-properties=npmVersion=${SHORTSHA::5} \
           --additional-properties=useSingleRequestParameter=true -o ./api-npm
           cd api-npm/
           
