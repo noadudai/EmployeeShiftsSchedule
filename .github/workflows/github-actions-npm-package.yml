@@ -63,7 +63,7 @@ jobs:
           --additional-properties=useSingleRequestParameter=true -o ./api-npm
           cd api-npm/
           
-          apt get jq -y
+          apt install jq -y
           
           jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
           
