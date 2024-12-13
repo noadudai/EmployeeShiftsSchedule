@@ -75,5 +75,5 @@ jobs:
           npm install 
           npm run build
           
-          npm set "//npm.pkg.github.com/:_authToken=$GITHUB_TOKEN"
-          npm publish
+#          npm set
+          npm publish "//npm.pkg.github.com/:_authToken=$GITHUB_TOKEN"
