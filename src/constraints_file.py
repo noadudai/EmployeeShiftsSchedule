@@ -7,11 +7,10 @@ from uuid import UUID
 
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
-from models.employees.employee import Employee
-from models.employees.employee_status_enum import EmployeeStatusEnum
-from models.shifts.shift_combinations_key import ShiftCombinationsKey
-from models.shifts.shift import Shift
-from models.shifts.shifts_types_enum import ShiftTypesEnum
+from src.models.employees.employee import Employee
+from src.models.employees.employee_status_enum import EmployeeStatusEnum
+from src.models.shifts.shift_combinations_key import ShiftCombinationsKey
+from src.models.shifts.shift import Shift
 
 
 # Returns a dictionary that contains all the combinations of shifts and employees as: FrozenShiftCombinationsKey

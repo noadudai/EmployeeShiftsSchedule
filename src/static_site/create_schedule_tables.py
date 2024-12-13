@@ -1,21 +1,10 @@
-import os
 import uuid
 
-from ortools.sat.python import cp_model
 import pandas as pd
 
-from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
-    add_prevent_overlapping_shifts_for_employees_constraint, \
-    add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint, \
-    add_aspire_to_maximize_all_employees_preferences_constraint, \
-    add_employees_can_work_only_shifts_that_they_trained_for_constraint
-from models.employees.employee import Employee
-from models.employees.employees_file import all_employees
-from models.shifts.shift import Shift
-from models.shifts.shift_combinations_key import ShiftCombinationsKey
-from models.shifts.shifts_file import all_shifts_in_the_week
-from models.shifts.shifts_types_enum import ShiftTypesEnum
-from models.solution.one_schedule_solution_metadata import ScheduleSolution
+from src.models.employees.employee import Employee
+from src.models.shifts.shift import Shift
+from src.models.shifts.shifts_types_enum import ShiftTypesEnum
 
 
 def schedule_to_json(schedule: dict[uuid.uuid4, uuid.uuid4], shifts: list[Shift], employees: list[Employee]) -> dict:

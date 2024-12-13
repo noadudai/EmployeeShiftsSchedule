@@ -4,15 +4,15 @@ from uuid import uuid4
 
 from ortools.sat.python import cp_model
 
-from constraints_file import generate_shift_employee_combinations, \
+from src.constraints_file import generate_shift_employee_combinations, \
     add_at_most_one_shift_per_employee_in_the_same_day_constraint, add_exactly_one_employee_per_shift_constraint
-from models.employees.employee import Employee
-from models.employees.employee_position_enum import EmployeePositionEnum
-from models.employees.employee_priority_enum import EmployeePriorityEnum
-from models.employees.employee_status_enum import EmployeeStatusEnum
-from models.shifts.shift import Shift
-from models.shifts.shift_combinations_key import ShiftCombinationsKey
-from models.shifts.shifts_types_enum import ShiftTypesEnum
+from src.models.employees.employee import Employee
+from src.models.employees.employee_position_enum import EmployeePositionEnum
+from src.models.employees.employee_priority_enum import EmployeePriorityEnum
+from src.models import EmployeeStatusEnum
+from src.models.shifts.shift import Shift
+from src.models.shifts import ShiftCombinationsKey
+from src.models.shifts import ShiftTypesEnum
 
 
 def test_every_shift_has_an_assigned_employee_and_every_employee_has_at_most_one_shift_in_the_same_day():

@@ -4,15 +4,15 @@ import random
 from ortools.sat.python import cp_model
 from .schedule_solution_collector import ScheduleSolutionCollector
 
-from constraints_file import generate_shift_employee_combinations, \
+from src.constraints_file import generate_shift_employee_combinations, \
     add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint, \
     add_exactly_one_employee_per_shift_constraint
-from models.employees.employee import Employee
-from models.employees.employee_position_enum import EmployeePositionEnum
-from models.employees.employee_priority_enum import EmployeePriorityEnum
-from models.employees.employee_status_enum import EmployeeStatusEnum
-from models.shifts.shift import Shift
-from models.shifts.shifts_types_enum import ShiftTypesEnum
+from src.models.employees.employee import Employee
+from src.models.employees.employee_position_enum import EmployeePositionEnum
+from src.models.employees.employee_priority_enum import EmployeePriorityEnum
+from src.models import EmployeeStatusEnum
+from src.models.shifts.shift import Shift
+from src.models.shifts import ShiftTypesEnum
 from test.test_helper_functions import get_employees_shifts_assignments
 
 

@@ -1,13 +1,13 @@
 from ortools.sat.python import cp_model
 
-from constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
+from src.constraints_file import generate_shift_employee_combinations, add_exactly_one_employee_per_shift_constraint, \
     add_prevent_overlapping_shifts_for_employees_constraint, \
     add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint, \
     add_employees_can_work_only_shifts_that_they_trained_for_constraint, \
     add_aspire_to_maximize_all_employees_preferences_constraint
-from models.employees.employee import Employee
-from models.shifts.shift import Shift
-from models.solution.schedule_solutions import ScheduleSolutions
+from src.models.employees.employee import Employee
+from src.models.shifts.shift import Shift
+from src.models.solution.schedule_solutions import ScheduleSolutions
 
 
 def create_solutions(employees: list[Employee], shifts: list[Shift]) -> ScheduleSolutions:

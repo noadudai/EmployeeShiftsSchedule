@@ -1,8 +1,8 @@
 import datetime
 from dataclasses import dataclass
 
-from models.employees.employee_preferences.shifts_preference import ShiftsPreference
-from models.shifts.shift import Shift
+from src.models.employees.employee_preferences.shifts_preference import ShiftsPreference
+from src.models.shifts.shift import Shift
 
 
 @dataclass
