@@ -55,7 +55,7 @@ jobs:
       - name: Generate build and publish npm package
         run: |
           
-          apt update
+          apt-get update
         
           docker run --rm ${{ steps.meta.outputs.tags }} python ./generate_openapi.py > openapi.json
           
@@ -69,7 +69,7 @@ jobs:
           
           ls -la
           
-          apt install jq -y
+          apt-get install jq -y
           
           jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
           
