@@ -56,11 +56,8 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          
-          SHORTSHA=${{github.sha}}
-          REG_SHA=${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}
-          
-          echo ${REG_SHA}
+          NPM_PACKAGE_VER=${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}
+
           sudo apt-get update
           sudo apt-get install jq -y
           
@@ -68,7 +65,7 @@ jobs:
 
           npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
           -g typescript-axios --additional-properties=npmName=@noadudai/employeesscheduleclient \
-          --additional-properties=npmVersion=${REG_SHA} \
+          --additional-properties=npmVersion=${NPM_PACKAGE_VER} \
           --additional-properties=useSingleRequestParameter=true -o ./api-npm
           cd api-npm/
 
