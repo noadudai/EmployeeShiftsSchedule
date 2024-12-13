@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - feature/create_fastapi_server
 
 env:
   REGISTRY: ghcr.io
