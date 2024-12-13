@@ -57,7 +57,8 @@ jobs:
           
           SHORTSHA=${{github.sha}}
           REG_SHA=${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}
-
+          
+          echo ${REG_SHA}
           sudo apt-get update
           sudo apt-get install jq -y
           
