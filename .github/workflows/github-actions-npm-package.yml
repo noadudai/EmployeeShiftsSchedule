@@ -48,7 +48,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Generate-nmp-package-to-master
+      - name: Generate nmp package to master
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: ${{ github.ref_name == 'master' }}
@@ -68,8 +68,12 @@ jobs:
           cd api-npm/
           
           jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
+          
+          npm install 
+          npm run build
+          npm publish
 
-      - name: Generate-nmp-package-to-any-branch
+      - name: Generate nmp package to any branch
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: ${{ github.ref_name != 'master' }}
@@ -89,10 +93,6 @@ jobs:
           cd api-npm/
           
           jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
-
-      - name: Build and publish npm package
-        run: |
-          
           
           npm install 
           npm run build
