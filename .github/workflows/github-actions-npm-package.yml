@@ -66,6 +66,8 @@ jobs:
           --additional-properties=useSingleRequestParameter=true -o ./api-npm
           
           cd api-npm/
+          
+          jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
 
       - name: Generate-nmp-package-to-any-branch
         env:
@@ -85,10 +87,12 @@ jobs:
           --additional-properties=useSingleRequestParameter=true -o ./api-npm
           
           cd api-npm/
+          
+          jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
 
       - name: Build and publish npm package
         run: |
-          jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
+          
           
           npm install 
           npm run build
