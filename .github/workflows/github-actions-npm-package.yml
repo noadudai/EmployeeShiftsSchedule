@@ -95,8 +95,6 @@ jobs:
           ls
           cat appveyor.yml
           
-          jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
-          
           npm install 
           npm run build
           npm publish
