@@ -61,7 +61,7 @@ jobs:
           docker run --rm ${{ steps.meta.outputs.tags }} python ./generate_openapi.py > openapi.json
 
           npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
-          -g typescript-axios --additional-properties=npmName=@noadudai/employeesscheduleclient \
+          -g csharp --additional-properties=npmName=@noadudai/schedule-generator-client \
           --additional-properties=npmVersion=${NPM_PACKAGE_VER} \
           --additional-properties=useSingleRequestParameter=true -o ./api-npm
           
@@ -92,7 +92,7 @@ jobs:
           
           cd api-npm/
           
-          jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
+          jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json > temp.json && mv temp.json package.json
           
           npm install 
           npm run build
