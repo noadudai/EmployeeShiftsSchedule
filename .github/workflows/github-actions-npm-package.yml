@@ -92,7 +92,7 @@ jobs:
           
           cd api-npm/
           
-          jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json > temp.json && mv temp.json package.json
+          jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
           
           npm install 
           npm run build
