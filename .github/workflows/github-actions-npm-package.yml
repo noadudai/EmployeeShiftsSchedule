@@ -93,6 +93,7 @@ jobs:
           cd api-npm/
           
           ls
+          type appveyor.yml
           
           jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
           
