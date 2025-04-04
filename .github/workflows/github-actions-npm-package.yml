@@ -92,6 +92,8 @@ jobs:
           
           cd api-npm/
           
+          ls
+          
           jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
           
           npm install 
