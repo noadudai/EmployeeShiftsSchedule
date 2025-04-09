@@ -80,7 +80,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: ${{ github.ref_name != 'master' }}
         run: |
-          PACKAGE_VER=${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}-test
+          PACKAGE_VER=0.1.${{ github.run_number }}-${{ github.run_attempt }}-test
 
           sudo apt-get update
           sudo apt-get install jq -y
