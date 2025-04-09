@@ -65,7 +65,7 @@ jobs:
           --additional-properties=packageVersion=${PACKAGE_VER} \
           --additional-properties=useSingleRequestParameter=true -o ./api
 
-          $ cd api/src/noadudai.schedule_generator_client
+          cd api/src/noadudai.schedule_generator_client
           
           dotnet pack -p:RepositoryUrl=https://github.com/noadudai/EmployeeShiftsSchedule
           
@@ -90,7 +90,7 @@ jobs:
           --additional-properties=packageVersion=${PACKAGE_VER}-test \
           --additional-properties=useSingleRequestParameter=true -o ./api
 
-          $ cd api/src/noadudai.schedule_generator_client
+          cd api/src/noadudai.schedule_generator_client
 
           dotnet pack -p:RepositoryUrl=https://github.com/noadudai/EmployeeShiftsSchedule
 
