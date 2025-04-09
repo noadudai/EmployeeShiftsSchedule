@@ -61,11 +61,11 @@ jobs:
           docker run --rm ${{ steps.meta.outputs.tags }} python ./generate_openapi.py > openapi.json
           
           npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
-          -g csharp --additional-properties=packageName=noadudai.schedule_generator_client \
-          --additional-properties=packageVersion=${PACKAGE_VER} \
-          --additional-properties=useSingleRequestParameter=true \
-          --additional-properties=targetFramework=net8.0 \ 
-          -o ./api
+            -g csharp --additional-properties=packageName=noadudai.schedule_generator_client \
+            --additional-properties=packageVersion=${PACKAGE_VER} \
+            --additional-properties=useSingleRequestParameter=true \
+            --additional-properties=targetFramework=net8.0 \ 
+            -o ./api
 
           cd api/src/noadudai.schedule_generator_client
           
@@ -88,11 +88,12 @@ jobs:
           docker run --rm ${{ steps.meta.outputs.tags }} python ./generate_openapi.py > openapi.json
           
           npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
-          -g csharp --additional-properties=packageName=noadudai.schedule_generator_client \
-          --additional-properties=packageVersion=${PACKAGE_VER}-test \
-          --additional-properties=useSingleRequestParameter=true \
-          --additional-properties=targetFramework=net8.0 \ 
-          -o ./api
+            -g csharp \
+            --additional-properties=packageName=noadudai.schedule_generator_client \
+            --additional-properties=packageVersion=${PACKAGE_VER}-test \
+            --additional-properties=useSingleRequestParameter=true \
+            --additional-properties=targetFramework=net8.0 \
+            -o ./api
 
           cd api/src/noadudai.schedule_generator_client
 
