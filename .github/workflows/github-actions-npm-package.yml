@@ -99,6 +99,6 @@ jobs:
 
           dotnet pack -p:RepositoryUrl=https://github.com/noadudai/EmployeeShiftsSchedule
 
-          dotnet nuget add source "https://nuget.pkg.github.com/noadudai/index.json" --name github --username noadudai --password secrets.GITHUB_TOKEN
-
-          dotnet nuget push "bin/Release/noadudai.schedule_generator_client.0.0.1-test.nupkg" --api-key secrets.GITHUB_TOKEN --source "github" --visibility public
+          dotnet nuget push "bin/Release/noadudai.schedule_generator_client.${PACKAGE_VER}.nupkg" \
+            --api-key ${{ secrets.GITHUB_TOKEN }} \
+            --source "https://nuget.pkg.github.com/noadudai/index.json"
