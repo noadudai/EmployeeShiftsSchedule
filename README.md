@@ -116,7 +116,7 @@ Based in Israel 🇮🇱
 ### 🌐 Connect with me
 
 <a href="https://github.com/noadudai" target="_blank">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub" width="30" height="30" style="filter: invert(100%);">
+  <img src="https://img.icons8.com/?size=100&id=62856&format=png&color=FFFFFF" alt="GitHub" width="30" height="30">
 </a>
 &nbsp;&nbsp;
 <a href="https://www.linkedin.com/in/noadudai" target="_blank">
