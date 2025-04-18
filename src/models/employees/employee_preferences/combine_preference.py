@@ -1,12 +1,18 @@
-from dataclasses import dataclass, field
+from dataclasses import field, dataclass
+from typing import Union
 
-from src.models.employees.employee_preferences.shifts_preference import ShiftsPreference
+import pydantic
+
+from .date_time_range_preference_ import DateTimeRangePreference
+from .shifts_preference import ShiftsPreference
+from .shifts_preference_by_id import ShiftIdPreference
 from src.models.shifts.shift import Shift
+from src.models.solution.pydantic_config import ConfigPydanticDataclass
 
 
-@dataclass
+@pydantic.dataclasses.dataclass(config=ConfigPydanticDataclass)
 class CombinePreference(ShiftsPreference):
-    preferences: list[ShiftsPreference] = field(default_factory=list)
+    preferences: list[Union[DateTimeRangePreference, ShiftIdPreference]] = field(default_factory=list)
 
     def get_shifts_preference(self, shifts: list[Shift]) -> list[Shift]:
         all_shifts_in_preferences = []
