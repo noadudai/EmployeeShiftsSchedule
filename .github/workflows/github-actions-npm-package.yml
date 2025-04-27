@@ -73,13 +73,14 @@ jobs:
           
           dotnet pack -p:RepositoryUrl=https://github.com/noadudai/EmployeeShiftsSchedule
           
-          dotnet nuget add source "https://nuget.pkg.github.com/noadudai/index.json" --name github --username noadudai --password secrets.GITHUB_TOKEN --store-password-in-clear-text
-          
+                    
           if [[ "${{ github.ref_name }}" == "master" ]]; then
+            dotnet nuget add source "https://nuget.pkg.github.com/noadudai/index.json" --name github --username noadudai --password secrets.GITHUB_TOKEN --store-password-in-clear-text
             dotnet nuget push "bin/Release/noadudai.schedule_generator_client.${PACKAGE_VER}.nupkg" \
               --api-key ${{ secrets.GITHUB_TOKEN }} \
               --source "https://nuget.pkg.github.com/noadudai/index.json"
           else
+            dotnet nuget add source "https://nuget.pkg.github.com/noadudai/index.json" --name github --username noadudai --password secrets.GITHUB_TOKEN --store-password-in-clear-text
             dotnet nuget push "bin/Release/noadudai.schedule_generator_client.${PACKAGE_VER}.nupkg" \
               --api-key ${{ secrets.GITHUB_TOKEN }} \
               --source "https://nuget.pkg.github.com/noadudai/index.json"
