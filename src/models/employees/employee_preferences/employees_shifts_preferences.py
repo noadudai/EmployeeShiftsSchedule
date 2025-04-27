@@ -9,9 +9,11 @@ from .no_preferences import NoPreference
 from src.models.solution.pydantic_config import ConfigPydanticDataclass
 from .shifts_preference_by_id import ShiftIdPreference
 
+PreferenceType = Union[CombinePreference, DateTimeRangePreference, NoPreference, ShiftIdPreference]
+
 
 @pydantic.dataclasses.dataclass(config=ConfigPydanticDataclass)
 class EmployeesShiftsPreferences:
-    shifts_cannot_work: Union[CombinePreference, DateTimeRangePreference, NoPreference, ShiftIdPreference] = field(default_factory=NoPreference)
-    shifts_prefer_not_to_work: Union[CombinePreference, DateTimeRangePreference, NoPreference, ShiftIdPreference] = field(default_factory=NoPreference)
-    shifts_wants_to_work: Union[CombinePreference, DateTimeRangePreference, NoPreference, ShiftIdPreference] = field(default_factory=NoPreference)
+    shifts_cannot_work: PreferenceType = field(default_factory=NoPreference)
+    shifts_prefer_not_to_work: PreferenceType = field(default_factory=NoPreference)
+    shifts_wants_to_work: PreferenceType = field(default_factory=NoPreference)
