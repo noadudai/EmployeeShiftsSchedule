@@ -1,9 +1,6 @@
 name: Build and publish npm package
 
-on:
-  push:
-    branches:
-      - master
+on: push
 
 env:
   REGISTRY: ghcr.io
@@ -51,25 +48,34 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Generate build and publish npm package
+      - name: Generate NuGet package
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          NPM_PACKAGE_VER=${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}
-
+          if [[ "${{ github.ref_name }}" == "master" ]]; then 
+            PACKAGE_VER=${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}
+          else
+            PACKAGE_VER=0.1.${{ github.run_number }}-${{ github.run_attempt }}-test
+          fi
+          
           sudo apt-get update
           sudo apt-get install jq -y
-          
+
           docker run --rm ${{ steps.meta.outputs.tags }} python ./generate_openapi.py > openapi.json
-
-          npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
-          -g typescript-axios --additional-properties=npmName=@noadudai/employeesscheduleclient \
-          --additional-properties=npmVersion=${NPM_PACKAGE_VER} \
-          --additional-properties=useSingleRequestParameter=true -o ./api-npm
-          cd api-npm/
-
-          jq '.repository.url = "https://github.com/noadudai/EmployeeShiftsSchedule"' package.json 
           
-          npm install 
-          npm run build
-          npm publish
+          npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
+            -g csharp --additional-properties=packageName=noadudai.schedule_generator_client \
+            --additional-properties=packageVersion=${PACKAGE_VER} \
+            --additional-properties=useSingleRequestParameter=true \
+            --additional-properties=targetFramework=net8.0 -o ./api
+
+          cd api/src/noadudai.schedule_generator_client
+          
+          dotnet pack -p:RepositoryUrl=https://github.com/noadudai/EmployeeShiftsSchedule
+
+          dotnet nuget add source --username noadudai --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/noadudai/index.json"
+          dotnet nuget push "bin/Release/noadudai.schedule_generator_client.${PACKAGE_VER}.nupkg" \
+            --api-key ${{ secrets.GITHUB_TOKEN }} \
+            --source "https://nuget.pkg.github.com/noadudai/index.json"
+
+

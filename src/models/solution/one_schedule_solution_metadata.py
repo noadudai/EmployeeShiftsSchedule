@@ -1,6 +1,7 @@
 import uuid
 
 import pydantic
+from pydantic import Field
 
 from src.models.solution.pydantic_config import ConfigPydanticDataclass
 
@@ -12,4 +13,4 @@ class ScheduleSolutionMetadata:
     number_of_shift_for_each_emp: dict[uuid.UUID | str, int]
 
     # shift id, employee id
-    schedule: dict[uuid.UUID | str, uuid.UUID | str]
+    schedule: dict[str, str]
