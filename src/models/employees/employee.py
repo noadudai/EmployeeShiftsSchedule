@@ -13,7 +13,7 @@ class Employee:
     name: str
     priority: EmployeePriorityEnum = EmployeePriorityEnum.LOW
     employee_status: EmployeeStatusEnum = EmployeeStatusEnum.mid_level_employee
-    employee_id: uuid.UUID = uuid.uuid4()
-    position: EmployeePositionEnum = EmployeePositionEnum.full_timer
+    employee_id: str = str(uuid.uuid4())
+    position: EmployeePositionEnum = EmployeePositionEnum.FULL_TIMER
     shifts_preferences: EmployeesShiftsPreferences = field(default_factory=EmployeesShiftsPreferences)
-    shift_types_trained_to_do: list[ShiftTypesEnum] = field(default_factory=list)
+    shift_types_trained_to_do: list[ShiftTypesEnum] = field(default_factory=lambda: list(ShiftTypesEnum))
