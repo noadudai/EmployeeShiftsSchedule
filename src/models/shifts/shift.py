@@ -1,5 +1,5 @@
 import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import uuid
 
 from .shifts_types_enum import ShiftTypesEnum
@@ -10,7 +10,7 @@ class Shift:
     shift_type: ShiftTypesEnum
     start_time: datetime.datetime
     end_time: datetime.datetime
-    shift_id: str = str(uuid.uuid4())
+    shift_id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
     def overlaps_with(self, shift_to_compare: 'Shift') -> bool:
         shift_start_time_smaller_then_other_shift_end_time = self.start_time < shift_to_compare.end_time

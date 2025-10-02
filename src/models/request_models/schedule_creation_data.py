@@ -9,4 +9,4 @@ from src.models.solution.pydantic_config import ConfigPydanticDataclass
 class ScheduleCreationData:
     employees: list[Employee]
     shifts: list[Shift]
-    number_of_schedules: int = 5
+    number_of_schedules: int
