@@ -11,9 +11,9 @@ from ..shifts.shifts_types_enum import ShiftTypesEnum
 @dataclass
 class Employee:
     name: str
-    priority: EmployeePriorityEnum = EmployeePriorityEnum.LOW
-    employee_status: EmployeeStatusEnum = EmployeeStatusEnum.mid_level_employee
-    employee_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    position: EmployeePositionEnum = EmployeePositionEnum.FULL_TIMER
+    priority: EmployeePriorityEnum
+    employee_status: EmployeeStatusEnum
+    employee_id: str
+    position: EmployeePositionEnum
     shifts_preferences: EmployeesShiftsPreferences = field(default_factory=EmployeesShiftsPreferences)
     shift_types_trained_to_do: list[ShiftTypesEnum] = field(default_factory=lambda: list(ShiftTypesEnum))
