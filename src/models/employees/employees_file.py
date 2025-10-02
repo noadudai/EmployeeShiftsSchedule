@@ -35,12 +35,12 @@ employee5s_trained_shifts = [ShiftTypesEnum.MORNING, ShiftTypesEnum.MORNING_BACK
 employee6s_trained_shifts = [ShiftTypesEnum.MORNING, ShiftTypesEnum.MORNING_BACKUP, ShiftTypesEnum.THURSDAY_BACKUP, ShiftTypesEnum.CLOSING, ShiftTypesEnum.WEEKEND_MORNING, ShiftTypesEnum.WEEKEND_MORNING_BACKUP, ShiftTypesEnum.WEEKEND_EVENING_BACKUP, ShiftTypesEnum.STAND_BY]
 
 
-employee1 = Employee(name="employee1", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="employee1", shifts_preferences=employee1s_preferences, shift_types_trained_to_do=employee1s_trained_shifts)
-employee2 = Employee(name="employee2", employee_id="employee2", position= EmployeePositionEnum.PART_TIMER, shifts_preferences=employee2s_preferences, shift_types_trained_to_do=employee2s_trained_shifts)
-employee3 = Employee(name="employee3", employee_id="employee3", shifts_preferences=employee3s_preferences, shift_types_trained_to_do=employee3s_trained_shifts)
-employee4 = Employee(name="employee4", priority=EmployeePriorityEnum.HIGH, employee_status=EmployeeStatusEnum.senior_employee, employee_id="employee4", shifts_preferences=employee4s_preferences, shift_types_trained_to_do=employee4s_trained_shifts)
-employee5 = Employee(name="employee5", priority=EmployeePriorityEnum.HIGH, employee_status=EmployeeStatusEnum.senior_employee, employee_id="employee5", shifts_preferences=employee5s_preferences, shift_types_trained_to_do=employee5s_trained_shifts)
-employee6 = Employee(name="employee6", employee_id="employee6", position= EmployeePositionEnum.PART_TIMER, shifts_preferences=employee6s_preferences, shift_types_trained_to_do=employee6s_trained_shifts)
+employee1 = Employee(name="employee1", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="employee1", shifts_preferences=employee1s_preferences, shift_types_trained_to_do=employee1s_trained_shifts, position=EmployeePositionEnum.FULL_TIMER)
+employee2 = Employee(name="employee2", employee_id="employee2", position= EmployeePositionEnum.PART_TIMER, shifts_preferences=employee2s_preferences, shift_types_trained_to_do=employee2s_trained_shifts, employee_status=EmployeeStatusEnum.mid_level_employee, priority=EmployeePriorityEnum.LOW)
+employee3 = Employee(name="employee3", employee_id="employee3", shifts_preferences=employee3s_preferences, shift_types_trained_to_do=employee3s_trained_shifts, employee_status=EmployeeStatusEnum.mid_level_employee, position=EmployeePositionEnum.FULL_TIMER, priority=EmployeePriorityEnum.LOW)
+employee4 = Employee(name="employee4", priority=EmployeePriorityEnum.HIGH, employee_status=EmployeeStatusEnum.senior_employee, employee_id="employee4", shifts_preferences=employee4s_preferences, shift_types_trained_to_do=employee4s_trained_shifts, position=EmployeePositionEnum.FULL_TIMER)
+employee5 = Employee(name="employee5", priority=EmployeePriorityEnum.HIGH, employee_status=EmployeeStatusEnum.senior_employee, employee_id="employee5", shifts_preferences=employee5s_preferences, shift_types_trained_to_do=employee5s_trained_shifts, position=EmployeePositionEnum.FULL_TIMER)
+employee6 = Employee(name="employee6", employee_id="employee6", position= EmployeePositionEnum.PART_TIMER, shifts_preferences=employee6s_preferences, shift_types_trained_to_do=employee6s_trained_shifts, employee_status=EmployeeStatusEnum.mid_level_employee, priority=EmployeePriorityEnum.LOW)
 
 
 all_employees = [employee1, employee4, employee5, employee3, employee6, employee2]
