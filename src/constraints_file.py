@@ -8,6 +8,7 @@ from uuid import UUID
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 from src.models.employees.employee import Employee
+from src.models.employees.employee_position_enum import EmployeePositionDict
 from src.models.employees.employee_status_enum import EmployeeStatusEnum
 from src.models.shifts.shift_combinations_key import ShiftCombinationsKey
 from src.models.shifts.shift import Shift
@@ -246,7 +247,7 @@ def add_aspire_for_minimal_deviation_between_employees_position_and_number_of_sh
         deviation = constraint_model.NewIntVar(0, len(emp_shifts), f'deviation_{employee.employee_id}')
         multy_deviation = constraint_model.NewIntVar(0, pow(len(emp_shifts), 2), f'multy_deviation_{employee.employee_id}')
 
-        max_shifts_assignable = min(employee.position.value, len(emp_shifts))
+        max_shifts_assignable = min(EmployeePositionDict[employee.position], len(emp_shifts))
         constraint_model.AddAbsEquality(deviation, sum(emp_shifts) - max_shifts_assignable)
         constraint_model.AddMultiplicationEquality(multy_deviation, deviation, deviation)
         deviations.append(multy_deviation)
