@@ -1,6 +1,6 @@
 from enum import Enum
 
-EmployeePositionDict = {
+EmployeePositionValue = {
     "PART_TIMER": 1,
     "FULL_TIMER": 3
 }
