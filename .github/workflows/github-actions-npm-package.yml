@@ -69,6 +69,7 @@ jobs:
             --additional-properties=useSingleRequestParameter=true \
             --additional-properties=targetFramework=net8.0 \
             --additional-properties=useEnumExtension=true \
+            --additional-properties=useDataContract=true \
             --additional-properties=enumPropertyNaming=original \
             -o ./api
 
