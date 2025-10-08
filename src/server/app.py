@@ -3,9 +3,8 @@ import itertools
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.models.employees.employees_file import all_employees
+from src.models.employees.employee_position_enum import EmployeePositionEnum
 from src.models.request_models.schedule_creation_data import ScheduleCreationData
-from src.models.shifts.shifts_file import all_shifts_in_the_week
 from src.models.solution.create_solutions import create_solutions
 from src.models.solution.schedule_solutions import ScheduleSolutions
 from src.models.solution.schedules_and_emps_metadata import SchedulesAndEmpsMetadata
@@ -14,6 +13,7 @@ app = FastAPI()
 
 origins = [
     "http://localhost",
+    "http://127.0.0.1:8007",
     "http://localhost:5173",
 ]
 
@@ -45,3 +45,8 @@ async def create_and_get_schedule_options(schedule_data: ScheduleCreationData):
     metadata = SchedulesAndEmpsMetadata(schedules_options, employees, shifts)
 
     return metadata
+
+
+@app.post("/receive_position_enum")
+async def receive_employee_position_enum(received_enum: EmployeePositionEnum):
+    print(received_enum.value)
