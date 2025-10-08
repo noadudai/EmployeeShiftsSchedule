@@ -62,7 +62,7 @@ jobs:
           sudo apt-get install jq -y
 
           docker run --rm ${{ steps.meta.outputs.tags }} python ./generate_openapi.py > openapi.json
-          
+          cat openapi.json
           npx @openapitools/openapi-generator-cli generate -i "openapi.json" \
             -g csharp-netcore --additional-properties=packageName=noadudai.schedule_generator_client \
             --additional-properties=packageVersion=${PACKAGE_VER} \
@@ -70,6 +70,7 @@ jobs:
             --additional-properties=targetFramework=net9.0 \
             --additional-properties=enumAsString=true \
             --additional-properties=enumPropertyNaming=original \
+            --additional-properties=validatable=false \
             -o ./api
 
           cd api/src/noadudai.schedule_generator_client
