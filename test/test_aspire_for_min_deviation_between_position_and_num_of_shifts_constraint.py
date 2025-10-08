@@ -8,7 +8,7 @@ from src.constraints_file import generate_shift_employee_combinations, \
     add_aspire_for_minimal_deviation_between_employees_position_and_number_of_shifts_given_constraint, \
     add_exactly_one_employee_per_shift_constraint
 from src.models.employees.employee import Employee
-from src.models.employees.employee_position_enum import EmployeePositionEnum
+from src.models.employees.employee_position_enum import EmployeePositionEnum, EmployeePositionValue
 from src.models.employees.employee_priority_enum import EmployeePriorityEnum
 from src.models.employees.employee_status_enum import EmployeeStatusEnum
 from src.models.shifts.shift import Shift
@@ -24,8 +24,8 @@ def test_full_timer_and_part_timer_gets_their_positions_amount_of_shifts():
     test_shift3 = Shift(shift_id="test_shift3", shift_type=ShiftTypesEnum.MORNING, start_time=test_shift2.end_time,  end_time=test_shift2.end_time + shift_duration)
     test_shift4 = Shift(shift_id="test_shift4", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift3.end_time, end_time=test_shift3.end_time + shift_duration)
 
-    full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.full_timer)
-    part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.part_timer)
+    full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.FULL_TIMER)
+    part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.PART_TIMER)
 
     employees = [full_timer_employee, part_timer_employee]
     shifts = [test_shift1, test_shift2, test_shift3, test_shift4]
@@ -42,8 +42,8 @@ def test_full_timer_and_part_timer_gets_their_positions_amount_of_shifts():
 
     emp_shift_assignments = get_employees_shifts_assignments(all_shifts, employees, shifts, solver)
 
-    assert len(emp_shift_assignments["full_timer_employee"]) == full_timer_employee.position.value
-    assert len(emp_shift_assignments["part_timer_employee"]) == part_timer_employee.position.value
+    assert len(emp_shift_assignments["full_timer_employee"]) == EmployeePositionValue[full_timer_employee.position]
+    assert len(emp_shift_assignments["part_timer_employee"]) == EmployeePositionValue[part_timer_employee.position]
 
 
 def test_the_2_extra_shifts_aside_from_the_positions_shifts_amount_are_divided_evenly_between_the_employees():
@@ -56,8 +56,8 @@ def test_the_2_extra_shifts_aside_from_the_positions_shifts_amount_are_divided_e
     test_shift5 = Shift(shift_id="test_shift5", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift4.end_time, end_time=test_shift4.end_time + shift_duration)
     test_shift6 = Shift(shift_id="test_shift6", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift5.end_time, end_time=test_shift5.end_time + shift_duration)
 
-    full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.full_timer)
-    part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.part_timer)
+    full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.FULL_TIMER)
+    part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.PART_TIMER)
 
     employees = [full_timer_employee, part_timer_employee]
     shifts = [test_shift1, test_shift2, test_shift3, test_shift4, test_shift5, test_shift6]
@@ -76,8 +76,8 @@ def test_the_2_extra_shifts_aside_from_the_positions_shifts_amount_are_divided_e
 
     emp_shift_assignments = get_employees_shifts_assignments(all_shifts, employees, shifts, solver)
 
-    assert len(emp_shift_assignments["full_timer_employee"]) == full_timer_employee.position.value + 1
-    assert len(emp_shift_assignments["part_timer_employee"]) == part_timer_employee.position.value + 1
+    assert len(emp_shift_assignments["full_timer_employee"]) == EmployeePositionValue[full_timer_employee.position] + 1
+    assert len(emp_shift_assignments["part_timer_employee"]) == EmployeePositionValue[part_timer_employee.position] + 1
 
 
 def test_the_shifts_are_divided_between_the_employees_and_no_employee_works_more_than_one_shift_than_the_other():
@@ -91,8 +91,8 @@ def test_the_shifts_are_divided_between_the_employees_and_no_employee_works_more
     test_shift6 = Shift(shift_id="test_shift6", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift5.end_time, end_time=test_shift5.end_time + shift_duration)
     test_shift7 = Shift(shift_id="test_shift7", shift_type=ShiftTypesEnum.MORNING_BACKUP, start_time=test_shift5.end_time, end_time=test_shift5.end_time + shift_duration)
 
-    full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.full_timer)
-    part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.part_timer)
+    full_timer_employee = Employee("full_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="full_timer_employee", position=EmployeePositionEnum.FULL_TIMER)
+    part_timer_employee = Employee("part_timer_employee", priority=EmployeePriorityEnum.HIGHEST, employee_status=EmployeeStatusEnum.senior_employee, employee_id="part_timer_employee", position=EmployeePositionEnum.PART_TIMER)
 
     employees = [full_timer_employee, part_timer_employee]
     shifts = [test_shift1, test_shift2, test_shift3, test_shift4, test_shift5, test_shift6, test_shift7]
@@ -111,8 +111,8 @@ def test_the_shifts_are_divided_between_the_employees_and_no_employee_works_more
 
     emp_shift_assignments = get_employees_shifts_assignments(all_shifts, employees, shifts, solver)
 
-    full_timer_shifts_deviation = len(emp_shift_assignments["full_timer_employee"]) - full_timer_employee.position.value
-    part_timer_deviation = len(emp_shift_assignments["part_timer_employee"]) - part_timer_employee.position.value
+    full_timer_shifts_deviation = len(emp_shift_assignments["full_timer_employee"]) - EmployeePositionValue[full_timer_employee.position]
+    part_timer_deviation = len(emp_shift_assignments["part_timer_employee"]) - EmployeePositionValue[part_timer_employee.position]
 
     full_timer_deviation_with_2_more_shifts = full_timer_shifts_deviation + 2
     part_timer_have_one_more_shift_deviation_then_the_full_timer = full_timer_deviation_with_2_more_shifts > part_timer_deviation > full_timer_shifts_deviation

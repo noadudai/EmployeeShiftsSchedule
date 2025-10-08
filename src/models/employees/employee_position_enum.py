@@ -6,6 +6,6 @@ EmployeePositionValue = {
 }
 
 
-class EmployeePositionEnum(Enum):
+class EmployeePositionEnum(str, Enum):
     PART_TIMER = "PartTimer"
     FULL_TIMER = "FullTimer"

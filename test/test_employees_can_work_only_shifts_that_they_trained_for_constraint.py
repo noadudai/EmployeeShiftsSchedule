@@ -8,8 +8,8 @@ from src.constraints_file import generate_shift_employee_combinations, add_exact
     add_prevent_overlapping_shifts_for_employees_constraint
 from src.models.employees.employee import Employee
 from src.models.shifts.shift import Shift
-from src.models.shifts import ShiftCombinationsKey
-from src.models.shifts import ShiftTypesEnum
+from src.models.shifts.shift_combinations_key import ShiftCombinationsKey
+from src.models.shifts.shifts_types_enum import ShiftTypesEnum
 
 
 def test_no_schedule_when_an_employee_cannot_work_a_shift_because_he_is_not_trained_to_do_that_shift():

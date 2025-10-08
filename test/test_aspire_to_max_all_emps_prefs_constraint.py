@@ -5,7 +5,7 @@ import uuid
 from ortools.sat.python import cp_model
 
 from src.models.employees.employee_preferences.combine_preference import CombinePreference
-from src.models.employees.employee_preferences import EmployeesShiftsPreferences
+from src.models.employees.employee_preferences.employees_shifts_preferences import EmployeesShiftsPreferences
 from src.models.employees.employee_preferences.date_time_range_preference_ import DateTimeRangePreference
 from src.models.employees.employee_preferences.shifts_preference_by_id import ShiftIdPreference
 from .schedule_solution_collector import ScheduleSolutionCollector
@@ -17,8 +17,8 @@ from src.models.employees.employee import Employee
 from src.models.employees.employee_position_enum import EmployeePositionEnum
 from src.models.employees.employee_priority_enum import EmployeePriorityEnum
 from src.models.shifts.shift import Shift
-from src.models.shifts import ShiftCombinationsKey
-from src.models.shifts import ShiftTypesEnum
+from src.models.shifts.shift_combinations_key import ShiftCombinationsKey
+from src.models.shifts.shifts_types_enum import ShiftTypesEnum
 
 
 def test_an_employee_is_not_working_in_a_day_he_can_not_work():
