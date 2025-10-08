@@ -69,6 +69,7 @@ jobs:
             --additional-properties=useSingleRequestParameter=true \
             --additional-properties=targetFramework=net9.0 \
             --additional-properties=enumAsString=true \
+            --additional-properties=enumPropertyNaming=original \
             -o ./api
 
           cd api/src/noadudai.schedule_generator_client
