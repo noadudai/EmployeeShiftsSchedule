@@ -45,8 +45,3 @@ async def create_and_get_schedule_options(schedule_data: ScheduleCreationData):
     metadata = SchedulesAndEmpsMetadata(schedules_options, employees, shifts)
 
     return metadata
-
-
-@app.post("/receive_position_enum")
-async def receive_employee_position_enum(received_enum: EmployeePositionEnum):
-    print(received_enum.value)

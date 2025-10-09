@@ -1,6 +1,5 @@
 import datetime
-from dataclasses import dataclass, field
-import uuid
+from dataclasses import dataclass
 
 from .shifts_types_enum import ShiftTypesEnum
 
