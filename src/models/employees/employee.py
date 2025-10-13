@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-import uuid
 
 from .employee_position_enum import EmployeePositionEnum
 from .employee_preferences.employees_shifts_preferences import EmployeesShiftsPreferences
@@ -15,5 +14,5 @@ class Employee:
     employee_status: EmployeeStatusEnum
     employee_id: str
     position: EmployeePositionEnum
+    shift_types_trained_to_do: list[ShiftTypesEnum]
     shifts_preferences: EmployeesShiftsPreferences = field(default_factory=EmployeesShiftsPreferences)
-    shift_types_trained_to_do: list[ShiftTypesEnum] = field(default_factory=lambda: list(ShiftTypesEnum))

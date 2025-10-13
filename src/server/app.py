@@ -3,8 +3,8 @@ import itertools
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.models.employees.employee_position_enum import EmployeePositionEnum
-from src.models.request_models.schedule_creation_data import ScheduleCreationData
+from src.client.api_models.schedule_creation_data import ScheduleCreationData
+from src.client.converters.employee_converters import api_employee_to_internal_employee
 from src.models.solution.create_solutions import create_solutions
 from src.models.solution.schedule_solutions import ScheduleSolutions
 from src.models.solution.schedules_and_emps_metadata import SchedulesAndEmpsMetadata
@@ -33,7 +33,7 @@ async def index():
 
 @app.post("/create_and_get_schedule_options", response_model=SchedulesAndEmpsMetadata)
 async def create_and_get_schedule_options(schedule_data: ScheduleCreationData):
-    employees = schedule_data.employees
+    employees = list(api_employee_to_internal_employee(employee) for employee in schedule_data.employees)
     shifts = schedule_data.shifts
 
     schedule_solution: ScheduleSolutions = create_solutions(employees, shifts)

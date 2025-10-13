@@ -1,0 +1,8 @@
+from enum import Enum
+
+
+class EmployeeStatusApiEnum(str, Enum):
+    NEW_EMPLOYEE = "NEW_EMPLOYEE"
+    JUNIOR_EMPLOYEE = "JUNIOR_EMPLOYEE"
+    MID_LEVEL_EMPLOYEE = "MID_LEVEL_EMPLOYEE"
+    SENIOR_EMPLOYEE = "SENIOR_EMPLOYEE"

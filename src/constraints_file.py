@@ -264,7 +264,7 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
 
         employee_pref_shifts_by_id = employee.shifts_preferences.shifts_wants_to_work.get_shifts_preference(shifts)
         emp_shift_pref_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in employee_pref_shifts_by_id]
-        emps_shifts_prefs.append(sum(emp_shift_pref_assignments) * EmployeePriorityValue[employee.priority])
+        emps_shifts_prefs.append(sum(emp_shift_pref_assignments) * EmployeePriorityValue[employee.priority.value])
 
         employee_shifts_cannot_work_by_id = employee.shifts_preferences.shifts_cannot_work.get_shifts_preference(shifts)
         employee_shifts_cannot_work_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in employee_shifts_cannot_work_by_id]
@@ -272,7 +272,7 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
 
         employee_shifts_in_days_prefer_not_to_work = employee.shifts_preferences.shifts_prefer_not_to_work.get_shifts_preference(shifts)
         employee_shifts_in_days_prefer_not_to_work_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in employee_shifts_in_days_prefer_not_to_work]
-        emps_days_pref_not_to_work.append(sum(employee_shifts_in_days_prefer_not_to_work_assignments) * (math.ceil(1 / EmployeePriorityValue[employee.priority])))
+        emps_days_pref_not_to_work.append(sum(employee_shifts_in_days_prefer_not_to_work_assignments) * (math.ceil(1 / EmployeePriorityValue[employee.priority.value])))
 
     constraint_model.Minimize(sum(emps_days_pref_not_to_work))
     constraint_model.Maximize(sum(emps_shifts_prefs))

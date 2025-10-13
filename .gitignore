@@ -167,3 +167,5 @@ screenshots/
 api/
 
 openapi.json
+
+src/models/employees/employees_file.py
