@@ -160,3 +160,12 @@ cython_debug/
 .idea/*
 
 src/static_site/
+openapitools.json
+
+screenshots/
+
+api/
+
+openapi.json
+
+src/models/employees/employees_file.py

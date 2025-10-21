@@ -2,8 +2,8 @@ import datetime
 import random
 
 from src.models.shifts.shift import Shift
-from src.models.shifts import ShiftCombinationsKey
-from src.models.shifts import ShiftTypesEnum
+from src.models.shifts.shift_combinations_key import ShiftCombinationsKey
+from src.models.shifts.shifts_types_enum import ShiftTypesEnum
 from src.constraints_file import is_fully_overlapping
 
 

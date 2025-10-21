@@ -2,8 +2,8 @@ from enum import Enum
 
 
 class EmployeeStatusEnum(Enum):
-    new_employee = "new employee"               # A new employee
-    junior_employee = "junior employee"         # A not so new employee
-    mid_level_employee = "mid level employee"   # An experienced employee
-    senior_employee = "senior employee"         # An experienced and highly skilled employee
+    NEW_EMPLOYEE = "NEW_EMPLOYEE"               # A new employee
+    JUNIOR_EMPLOYEE = "JUNIOR_EMPLOYEE"         # A not so new employee
+    MID_LEVEL_EMPLOYEE = "MID_LEVEL_EMPLOYEE"   # An experienced employee
+    SENIOR_EMPLOYEE = "SENIOR_EMPLOYEE"         # An experienced and highly skilled employee
  

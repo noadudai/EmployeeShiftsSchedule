@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class ShiftTypesEnum(Enum):
+class ShiftTypesApiEnum(Enum):
     MORNING = "MORNING"
     MORNING_BACKUP = "MORNING_BACKUP"
     EVENING = "EVENING"

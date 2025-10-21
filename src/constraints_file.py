@@ -8,6 +8,8 @@ from uuid import UUID
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 from src.models.employees.employee import Employee
+from src.models.employees.employee_position_enum import EmployeePositionValue
+from src.models.employees.employee_priority_enum import EmployeePriorityValue
 from src.models.employees.employee_status_enum import EmployeeStatusEnum
 from src.models.shifts.shift_combinations_key import ShiftCombinationsKey
 from src.models.shifts.shift import Shift
@@ -246,7 +248,8 @@ def add_aspire_for_minimal_deviation_between_employees_position_and_number_of_sh
         deviation = constraint_model.NewIntVar(0, len(emp_shifts), f'deviation_{employee.employee_id}')
         multy_deviation = constraint_model.NewIntVar(0, pow(len(emp_shifts), 2), f'multy_deviation_{employee.employee_id}')
 
-        constraint_model.AddAbsEquality(deviation, sum(emp_shifts) - employee.position.value)
+        max_shifts_assignable = min(EmployeePositionValue[employee.position], len(emp_shifts))
+        constraint_model.AddAbsEquality(deviation, sum(emp_shifts) - max_shifts_assignable)
         constraint_model.AddMultiplicationEquality(multy_deviation, deviation, deviation)
         deviations.append(multy_deviation)
     constraint_model.Minimize(sum(deviations))
@@ -261,7 +264,7 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
 
         employee_pref_shifts_by_id = employee.shifts_preferences.shifts_wants_to_work.get_shifts_preference(shifts)
         emp_shift_pref_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in employee_pref_shifts_by_id]
-        emps_shifts_prefs.append(sum(emp_shift_pref_assignments) * employee.priority.value)
+        emps_shifts_prefs.append(sum(emp_shift_pref_assignments) * EmployeePriorityValue[employee.priority.value])
 
         employee_shifts_cannot_work_by_id = employee.shifts_preferences.shifts_cannot_work.get_shifts_preference(shifts)
         employee_shifts_cannot_work_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in employee_shifts_cannot_work_by_id]
@@ -269,7 +272,7 @@ def add_aspire_to_maximize_all_employees_preferences_constraint(shifts: list[Shi
 
         employee_shifts_in_days_prefer_not_to_work = employee.shifts_preferences.shifts_prefer_not_to_work.get_shifts_preference(shifts)
         employee_shifts_in_days_prefer_not_to_work_assignments = [shift_combinations[ShiftCombinationsKey(employee.employee_id, shift.shift_id)] for shift in employee_shifts_in_days_prefer_not_to_work]
-        emps_days_pref_not_to_work.append(sum(employee_shifts_in_days_prefer_not_to_work_assignments) * (math.ceil(1 / employee.priority.value)))
+        emps_days_pref_not_to_work.append(sum(employee_shifts_in_days_prefer_not_to_work_assignments) * (math.ceil(1 / EmployeePriorityValue[employee.priority.value])))
 
     constraint_model.Minimize(sum(emps_days_pref_not_to_work))
     constraint_model.Maximize(sum(emps_shifts_prefs))

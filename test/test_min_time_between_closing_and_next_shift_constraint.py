@@ -10,10 +10,10 @@ from src.constraints_file import generate_shift_employee_combinations, add_exact
 from src.models.employees.employee import Employee
 from src.models.employees.employee_position_enum import EmployeePositionEnum
 from src.models.employees.employee_priority_enum import EmployeePriorityEnum
-from src.models import EmployeeStatusEnum
+from src.models.employees.employee_status_enum import EmployeeStatusEnum
 from src.models.shifts.shift import Shift
-from src.models.shifts import ShiftCombinationsKey
-from src.models.shifts import ShiftTypesEnum
+from src.models.shifts.shift_combinations_key import ShiftCombinationsKey
+from src.models.shifts.shifts_types_enum import ShiftTypesEnum
 
 
 def test_no_optimal_solution_when_the_closing_shift_and_the_next_shift_are_too_close_to_each_other():
